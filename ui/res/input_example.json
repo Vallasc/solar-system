@@ -1,0 +1,42 @@
+{   
+    "name" : "example",
+    "input" : {
+    },
+    "output" : {
+        "deltaT" : 100,
+        "values" : [
+            {
+                "elements": [
+                    {
+                        "name" : "p1",
+                        "x" : 4,
+                        "y" : 5,
+                        "radius" : 10
+                    },
+                    {
+                        "name" : "p2",
+                        "x" : 3,
+                        "y" : 3,
+                        "radius" : 5
+                    }
+                ]
+            },
+            {
+                "elements": [
+                    {
+                        "name" : "p1",
+                        "x" : 4,
+                        "y" : 4,
+                        "radius" : 10
+                    },
+                    {
+                        "name" : "p2",
+                        "x" : 3,
+                        "y" : 4,
+                        "radius" : 5
+                    }
+                ]
+            }
+        ]
+    }
+}
