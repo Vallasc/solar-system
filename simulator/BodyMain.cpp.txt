@@ -1,0 +1,36 @@
+#include <iostream>
+#include <math.h>
+#include "Body.cpp"
+
+double distance(const Body &a, const Body &b)
+{
+     return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
+}
+
+void force(Body &a, Body &b)
+{
+    double f=(G*b.mass*a.mass)/(pow(distance(a,b), 3));
+    double fx_a=f*(a.position[0]-b.position[0]);//forza lungo x agente su a
+    double fy_a=f*(a.position[1]-b.position[1]); //forza lungo y agente su a
+
+    a.acceleration[0]+=fx_a/(a.mass);
+    a.acceleration[1]+=fy_a/(a.mass);
+
+    b.acceleration[0]-=fx_a/(b.mass);//uso il meno per il terzo prin di newton
+    b.acceleration[1]-=fx_a/(b.mass);//same
+}
+
+
+using namespace std;
+int main(){
+
+    double pos[]{1,2};
+    double pos1[]{1,5};
+    double vel[]{3,4};
+    Body g(pos,vel,7,8);
+    Body h(pos1,vel,7,8);
+    cout << distance(g, h) << endl;
+    force(g,h);
+    cout<<g.acceleration[1]<<endl;
+
+}
