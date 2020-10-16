@@ -2,17 +2,23 @@
 #define BODY_H
 #include <math.h>
 
-double G = 6.67;
+double G = 1;
 
 class Body{
 
     public:
     Body(double* position_, double* velocity_, double radius_, double mass_);
     Body()=default;
+    Body & operator=(Body &&s);
 
     void merge(Body& a);
+    void getAll();
+    void updatePosition(double t);
+    void updateVelocity(double t);
+    void updatePosVel(double t);
 
 
+    static int deadBodies;
     double position[2];
     double acceleration[2]; 
     double radius;
@@ -25,5 +31,6 @@ class Body{
 
     
 };
+int Body::deadBodies=0;
 
 #endif
