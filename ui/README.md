@@ -1,3 +1,15 @@
-# Install npm
-npm install --global typescript
-tsc typescript/index.ts
+# How to build
+
+- Install npm
+- Install dependencies
+    ```sh
+    $ npm install
+    ```
+- Build 
+    ```sh
+    $ npm run build
+    ```
+- Run web server and hot reload
+    ```sh
+    $ npm run watch
+    ```
