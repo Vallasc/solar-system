@@ -1,6 +1,6 @@
+#include <math.h>
 #ifndef BODY_H
 #define BODY_H
-#include <math.h>
 
 double G = 1;
 
@@ -16,11 +16,11 @@ class Body{
     void updatePosition(double t);
     void updateVelocity(double t);
     void updatePosVel(double t);
-
+    
     static int deadBodies;
     double position[2];
-    double acceleration[2]; 
     double velocity[2];
+    double acceleration[2]; 
     double radius
     double mass;
     //double E_k=0.5*mass*(pow(velocity[0], 2)+pow(velocity[1], 2));

@@ -10,16 +10,20 @@ double distance(const Body &a, const Body &b)
 void force(Body &a, Body &b)
 {
     double f=(G*b.mass*a.mass)/(pow(distance(a,b), 3));
-    double fx_a=f*(b.position[0]-a.position[0]);//forza lungo x agente su a
+    double fx_a=f*(b.position[0]-a.position[0]); //forza lungo x agente su a
     double fy_a=f*(b.position[1]-a.position[1]); //forza lungo y agente su a
 
     a.acceleration[0]+=fx_a/(a.mass);
     a.acceleration[1]+=fy_a/(a.mass);
 
-    b.acceleration[0]-=fx_a/(b.mass);//uso il meno per il terzo prin di newton
-    b.acceleration[1]-=fy_a/(b.mass);//same
+    b.acceleration[0]-=fx_a/(b.mass); //uso il meno per il terzo principio di Newton
+    b.acceleration[1]-=fy_a/(b.mass); //same
 }
 
+int N = 4; //numero di corpi
+double t = 0; //tempo
+double dt = 0.001; //quanto di tempo
+double t_f = 10; //tempo finale
 
 using namespace std;
 int main(){
@@ -37,7 +41,7 @@ int main(){
     g.merge(h);
     cout<<Body::deadBodies<<endl;
     cout<<g.acceleration[1]<<endl;
-    cout<<h.acceleration[1]<<endl;*/
+    cout<<h.acceleration[1]<<endl;
 
     double t=0.5, NBodies=2, NTiming=1;
     int r=1;
@@ -52,8 +56,6 @@ int main(){
     array[0].getAll();
     array[1].getAll();
     cout<<"\n";
-
-    //for(int i=0; i<NTiming; ++i){
     while(r){
       
         force(array[0], array[1]);
@@ -63,7 +65,38 @@ int main(){
         array[1].getAll();
         cout<<"\n";
         cin>>r;
-    }
+    } 
+    */
 
+Body* bodies[N]; //array di Body
+double position_i[2]; //grandezze di inizializzazione
+double velocity_i[2];
+double mass_i = 1;
+double radius_i = 1;
+
+for(int j=0; j<4; ++j){ //inizializzazione casuale di posizione e velocità
+    position_i[0] = rand();
+    position_i[1] = rand();
+    velocity_i[0] = rand();
+    velocity_i[1] = rand();
+    bodies[j] = Body(position_i, velocity_i, mass_i, radius_i);
+}
+
+while(1)
+{
+    for(int j=0; j<N-1; ++j){ //calcolo delle NC2 forze
+        for(int k=j+1; k<N; ++k){
+            force(bodies[j], bodies[k]);
+        }
+    } 
+
+    t+=dt;
+
+    for(int i=0; i<N; ++i) bodies[i]->updatePosVel(t); //calcolo delle posizioni e delle velocità di ogni particella    
+
+    //*************** qua bisognerà salvare le posizione, le velocità e le accelerazioni in un file .json
+
+    if(t == t_f) break;
+}
 
 }

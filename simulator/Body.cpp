@@ -4,7 +4,7 @@
 
 //public members
 //parametric costructor
-Body::Body(double* position_, double* velocity_, double radius_, double mass_):mass(mass_)
+Body::Body(double* position_, double* velocity_, double radius_, double mass_): mass(mass_)
     {
         acceleration[0]=0; acceleration[1]=0;
         velocity[0]=velocity_[0]; velocity[1]=velocity_[1];
