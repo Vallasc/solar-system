@@ -92,7 +92,7 @@ while(1)
 
     t+=dt;
 
-    for(int i=0; i<N; ++i) bodies[i]->updatePosVel(t); //calcolo delle posizioni e delle velocità di ogni particella    
+    for(int i=0; i<N; ++i) bodies[i]->updatePosVel(dt); //calcolo delle posizioni e delle velocità di ogni particella    
 
     //*************** qua bisognerà salvare le posizione, le velocità e le accelerazioni in un file .json
 
