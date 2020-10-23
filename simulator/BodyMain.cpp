@@ -69,7 +69,7 @@ while(1)
             force(bodies[j], bodies[k]);
         }
     }
-
+ 
     for(int i=0; i<bodies.end()-1; ++i) bodies[i]->updatePosVel(dt); // evolving the position and the velocity of each particle in dt
 
     t+=dt; // the time flows
