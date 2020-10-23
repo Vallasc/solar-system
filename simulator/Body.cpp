@@ -9,14 +9,14 @@ const int G=1;
 Body::Body(double* position_, double* velocity_, double radius_, double mass_)
 {
     //default inizialization variables
-    acceleration[0]=0; acceleration[1]=0;
-    internalEnergy=0;
+    acceleration[0] = 0; acceleration[1] = 0;
+    internalEnergy = 0;
 
     //variables
-    velocity[0]=velocity_[0]; velocity[1]=velocity_[1];
-    position[0]=position_[0]; position[1]=position_[1];
-    radius=radius_;
-    mass=mass_;
+    velocity[0] = velocity_[0]; velocity[1] = velocity_[1];
+    position[0] = position_[0]; position[1] = position_[1];
+    radius = radius_;
+    mass = mass_;
 }
 
 
@@ -24,7 +24,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
 //b.GetKineticEnergy; compute and return kinetic energy of b
 double Body::GetKineticEnergy()
 {
-    return 0.5*mass*(pow(velocity[0], 2)+pow(velocity[1], 2));
+    return 0.5*mass*(pow(velocity[0], 2) + pow(velocity[1], 2));
 }
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
@@ -84,8 +84,8 @@ void Body::updatePosVel(double dt)
 {
     updatePosition(dt);
     updateVelocity(dt);
-    this->acceleration[0]=0;
-    this->acceleration[1]=0;
+    this->acceleration[0] = 0;
+    this->acceleration[1] = 0;
 }
 
 
@@ -99,9 +99,9 @@ double distance(const Body &a, const Body &b)
 //force(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void force(Body &a, Body &b)
 {
-    double f=(G*b.mass*a.mass)/(pow(distance(a,b), 3)); 
-    double fx_a=f*(b.position[0]-a.position[0]);//force along x on a
-    double fy_a=f*(b.position[1]-a.position[1]);//force along y on a
+    double f = (G*b.mass*a.mass)/(pow(distance(a,b), 3)); 
+    double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
+    double fy_a = f*(b.position[1]-a.position[1]);//force along y on a
 
     a.acceleration[0] += fx_a/(a.mass);//updating acceleration
     a.acceleration[1] += fy_a/(a.mass);

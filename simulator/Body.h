@@ -6,7 +6,7 @@ class Body{
 
     public:
     Body(double* position_, double* velocity_, double radius_, double mass_);//parametric constructor
-    Body()=default; //default constructor
+    Body() = default; //default constructor
     //Body & operator=(Body &&s); //rvalue assigment
 
     //functions
