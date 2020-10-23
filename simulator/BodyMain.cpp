@@ -1,6 +1,9 @@
 #include <iostream>
 #include <math.h>
-#include "Body.cpp"
+#include <stdlib.h>
+#include <time.h>
+#include "Body.h"
+
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
@@ -9,22 +12,33 @@ using namespace std;
 int t = 0; // time
 int dt = 1; // time interval
 int t_f = 10000; // final time
+double x_min, x_max; // lower and upper limit for the positions and the velocities
+double v_min, v_max;
+
+//------------------------------ double random number generator ---------------
+double random_generator(double x_min, double x_max)
+{
+    double r = (double)rand() / RAND_MAX;
+    return x_min + r * (x_max - x_min);
+}
 
 //------------------------------------- main -----------------------------------
 int main(){
 
-//------------------------------------- start ----------------------------------
+//------------------------------------- start line ----------------------------------
 vector<body> bodies; // bodies vector
 double position_i[2]; // variables with starting values
 double velocity_i[2];
 double mass_i = 1;
 double radius_i = 1;
 
+srand(time(NULL)); // random seed
+
 for(int j=0; j<N; ++j){ // random position and velocity initialization
-    position_i[0] = rand();
-    position_i[1] = rand();
-    velocity_i[0] = rand();
-    velocity_i[1] = rand();
+    position_i[0] = random_generator(x_min, x_max);
+    position_i[1] = random_generator(x_min, x_max);
+    velocity_i[0] = random_generator(v_min, v_max);
+    velocity_i[1] = random_generator(v_min, v_max);
     bodies.push_back(Body(position_i, velocity_i, mass_i, radius_i));
 }
 
@@ -55,7 +69,7 @@ while(1)
             force(bodies[j], bodies[k]);
         }
     }
-
+ 
     for(int i=0; i<bodies.end()-1; ++i) bodies[i]->updatePosVel(dt); // evolving the position and the velocity of each particle in dt
 
     t+=dt; // the time flows
