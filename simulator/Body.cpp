@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "Body.h"
+#include <vector>
 
 const int G=1;
 
@@ -46,7 +47,6 @@ void Body::merge(Body& a)
 
         //update internalEnergy. sum of internal energy + difference of initial and final kinetic energy
         this->internalEnergy += a.internalEnergy + (kInitial - this->GetKineticEnergy());
-
 
         //sum of masses
         this->mass += a.mass;
