@@ -2,24 +2,7 @@
 #include <math.h>
 #include "Body.cpp"
 
-double distance(const Body &a, const Body &b)
-{
-     return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
-}
-
-void force(Body &a, Body &b)
-{
-    double f=(G*b.mass*a.mass)/(pow(distance(a,b), 3));
-    double fx_a=f*(b.position[0]-a.position[0]); //forza lungo x agente su a
-    double fy_a=f*(b.position[1]-a.position[1]); //forza lungo y agente su a
-
-    a.acceleration[0]+=fx_a/(a.mass);
-    a.acceleration[1]+=fy_a/(a.mass);
-
-    b.acceleration[0]-=fx_a/(b.mass); //uso il meno per il terzo principio di Newton
-    b.acceleration[1]-=fy_a/(b.mass); //same
-}
-
+//-----------------
 int N = 4; //numero di corpi
 double t = 0; //tempo
 double dt = 0.001; //quanto di tempo
@@ -92,7 +75,7 @@ while(1)
 
     t+=dt;
 
-    for(int i=0; i<N; ++i) bodies[i]->updatePosVel(t); //calcolo delle posizioni e delle velocità di ogni particella    
+    for(int i=0; i<N; ++i) bodies[i]->updatePosVel(dt); //calcolo delle posizioni e delle velocità di ogni particella    
 
     //*************** qua bisognerà salvare le posizione, le velocità e le accelerazioni in un file .json
 
