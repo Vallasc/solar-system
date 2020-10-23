@@ -21,7 +21,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
 
 
 //-----------------class functions---------------------
-//b.GetKineticEnergy; compute and return kinetic enery of b
+//b.GetKineticEnergy; compute and return kinetic energy of b
 double Body::GetKineticEnergy()
 {
     return 0.5*mass*(pow(velocity[0], 2)+pow(velocity[1], 2));
@@ -34,12 +34,12 @@ void Body::merge(Body& a)
         double kInitial = a.GetKineticEnergy() + this->GetKineticEnergy();
 
         //center of mass position
-        this->position[0]=(a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);
-        this->position[1]=(a.mass*a.position[1] + this->mass*this->position[1])/(this->mass + a.mass);
+        this->position[0] = (a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);
+        this->position[1] = (a.mass*a.position[1] + this->mass*this->position[1])/(this->mass + a.mass);
 
         //center of mass velocity
-        this->velocity[0]=(a.mass*a.velocity[0] + this->mass*this->velocity[0])/(this->mass + a.mass);
-        this->velocity[1]=(a.mass*a.velocity[1] + this->mass*this->velocity[1])/(this->mass + a.mass);
+        this->velocity[0] = (a.mass*a.velocity[0] + this->mass*this->velocity[0])/(this->mass + a.mass);
+        this->velocity[1] = (a.mass*a.velocity[1] + this->mass*this->velocity[1])/(this->mass + a.mass);
 
         //sum of volumes
         this->radius = pow((pow(this->radius,3) + pow(a.radius,3)), double(1)/3);
