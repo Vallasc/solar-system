@@ -2,34 +2,33 @@
 #ifndef BODY_H
 #define BODY_H
 
-double G = 1;
-
 class Body{
 
     public:
-    Body(double* position_, double* velocity_, double radius_, double mass_);
-    Body()=default;
-    Body & operator=(Body &&s);
+    Body(double* position_, double* velocity_, double radius_, double mass_);//parametric constructor
+    Body()=default; //default constructor
+    //Body & operator=(Body &&s); //rvalue assigment
 
-    void merge(Body& a);
-    void getAll();
-    void updatePosition(double t);
-    void updateVelocity(double t);
-    void updatePosVel(double t);
-    
-    static int deadBodies;
+    //functions
+    void merge(Body& a); //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
+    void getAll(); //b.getAll(); show all attributes of b.
+    void updatePosition(double dt); //b.updatePosition(dt); update the position of b using costant accelerated motion over a dt time.
+    void updateVelocity(double dt); //b.updatePosition(dt); update the velocity of b using costant accelerated motion over a dt time.
+    void updatePosVel(double dt); //b.updatePosVel(dt); update position (updatePosition(dt)) and velocity (updateVelocity(dt)) of b and reset acceleration.
+
+    //getters
+    double GetKineticEnergy(); //Get kinetic energy
+
+    //variables
     double position[2];
     double velocity[2];
     double acceleration[2]; 
-    double radius
+    double radius;
     double mass;
-    //double E_k=0.5*mass*(pow(velocity[0], 2)+pow(velocity[1], 2));
-    //double E_t;
-    //double volume=4/3*M_PI*pow(radius,3);
+    double internalEnergy; 
    
 
     
 };
-int Body::deadBodies=0;
 
 #endif
