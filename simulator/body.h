@@ -1,4 +1,5 @@
 #include <math.h>
+#include <sstream>
 #ifndef BODY_H
 #define BODY_H
 

@@ -2,8 +2,8 @@
 #include <math.h>
 #include <vector>
 
-#include "Body.h"
-#include "Serializer.h"
+#include "body.h"
+#include "serializer.h"
 
 using namespace std;
 

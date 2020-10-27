@@ -2,7 +2,7 @@
 #include <math.h>
 #include <sstream>
 
-#include "Body.h"
+#include "body.h"
 #include <vector>
 
 const int G=1;
