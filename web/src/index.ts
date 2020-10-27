@@ -1,6 +1,32 @@
-const canvas : HTMLCanvasElement = document.getElementById("main-canvas") as HTMLCanvasElement;
-const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
+class Startup {
 
-ctx.beginPath();
-ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-ctx.stroke();
+    static mainCanvas : HTMLCanvasElement;
+    static sideContainer : HTMLElement;
+
+    public static main(): number {
+        console.log('Main');
+        Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
+
+        window.onresize = Startup.onWindowResized;
+        Startup.resize();
+
+
+        
+
+        return 0;
+    }
+
+    private static onWindowResized (event:UIEvent):void {
+        Startup.resize();
+    }
+
+    public static resize ():void {
+        Startup.mainCanvas.width = window.innerWidth*0.7;
+        Startup.mainCanvas.height = window.innerHeight;
+        let ctx = <CanvasRenderingContext2D> Startup.mainCanvas.getContext("2d");
+        ctx.fillRect(20, 20, 100, 100);
+    }
+
+}
+
+Startup.main();
