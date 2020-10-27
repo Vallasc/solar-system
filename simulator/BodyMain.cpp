@@ -2,12 +2,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
+#include <bits/stdc++.h>
 #include "Body.h"
 
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-#define N 4; // number of bodies
+int N = 4; // number of bodies
 
 int t = 0; // time
 int dt = 1; // time interval
@@ -26,7 +28,7 @@ double random_generator(double x_min, double x_max)
 int main(){
 
 //------------------------------------- start line ----------------------------------
-vector<body> bodies; // bodies vector
+vector<Body> bodies; // bodies vector
 double position_i[2]; // variables with starting values
 double velocity_i[2];
 double mass_i = 1;
@@ -47,30 +49,32 @@ for(int j=0; j<N; ++j){ // random position and velocity initialization
 while(1)
 {
 
-    for(int j=bodies.begin(); j<bodies.end()-2; ++j){
-        for(int k=j+1; k<bodies.end()-1; ++k){             
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j){
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
             // computing the distance of each couple of bodies: if this distance is minor than the sum of 
             // their radius, we merge them
-            if(distance(bodies[j], bodies[k]) < (bodies[j].radius + bodies[k].radius)){
-                bodies[j].merge(bodies[k]);
+            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius)){
+                (*j).merge(*k);
                 bodies.erase(k);
-                bodies.shrink_to_fit();
             }
         }
     }
+
+bodies.shrink_to_fit();
 
     Serializer serializer("Dati/bodies.json"); //writing data on .json file
     serializer.write(t, bodies);
 
     if (t == t_f) break; // when we reach t_f the evolution terminates
 
-    for(int j=bodies.begin(); j<bodies.end()-2; ++j){// computing all the forces between couples of bodies
-        for(int k=j+1; k<bodies.end()-1; ++k){
-            force(bodies[j], bodies[k]);
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j){// computing all the forces between couples of bodies
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
+            Body::force(*j, *k);
         }
     }
  
-    for(int i=0; i<bodies.end()-1; ++i) bodies[i]->update_pos_vel(dt); // evolving the position and the velocity of each particle in dt
+
+    for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) (*i).update_pos_vel(dt); // evolving the position and the velocity of each particle in dt
 
     t+=dt; // the time flows
 
