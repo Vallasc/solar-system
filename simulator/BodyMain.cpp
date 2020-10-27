@@ -15,7 +15,7 @@ int t_f = 10000; // final time
 double x_min, x_max; // lower and upper limit for the positions and the velocities
 double v_min, v_max;
 
-//------------------------------ double random number generator ---------------
+//------------------------------ real random number generator ---------------
 double random_generator(double x_min, double x_max)
 {
     double r = (double)rand() / RAND_MAX;
