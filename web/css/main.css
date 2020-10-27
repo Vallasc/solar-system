@@ -1,0 +1,22 @@
+html, body {
+  margin: 0px;
+  height: 100%;
+  display: flex;
+}
+
+.flex-container {
+    flex: 1;
+    display: flex;
+    background-color: red;
+  }
+  
+  .flex-container > div {
+    background-color: #f1f1f1;
+    width: 30%;
+    height: 100%;
+  }
+
+  .flex-container > canvas {
+    width: 70%;
+    height: 100%;
+  }
