@@ -10,8 +10,8 @@ class Startup {
         window.onresize = Startup.onWindowResized;
         Startup.resize();
 
-        let b = new Body({ x : 3, y: 4});
-        b.print();
+
+        
 
         return 0;
     }
