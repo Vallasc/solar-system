@@ -21,6 +21,9 @@ class Startup {
         console.log(array);
         Startup.loop = new Loop(Startup.mainCanvas, array);
 
+        let d = new Deserializer();
+        d.getJson("bodies.json");
+        
         return 0;
     }
 
