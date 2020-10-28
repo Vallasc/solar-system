@@ -24,7 +24,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
 
 
 //-----------------class functions---------------------
-//b.GetKineticEnergy; compute and return kinetic enery of b
+//b.get_kinetic_energy; compute and return kinetic enery of b
 double Body::get_kinetic_energy()
 {
     return 0.5*mass*(pow(velocity[0], 2) + pow(velocity[1], 2));
@@ -54,7 +54,7 @@ void Body::merge(Body& a)
         this->mass += a.mass;
     }
 
-//b.getAll(); show all attributes of b.
+//b.print(); show all attributes of b.
 void Body::print()
 {
     std::cout<<"position: "<<this->position[0]<<", "<<this->position[1]<<std::endl;
@@ -67,27 +67,27 @@ void Body::print()
 
 }
 
-//b.updatePosition(dt); update the position of b using costant accelerated motion over a dt time.
+//b.update_position(dt); update the position of b using costant accelerated motion over a dt time.
 void Body::update_position(double dt)
 {
     position[0] += velocity[0]*dt + 0.5*acceleration[0]*dt*dt;
     position[1] += velocity[1]*dt + 0.5*acceleration[1]*dt*dt;
 }
 
-//b.updatePosition(dt); update the velocity of b using costant accelerated motion over a dt time.
+//b.update_velocity(dt); update the velocity of b using costant accelerated motion over a dt time.
 void Body::update_velocity(double dt)
 {
     velocity[0] += acceleration[0]*dt;
     velocity[1] += acceleration[1]*dt;
 }
 
-//b.updatePosVel(dt); update position (updatePosition(dt)) and velocity (updateVelocity(dt)) of b and reset acceleration.
+//b.update_pos_vel(dt); update position (updatePosition(dt)) and velocity (updateVelocity(dt)) of b and reset acceleration.
 void Body::update_pos_vel(double dt)
 {
     update_position(dt);
     update_velocity(dt);
-    this->acceleration[0]=0;
-    this->acceleration[1]=0;
+    this->acceleration[0] = 0;
+    this->acceleration[1] = 0;
 }
 
 std::string Body::to_json()
