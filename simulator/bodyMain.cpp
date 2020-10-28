@@ -11,14 +11,14 @@
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-int N = 100; // number of bodies
+int N = 400; // number of bodies
 
 float t = 0; // time
-float dt = 0.01; // time interval
-int t_f = 20; // final time
-double x_min=0, x_max=800; // lower and upper limit for the positions and the velocities
+float dt = 0.05; // time interval
+int t_f = 10; // final time
+double x_min=0, x_max=1000; // lower and upper limit for the positions and the velocities
 double v_min=0, v_max=80;
-string filename = "s3.json";
+string filename = "generated/s4.json";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min, double x_max)
@@ -35,7 +35,7 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double mass_i = 10;
-    double radius_i = 10;
+    double radius_i = 1;
 
     srand(time(NULL)); // random seed
 
@@ -44,7 +44,7 @@ int main(){
         position_i[1] = random_generator(x_min, x_max);
         velocity_i[0] = random_generator(v_min, v_max);
         velocity_i[1] = random_generator(v_min, v_max);
-        bodies.push_back(Body(position_i, velocity_i, mass_i, radius_i));
+        bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
     }
 
     Serializer serializer(filename); //writing data on .json file
