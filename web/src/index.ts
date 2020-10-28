@@ -2,6 +2,7 @@ class Startup {
 
     static mainCanvas : HTMLCanvasElement;
     static sideContainer : HTMLElement;
+    static loop : Loop;
 
     public static main(): number {
         console.log('Main');
@@ -10,8 +11,15 @@ class Startup {
         window.onresize = Startup.onWindowResized;
         Startup.resize();
 
-
-        
+        let array : Array<Array<Body>> = [];
+        for(let i=0; i<60*60; i++){
+            let row = [];
+            for(let j=0; j<5; j++)
+                row.push(new Body({ x : j*100+i, y: j*100+i}));
+            array.push(row);
+        }
+        console.log(array);
+        Startup.loop = new Loop(Startup.mainCanvas, array);
 
         return 0;
     }
@@ -23,8 +31,6 @@ class Startup {
     public static resize ():void {
         Startup.mainCanvas.width = window.innerWidth*0.7;
         Startup.mainCanvas.height = window.innerHeight;
-        let ctx = <CanvasRenderingContext2D> Startup.mainCanvas.getContext("2d");
-        ctx.fillRect(20, 20, 100, 100);
     }
 
 }
