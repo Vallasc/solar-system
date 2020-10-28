@@ -16,7 +16,7 @@ int N = 400; // number of bodies
 float t = 0; // time
 float dt = 0.05; // time interval
 int t_f = 10; // final time
-double x_min=0, x_max=1000; // lower and upper limit for the positions and the velocities
+double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
 double v_min=0, v_max=80;
 string filename = "generated/s4.json";
 
