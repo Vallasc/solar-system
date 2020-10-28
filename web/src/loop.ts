@@ -15,30 +15,40 @@ class Loop {
         setTimeout(()=>{this.draw(0)}, 1000);
     }
 
+    private dt = 200;
     private draw(time : number) : void {
         let seconds = (time - this.lastTime) / 1000;
         this.lastTime = time;
+        
+        this.context.save();
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.restore();
 
-        if(seconds < 0.2){
-            this.context.save();
-            this.context.setTransform(1, 0, 0, 1, 0, 0);
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.context.restore();
-
-            this.drawStates();
-        }
+        this.drawStates();
         //console.log("loop");
-        if( !this.stop )
+        if( !this.stop ){
             window.requestAnimationFrame((time) => this.draw(time));
+            //setTimeout(()=>{ this.draw(time)}, this.dt);
+        }
     }
 
     private drawStates(){
-        if(this.iteration > this.states.length)
+        if(this.iteration >= this.states.length){
             this.stop = true;
-
+            return;
+        }
         for(let i=0; i<this.states[this.iteration].length; i++)
             this.states[this.iteration][i].drawOnCanvas(this.context);
         this.iteration++;
     }
 
+    public reset(){
+        if(this.stop){
+            this.stop = false;
+            this.draw(0);
+        }
+        this.lastTime = 0;
+        this.iteration = 0;
+    }
 }
