@@ -16,7 +16,7 @@ class Body {
                     vY = 0,
                     accX = 0,
                     accY = 0,
-                    radius = 0,
+                    radius = 1,
                     mass = 0,
                     k_energy = 0,
                     internal_energy = 0} = {}) {
@@ -32,7 +32,13 @@ class Body {
         this.internal_energy = internal_energy;
     }
     
-    private printOnCanvas (event:UIEvent):void {
+    public drawOnCanvas (ctx: CanvasRenderingContext2D): void {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius*10, 0, 2 * Math.PI);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.restore();
     }
 
     public print() : void {
