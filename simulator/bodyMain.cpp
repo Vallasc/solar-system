@@ -17,7 +17,7 @@ double t = 0; // time
 double dt = 0.01; // time interval
 int t_f = 20; // final time
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=1;
+double v_min=0, v_max=100;
 string filename = "s3.json";
 
 //------------------------------ real random number generator ---------------
