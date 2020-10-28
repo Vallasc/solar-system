@@ -23,7 +23,7 @@ string filename = "generated/s4.json";
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min, double x_max)
 {
-    double r = (double)rand() / RAND_MAX;
+    double r = (double)(rand() / RAND_MAX);
     return x_min + r * (x_max - x_min);
 }
 
