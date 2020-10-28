@@ -35,7 +35,7 @@ class Body {
     public drawOnCanvas (ctx: CanvasRenderingContext2D): void {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius*10, 0, 2 * Math.PI);
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fillStyle = "white";
         ctx.fill();
         ctx.restore();
