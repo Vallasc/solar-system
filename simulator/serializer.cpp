@@ -20,7 +20,7 @@ Serializer::~Serializer(){
 }
 
 
-void Serializer::write(int time, vector<Body> &state){ // Si possono aggiungere altri parametri da salvare
+void Serializer::write(float time, vector<Body> &state){ // Si possono aggiungere altri parametri da salvare
     if( first ) 
         first = false;
     else 

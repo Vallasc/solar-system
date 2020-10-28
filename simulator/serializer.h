@@ -19,7 +19,7 @@ class Serializer {
     public:
         Serializer(string file_name);
         ~Serializer();
-        void write(int time, vector<Body> &state);
+        void write(float time, vector<Body> &state);
 
 };
 
