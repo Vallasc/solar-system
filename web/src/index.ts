@@ -10,9 +10,9 @@ class Startup {
         window.onresize = Startup.onWindowResized;
         Startup.resize();
 
-
+        let d = new Deserializer();
+        d.getJson("bodies.json");
         
-
         return 0;
     }
 
