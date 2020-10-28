@@ -46,6 +46,7 @@ for(int j=0; j<N; ++j){ // random position and velocity initialization
     bodies.push_back(Body(position_i, velocity_i, mass_i, radius_i));
 }
 
+Serializer serializer("Dati/bodies.json"); //writing data on .json file
 
 //------------------------------------ evolution -------------------------------
 while(1)
@@ -64,7 +65,6 @@ while(1)
 
 bodies.shrink_to_fit();
 
-    Serializer serializer("Dati/bodies.json"); //writing data on .json file
     serializer.write(t, bodies);
 
     if (t == t_f) break; // when we reach t_f the evolution terminates
