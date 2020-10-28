@@ -35,4 +35,30 @@ class Deserializer {
         };
         xhttp.send();
     }
+
+    public static parseJson(blob: string): Array<Array<Body>> {
+      let json = JSON.parse(blob);
+
+      let particles : Array<Body> = []; 
+      let parsed : Array<Array<Body>> = []; 
+      for(let i = 0; i<json['states'].length; i++) {
+          for(let j = 0; j<json['states'][i]['particles'].length; j++) {
+              let b = new Body();
+              b.x = json['states'][i]['particles'][j]['positionX'];
+              b.y = json['states'][i]['particles'][j]['positionY'];
+              b.vX = json['states'][i]['particles'][j]['velocityX'];
+              b.vY = json['states'][i]['particles'][j]['velocityY'];
+              b.accX = json['states'][i]['particles'][j]['accX'];
+              b.accY = json['states'][i]['particles'][j]['accY'];
+              b.radius = json['states'][i]['particles'][j]['radius'];
+              b.mass = json['states'][i]['particles'][j]['mass'];
+              b.k_energy = json['states'][i]['particles'][j]['k_energy'];
+              b.internal_energy = json['states'][i]['particles'][j]['internal_energy'];
+              particles.push(b);
+          }
+          parsed.push(particles);
+          particles = [];
+      }
+      return parsed;
+    }
 }
