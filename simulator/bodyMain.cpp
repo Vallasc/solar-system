@@ -8,16 +8,19 @@
 #include "serializer.h"
 #include "body.h"
 
+//#define EULER
+#define SIMPLETIC
+
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-int N = 100; // number of bodies
+int N = 5000; // number of bodies
 
 double t = 0; // time
 double dt = 0.01; // time interval
-int t_f = 20; // final time
+int t_f = 80; // final time
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=100;
+double v_min=0, v_max=10;
 string filename = "s3.json";
 
 //------------------------------ real random number generator ---------------
@@ -34,8 +37,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 10000;
-    double radius_i = 10;
+    double mass_i = 100;
+    double radius_i = 2;
 
     //double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -101,6 +104,8 @@ int main(){
 
         if (t >= t_f) break; // when we reach t_f the evolution terminates
 
+    #ifdef EULER
+    //-------------------------------------- Euler dynamic ----------------------------------------
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j){// computing all the forces between couples of bodies
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
                 Body::force(*j, *k);
@@ -108,11 +113,35 @@ int main(){
         }
     
         for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) (*i).update_pos_vel(dt); // evolving the position and the velocity of each particle in dt
+    //----------------------------------------------------------------------------------------------
+    #endif
 
-        t+=dt; // the time flows
+    #ifdef SIMPLETIC
+    //----------------------------------------- Simpletic dynamic ------------------------------------
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) (*j).update_position(dt/2);
+        
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j){
+            if(j==bodies.end()-1){
+                (*j).update_velocity(dt);
+                (*j).update_position(dt/2);
+                (*j).acceleration[0] = 0;
+                (*j).acceleration[1] = 0;
+            }
+
+            else{
+                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) Body::force(*j, *k);
+    
+                (*j).update_velocity(dt);
+                (*j).update_position(dt/2);
+                (*j).acceleration[0] = 0;
+                (*j).acceleration[1] = 0;
+            }
+        }
+    //-----------------------------------------------------------------------------------------------------
+    #endif
+
+    t+=dt; // the time flows
 
     }
-
-
 
 }
