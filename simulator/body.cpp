@@ -93,20 +93,20 @@ void Body::update_pos_vel(double dt)
 std::string Body::to_json()
 {
     std::stringstream ss;
-    ss <<  "{" << std::endl;
-    ss <<"\"positionX\": "<< this->position[0] << "," << std::endl;
-    ss <<"\"positionY\": "<< this->position[1] << "," << std::endl;
+    ss <<  "{";
+    ss <<"\" positionX\": "<< this->position[0] << ",";
+    ss <<"\" positionY\": "<< this->position[1] << ",";
 
-    ss <<"\"velocityX\": "<< this->velocity[0] << "," << std::endl;
-    ss <<"\"velocityY\": "<< this->velocity[1] << "," << std::endl;
+    ss <<"\" velocityX\": "<< this->velocity[0] << ",";
+    ss <<"\" velocityY\": "<< this->velocity[1] << ",";
 
-    ss <<"\"accX\": "<< this->acceleration[0] << "," << std::endl;
-    ss <<"\"accY\": "<< this->acceleration[1] << "," << std::endl;
+    ss <<"\" accX\": "<< this->acceleration[0] << ",";
+    ss <<"\" accY\": "<< this->acceleration[1] << ",";
 
-    ss <<"\"radius\": "<< this->radius << "," << std::endl;
-    ss <<"\"mass\": "<< this->mass << "," << std::endl;
-    ss <<"\"k_energy\": "<< this->get_kinetic_energy() << "," << std::endl;
-    ss <<"\"internal_energy\": "<< this->internal_energy << std::endl;
+    ss <<"\" radius\": "<< this->radius << ",";
+    ss <<"\" mass\": "<< this->mass << ",";
+    ss <<"\" k_energy\": "<< this->get_kinetic_energy() << ",";
+    ss <<"\" internal_energy\": "<< this->internal_energy;
     ss <<  "}";
     return ss.str();
 }
