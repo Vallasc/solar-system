@@ -30,6 +30,27 @@ double Body::get_kinetic_energy()
     return 0.5*mass*(pow(velocity[0], 2) + pow(velocity[1], 2));
 }
 
+double Body::get_angular_momentum()
+{
+    double theta, phi, v, r;
+    v=sqrt(pow(velocity[0],2) + pow(velocity[1],2));
+    r=sqrt(pow(position[0],2) + pow(position[1],2));
+    theta=atan(position[1]/position[0]);
+    phi=atan(velocity[1]/velocity[0]);
+
+    if(position[0]<0)
+    {
+        theta += M_PI;
+        if(velocity[0]<0) 
+        {
+            phi += M_PI;
+        }
+    }
+ 
+    return mass*r*v*sin(M_PI+theta-phi);
+        
+}
+
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
 void Body::merge(Body& a)
     {
@@ -63,7 +84,8 @@ void Body::print()
     std::cout<<"radius: "<<this->radius<<std::endl;
     std::cout<<"mass: "<<this->mass<<std::endl;
     std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
-    std::cout<<"internal energy: "<<this->internal_energy<<"\n\n";
+    std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
+    std::cout<<"angular momentum: "<<this->get_angular_momentum()<<"\n\n";
 
 }
 
@@ -93,20 +115,20 @@ void Body::update_pos_vel(double dt)
 std::string Body::to_json()
 {
     std::stringstream ss;
-    ss <<  "{" << std::endl;
-    ss <<"\"positionX\": "<< this->position[0] << "," << std::endl;
-    ss <<"\"positionY\": "<< this->position[1] << "," << std::endl;
+    ss <<  "{";
+    ss <<"\" positionX\": "<< this->position[0] << ",";
+    ss <<"\" positionY\": "<< this->position[1] << ",";
 
-    ss <<"\"velocityX\": "<< this->velocity[0] << "," << std::endl;
-    ss <<"\"velocityY\": "<< this->velocity[1] << "," << std::endl;
+    ss <<"\" velocityX\": "<< this->velocity[0] << ",";
+    ss <<"\" velocityY\": "<< this->velocity[1] << ",";
 
-    ss <<"\"accX\": "<< this->acceleration[0] << "," << std::endl;
-    ss <<"\"accY\": "<< this->acceleration[1] << "," << std::endl;
+    ss <<"\" accX\": "<< this->acceleration[0] << ",";
+    ss <<"\" accY\": "<< this->acceleration[1] << ",";
 
-    ss <<"\"radius\": "<< this->radius << "," << std::endl;
-    ss <<"\"mass\": "<< this->mass << "," << std::endl;
-    ss <<"\"k_energy\": "<< this->get_kinetic_energy() << "," << std::endl;
-    ss <<"\"internal_energy\": "<< this->internal_energy << std::endl;
+    ss <<"\" radius\": "<< this->radius << ",";
+    ss <<"\" mass\": "<< this->mass << ",";
+    ss <<"\" k_energy\": "<< this->get_kinetic_energy() << ",";
+    ss <<"\" internal_energy\": "<< this->internal_energy;
     ss <<  "}";
     return ss.str();
 }

@@ -24,14 +24,13 @@ void Serializer::write(float time, vector<Body> &state){ // Si possono aggiunger
     if( first ) 
         first = false;
     else 
-        outfile << ",";
-
-    outfile << "{" << endl << "\"time\": " << time << "," << endl;
-    outfile << "\"particles\": ["<< endl;
+        outfile << "," << endl;
+    outfile << "{" << "\"time\": " << time << ", ";
+    outfile << "\"particles\": [";
     for(int i = 0; i < state.size(); i++) {
         if(i > 0)
             outfile << ",";
-        outfile << state[i].to_json() << endl;
+        outfile << state[i].to_json();
     }
-    outfile << "]" << endl << "}" << endl;
+    outfile << "]" << "}";
 }
