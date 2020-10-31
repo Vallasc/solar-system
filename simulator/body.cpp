@@ -94,19 +94,11 @@ std::string Body::to_json()
 {
     std::stringstream ss;
     ss <<  "{";
-    ss <<"\" positionX\": "<< this->position[0] << ",";
-    ss <<"\" positionY\": "<< this->position[1] << ",";
-
-    ss <<"\" velocityX\": "<< this->velocity[0] << ",";
-    ss <<"\" velocityY\": "<< this->velocity[1] << ",";
-
-    ss <<"\" accX\": "<< this->acceleration[0] << ",";
-    ss <<"\" accY\": "<< this->acceleration[1] << ",";
-
-    ss <<"\" radius\": "<< this->radius << ",";
-    ss <<"\" mass\": "<< this->mass << ",";
-    ss <<"\" k_energy\": "<< this->get_kinetic_energy() << ",";
-    ss <<"\" internal_energy\": "<< this->internal_energy;
+    ss <<"\"x\":"<< this->position[0] << ",";
+    ss <<"\"y\":"<< this->position[1] << ",";
+    ss <<"\"r\":"<< this->radius << ",";
+    ss <<"\"k\":"<< this->get_kinetic_energy() << ",";
+    ss <<"\"i\":"<< this->internal_energy;
     ss <<  "}";
     return ss.str();
 }
