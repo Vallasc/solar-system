@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "tsc-watch": "tsc -w",
-    "build": "tsc",
-    "serve": "browser-sync start --server --files \"dist/*.js\" \"index.html\" \"css/main.css\"",
+    "tsc-watch": "tsc -b src/main src/dedicated-worker -w",
+    "build": "tsc -b src/main src/dedicated-worker",
+    "serve": "browser-sync start --server --files \"dist/*/*.js\" \"index.html\" \"css/main.css\"",
     "watch": "concurrently \"npm run tsc-watch\" \"npm run serve \""
   },
   "author": "",
