@@ -9,12 +9,15 @@
             <div>
                 Select a simulation file<br>
                 <input type="file"  id="file-selector" name="json"><br><br>
-                <input type="button"  id="play-button" value="Play">
+                <input type="button"  id="stop-button" value="Stop">
+                <input type="button"  id="play-button" value="Play/Pause">
+                <canvas id="chart"></canvas>
+                Forza lettura file in realtime<br>
+                <input type="checkbox"  id="realtime-box" >
             </div>
         </div>
-        <script src="dist/deserializer.js"></script>
-        <script src="dist/body.js"></script>
-        <script src="dist/loop.js"></script>
-        <script src="dist/index.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+        <script src="dist/bundle/bundle.js"></script>
+        <script>Startup.main();</script>
     </body>
 </html> 
