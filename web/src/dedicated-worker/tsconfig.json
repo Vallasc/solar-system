@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "strict": true,
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": "../../dist/worker",
+    "sourceMap": true,
+    "allowJs": true,
+    "lib": ["es2015", "webworker"],
+  }
+}
