@@ -14,11 +14,11 @@
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-int N = 800; // number of bodies
+int N = 50; // number of bodies
 
 double t = 0; // time
 double dt = 0.01; // time interval
-int t_f = 50; // final time
+int t_f = 20; // final time
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
 double v_min=0, v_max=10;
 string filename = "s3.json";
@@ -85,7 +85,7 @@ int main(){
     double momentum_tot[]{0,0};
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
-        ang_mom_tot += (*j).get_angular_momentum();
+        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).mass*(*j).velocity[0];
         momentum_tot[1] += (*j).mass*(*j).velocity[1];
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy;
@@ -131,24 +131,24 @@ int main(){
 
     #ifdef SIMPLETIC
     //----------------------------------------- Simpletic dynamic ------------------------------------
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) (*j).update_position(dt/2);
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            (*j).update_position(dt/2);
+        }
         
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j){
-            if(j==bodies.end()-1){
-                (*j).update_velocity(dt);
-                (*j).update_position(dt/2);
-                (*j).acceleration[0] = 0;
-                (*j).acceleration[1] = 0;
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+        {
+            if(j != bodies.end()-1)
+            {
+                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+                {
+                    Body::force(*j, *k);
+                }
             }
-
-            else{
-                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) Body::force(*j, *k);
-    
-                (*j).update_velocity(dt);
-                (*j).update_position(dt/2);
-                (*j).acceleration[0] = 0;
-                (*j).acceleration[1] = 0;
-            }
+            (*j).update_velocity(dt);
+            (*j).update_position(dt/2);
+            (*j).acceleration[0] = 0;
+            (*j).acceleration[1] = 0;
         }
     //-----------------------------------------------------------------------------------------------------
     #endif
@@ -162,7 +162,7 @@ int main(){
     momentum_tot[0]=0, momentum_tot[1]=0;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
-        ang_mom_tot += (*j).get_angular_momentum();
+        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).mass*(*j).velocity[0];
         momentum_tot[1] += (*j).mass*(*j).velocity[1];
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy;

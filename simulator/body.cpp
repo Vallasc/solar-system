@@ -14,6 +14,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
     //default inizialization variables
     acceleration[0]=0; acceleration[1]=0;
     internal_energy=0;
+    spin=0;
 
     //variables
     velocity[0] = velocity_[0]; velocity[1] = velocity_[1];
@@ -30,7 +31,7 @@ double Body::get_kinetic_energy()
     return 0.5*mass*(pow(velocity[0], 2) + pow(velocity[1], 2));
 }
 
-double Body::get_angular_momentum()
+double Body::get_orbital_momentum()
 {
     double theta, phi, v, r;
     v=sqrt(pow(velocity[0],2) + pow(velocity[1],2));
@@ -55,7 +56,8 @@ double Body::get_angular_momentum()
 void Body::merge(Body& a)
     {
         //dummy variables
-        double kInitial = a.get_kinetic_energy() + this->get_kinetic_energy();
+        double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
+        double orbital_initial = a.get_orbital_momentum() + this->get_orbital_momentum();
 
         //center of mass position
         this->position[0] = (a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);
@@ -69,7 +71,10 @@ void Body::merge(Body& a)
         this->radius = pow((pow(this->radius,3) + pow(a.radius,3)), double(1)/3);
 
         //update internalEnergy. sum of internal energy + difference of initial and final kinetic energy
-        this->internal_energy += a.internal_energy + (kInitial - this->get_kinetic_energy());
+        this->internal_energy += a.internal_energy + (kinetic_initial - this->get_kinetic_energy());
+
+        //update angular momentum. sum of spins + difference of initial and final orbital momentum
+        this->spin += a.spin + (orbital_initial - this->get_orbital_momentum());
 
         //sum of masses
         this->mass += a.mass;
@@ -85,7 +90,8 @@ void Body::print()
     std::cout<<"mass: "<<this->mass<<std::endl;
     std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
     std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
-    std::cout<<"angular momentum: "<<this->get_angular_momentum()<<"\n\n";
+    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()<<std::endl;
+    std::cout<<"spin: "<<this->spin<<"\n\n";
 
 }
 
