@@ -38,7 +38,11 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double mass_i = 100;
-    double radius_i = 2;
+    double radius_i = 1;
+    double rho = 300;
+    double theta;
+    double speed = 30;
+    double delta = 50;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -48,10 +52,19 @@ int main(){
 
     for(int j=0; j<N; ++j)
     { // random position and velocity initialization
+        /*
         position_i[0] = random_generator(x_min, x_max);
-        position_i[1] = random_generator(x_min, x_max);
-        velocity_i[0] = random_generator(v_min, v_max);
-        velocity_i[1] = random_generator(v_min, v_max);
+        position_i[1] = random_generator(x_min, x_max);*/
+        theta = random_generator(0, 2*M_PI);
+        position_i[0] = rho*cos(theta)+600;
+        position_i[1] = rho*sin(theta)+300;
+
+        
+        /*velocity_i[0] = random_generator(v_min, v_max);
+        velocity_i[1] = random_generator(v_min, v_max);*/
+        velocity_i[0] =  -(random_generator(0, speed))*cos(theta);
+        velocity_i[1] =  -(random_generator(0, speed))*sin(theta); 
+        
         bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
     }
 
