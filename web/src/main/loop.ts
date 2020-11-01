@@ -1,4 +1,8 @@
+declare var Stats : any;
+
 class Loop {
+    private stats; // 0 stop, 1 play, 2 pause
+
     private canvas : HTMLCanvasElement;
     private context : CanvasRenderingContext2D;
     private buffer : Fifo<any>;
@@ -12,14 +16,11 @@ class Loop {
     private fastMode : boolean = true;
     private state : number = 0; // 0 stop, 1 play, 2 pause
 
-    constructor( canvas: HTMLCanvasElement) {
+    constructor( canvas: HTMLCanvasElement, gui: any) {
 
         this.canvas = canvas;
         this.context = <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
-
-        this.context.fillStyle = "white"; 
-        this.setMatrix(this.canvas.width/2, this.canvas.height/2, 1, 0);
 
         this.file = null;
         this.buffer = new Fifo();
@@ -28,26 +29,34 @@ class Loop {
         this.workerIsStopped = true;
         this.workerTimeout = 0;
         this.workerIntervalTime = 200;
+
+        this.stats = new Stats();
+        this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+        this.stats.dom.style = "margin-left: 100px;";
+        gui.Register({
+            type: 'display',
+            label: '',
+            folder: "FPS",
+            element: this.stats.dom,
+        })
     }
 
-
     private draw() : void {
-        
-        this.context.save();
+        this.stats.begin();
+
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.restore();
+        
+        this.context.fillStyle = "white"; 
+        this.setMatrix(this.canvas.width/2, this.canvas.height/2, 1, 0);
 
         this.drawStates();
-
-        //let imageData: ImageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        //this.drawStatesImageData(imageData.data, imageData.width, imageData.height);
-        //this.context.putImageData(imageData, 0, 0);
 
         //console.log(this.buffer.size);
         if( this.state == 1 ){
             window.requestAnimationFrame(() => this.draw());
         }
+        this.stats.end();
     }
     private setMatrix(x: number, y: number, scale: number, rotate: number){
         var xAx = Math.cos(rotate) * scale;  // the x axis x
