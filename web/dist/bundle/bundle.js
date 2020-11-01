@@ -201,74 +201,190 @@ class JsonStreamer {
         });
     }
 }
+class Gui {
+    constructor() {
+    }
+}
 class Startup {
     static main() {
+        Startup.createGui();
+        let canvas = document.createElement("canvas");
+        canvas.height = 400;
+        var ctx = canvas.getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                        label: '# of Votes',
+                        data: [12, 19, 3, 5, 2, 3],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                }
+            }
+        });
+        Startup.gui.Register({
+            type: 'display',
+            label: 'Kinetic energy',
+            folder: "Charts",
+            element: canvas,
+        });
         console.log('Main');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
         Startup.resize();
-        Startup.loop = new Loop(Startup.mainCanvas);
-        const fileSelector = document.getElementById('file-selector');
-        fileSelector.addEventListener('change', (event) => __awaiter(this, void 0, void 0, function* () {
-            const target = event.target;
-            const file = target.files[0];
+        Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
+        /*const fileSelector = <HTMLElement> document.getElementById('file-selector');
+        fileSelector.addEventListener('change', async (event: Event) => {
+            const target= event.target as HTMLInputElement;
+            const file: File = (target.files as FileList)[0];
             // Start the loop
             Startup.loop.loadFile(file);
             Startup.loop.stop();
             Startup.loop.play();
-        }));
-        const buttonStop = document.getElementById("stop-button");
-        buttonStop.onclick = () => {
+
+        });*/
+        /*const buttonStop = <HTMLElement> document.getElementById("stop-button");
+        buttonStop.onclick = ()=>{
             Startup.loop.stop();
-        };
-        const buttonPlay = document.getElementById("play-button");
-        buttonPlay.onclick = () => {
+        }
+
+        const buttonPlay = <HTMLElement> document.getElementById("play-button");
+        buttonPlay.onclick = ()=>{
             Startup.loop.playPause();
-        };
-        const realtimeBox = document.getElementById("realtime-box");
+        }
+
+        const realtimeBox = <HTMLInputElement> document.getElementById("realtime-box");
         realtimeBox.checked = false;
-        realtimeBox.onchange = () => {
+        realtimeBox.onchange = ()=>{
             Startup.loop.setReadingMode(realtimeBox.checked);
-        };
+        }*/
         return 0;
+    }
+    static createGui() {
+        let guiContainer = document.getElementById("main-container");
+        Startup.gui = new guify({
+            title: 'Solar system',
+            theme: 'dark',
+            align: 'right',
+            width: 300,
+            barMode: 'offset',
+            panelMode: 'inner',
+            opacity: 0.95,
+            root: guiContainer,
+            open: true
+        });
+        Startup.gui.Register({
+            type: 'file',
+            label: 'File',
+            onChange: (data) => {
+                Startup.loop.loadFile(data);
+                Startup.loop.stop();
+                Startup.loop.play();
+            }
+        });
+        Startup.gui.Register({
+            type: 'folder',
+            label: 'Controls',
+            open: true
+        });
+        Startup.gui.Register([
+            {
+                type: 'button',
+                label: 'Play/Pause',
+                folder: 'Controls',
+                streched: true,
+                action: () => {
+                    Startup.loop.playPause();
+                }
+            }, {
+                type: 'button',
+                label: 'Stop',
+                folder: 'Controls',
+                action: () => {
+                    Startup.loop.stop();
+                }
+            }
+        ]);
+        Startup.gui.Register({
+            type: 'folder',
+            label: 'FPS',
+            open: false
+        });
+        Startup.gui.Register({
+            type: 'folder',
+            label: 'Charts',
+            open: false
+        });
     }
     static onWindowResized(event) {
         Startup.resize();
     }
     static resize() {
-        Startup.mainCanvas.width = window.innerWidth * 0.8;
+        Startup.mainCanvas.width = window.innerWidth;
         Startup.mainCanvas.height = window.innerHeight;
     }
 }
+Startup.someNumber = 0;
 class Loop {
-    constructor(canvas) {
+    constructor(canvas, gui) {
         this.fastMode = true;
         this.state = 0; // 0 stop, 1 play, 2 pause
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
-        this.context.fillStyle = "white";
-        this.setMatrix(this.canvas.width / 2, this.canvas.height / 2, 1, 0);
         this.file = null;
         this.buffer = new Fifo();
         this.worker = new Worker('./dist/worker/worker.js');
         this.workerIsStopped = true;
         this.workerTimeout = 0;
         this.workerIntervalTime = 200;
+        this.stats = new Stats();
+        this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        this.stats.dom.style = "margin-left: 100px;";
+        gui.Register({
+            type: 'display',
+            label: '',
+            folder: "FPS",
+            element: this.stats.dom,
+        });
     }
     draw() {
-        this.context.save();
+        this.stats.begin();
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.restore();
+        this.context.fillStyle = "white";
+        this.setMatrix(this.canvas.width / 2, this.canvas.height / 2, 1, 0);
         this.drawStates();
-        //let imageData: ImageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        //this.drawStatesImageData(imageData.data, imageData.width, imageData.height);
-        //this.context.putImageData(imageData, 0, 0);
         //console.log(this.buffer.size);
         if (this.state == 1) {
             window.requestAnimationFrame(() => this.draw());
         }
+        this.stats.end();
     }
     setMatrix(x, y, scale, rotate) {
         var xAx = Math.cos(rotate) * scale; // the x axis x
