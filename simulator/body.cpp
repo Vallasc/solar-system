@@ -5,8 +5,6 @@
 #include "body.h"
 #include <vector>
 
-const int G=1;
-
 //-------------------class constructors and operators-----------------------
 //parametric costructor
 Body::Body(double* position_, double* velocity_, double radius_, double mass_)
@@ -84,16 +82,16 @@ void Body::merge(Body& a)
 //b.print(); show all attributes of b.
 void Body::print()
 {
-    std::cout<<"position: "<<this->position[0]<<", "<<this->position[1]<<std::endl;
-    std::cout<<"velocity: "<<this->velocity[0]<<", "<<this->velocity[1]<<std::endl;
-    std::cout<<"acceleration: "<<this->acceleration[0]<<", "<<this->acceleration[1]<<std::endl;
-    std::cout<<"radius: "<<this->radius<<std::endl;
-    std::cout<<"mass: "<<this->mass<<std::endl;
-    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
-    std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
-    std::cout<<"potential energy: "<<this->potential_energy<<std::endl;
-    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()<<std::endl;
-    std::cout<<"spin: "<<this->spin<<"\n\n";
+    std::cout<<"position: "<<this->position[0]*L<<", "<<this->position[1]*L<<std::endl;
+    std::cout<<"velocity: "<<this->velocity[0]*V<<", "<<this->velocity[1]*V<<std::endl;
+    std::cout<<"acceleration: "<<this->acceleration[0]*A<<", "<<this->acceleration[1]*A<<std::endl;
+    std::cout<<"radius: "<<this->radius*L<<std::endl;
+    std::cout<<"mass: "<<this->mass*M<<std::endl;
+    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()*E<<std::endl;
+    std::cout<<"internal energy: "<<this->internal_energy*E<<std::endl;
+    std::cout<<"potential energy: "<<this->potential_energy*E<<std::endl;
+    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()*M_A<<std::endl;
+    std::cout<<"spin: "<<this->spin*M_A<<"\n\n";
 
 }
 
@@ -144,7 +142,7 @@ double Body::distance(const Body &a, const Body &b)
 //force(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void Body::force_and_potential(Body &a, Body &b)
 {
-    double u = (G*b.mass*a.mass)/(distance(a,b)); 
+    double u = (b.mass*a.mass)/(distance(a,b)); 
     double f = u/(pow(distance(a,b), 2));
     double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
     double fy_a = f*(b.position[1]-a.position[1]);//force along y on a

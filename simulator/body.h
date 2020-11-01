@@ -3,6 +3,20 @@
 #ifndef BODY_H
 #define BODY_H
 
+//--------------------------- scaling magnitudes ----------------------------
+long long int L = 149597870700; // Earth-Sun distance
+long double G = 6.67408e-11; // gravitational constant
+long double M = 5.972e24; // Earth's mass
+
+long double T = sqrt(pow(L, 3)/(G*M)); 
+long double F = (G*pow(M, 2)/pow(L, 2)); 
+long double V = L/T; 
+long double A = L/pow(T,2);
+long double E = F*L;
+long double P = M*V;
+long double M_A = P*L;
+
+//---------------------------------- Body -----------------------------------
 class Body{
 
     public:

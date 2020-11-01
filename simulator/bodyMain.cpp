@@ -14,8 +14,8 @@
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-int N = 100; // number of bodies
 
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 2; // final time
@@ -101,10 +101,10 @@ int main(){
         {
             Body::force_and_potential(*j, *k);
         }
-        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
+        ang_mom_tot += (*j).get_orbital_momentum()*M_A + (*j).spin*M_A;
         momentum_tot[0] += (*j).mass*(*j).velocity[0];
         momentum_tot[1] += (*j).mass*(*j).velocity[1];
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
+        E_tot += (*j).get_kinetic_energy()*E + (*j).internal_energy*E + 0.5*(*j).potential_energy*E;
         //(*j).print();
     }
 
@@ -115,7 +115,7 @@ int main(){
     momentum_tot[1] += last.mass*last.velocity[1];
     E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
     //last.print();
-    cout<<"ang momentum: "<<ang_mom_tot<<"\nE: "<<E_tot<<"\nPx: "<<momentum_tot[0]<<"\nPy: "<<momentum_tot[1]<<endl<<endl;
+    cout<<"ang momentum: "<<ang_mom_tot*M_A<<"\nE: "<<E_tot*E<<"\nPx: "<<momentum_tot[0]*P<<"\nPy: "<<momentum_tot[1]*P<<endl<<endl;
 
     //reset force and potential energy
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -225,7 +225,7 @@ int main(){
     E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
     //last.print();
 
-    cout<<"ang momentum: "<<ang_mom_tot<<"\nE: "<<E_tot<<"\nPx: "<<momentum_tot[0]<<"\nPy: "<<momentum_tot[1]<<endl;
+    cout<<"ang momentum: "<<ang_mom_tot*M_A<<"\nE: "<<E_tot*E<<"\nPx: "<<momentum_tot[0]*P<<"\nPy: "<<momentum_tot[1]*P<<endl;
 
 
 
