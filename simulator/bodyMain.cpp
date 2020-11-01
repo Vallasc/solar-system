@@ -37,7 +37,7 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 100;
+    double mass_i = 20;
     double radius_i = 0.1;
     double rho = 300;
     double theta;
