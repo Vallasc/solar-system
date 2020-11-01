@@ -5,6 +5,7 @@
 #include "body.h"
 #include <vector>
 
+
 //-------------------class constructors and operators-----------------------
 //parametric costructor
 Body::Body(double* position_, double* velocity_, double radius_, double mass_)

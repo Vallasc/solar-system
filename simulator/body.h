@@ -2,7 +2,7 @@
 #include <sstream>
 #ifndef BODY_H
 #define BODY_H
-
+ 
 //--------------------------- scaling magnitudes ----------------------------
 long long int L = 149597870700; // Earth-Sun distance
 long double G = 6.67408e-11; // gravitational constant
