@@ -14,6 +14,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
     //default inizialization variables
     acceleration[0]=0; acceleration[1]=0;
     internal_energy=0;
+    potential_energy=0;
     spin=0;
 
     //variables
@@ -90,6 +91,7 @@ void Body::print()
     std::cout<<"mass: "<<this->mass<<std::endl;
     std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
     std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
+    std::cout<<"potential energy: "<<this->potential_energy<<std::endl;
     std::cout<<"orbital momentum: "<<this->get_orbital_momentum()<<std::endl;
     std::cout<<"spin: "<<this->spin<<"\n\n";
 
@@ -140,9 +142,10 @@ double Body::distance(const Body &a, const Body &b)
 }
 
 //force(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
-void Body::force(Body &a, Body &b)
+void Body::force_and_potential(Body &a, Body &b)
 {
-    double f = (G*b.mass*a.mass)/(pow(distance(a,b), 3)); 
+    double u = (G*b.mass*a.mass)/(distance(a,b)); 
+    double f = u/(pow(distance(a,b), 2));
     double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
     double fy_a = f*(b.position[1]-a.position[1]);//force along y on a
 
@@ -151,4 +154,9 @@ void Body::force(Body &a, Body &b)
 
     b.acceleration[0] -= fx_a/(b.mass);//let f_a the force acting on a, therefore -f_a is the force actiong on b (third newton principle)
     b.acceleration[1] -= fy_a/(b.mass);
+
+    //potential energy
+    a.potential_energy -= u;
+    b.potential_energy -= u;
+
 }

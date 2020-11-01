@@ -8,20 +8,20 @@
 #include "serializer.h"
 #include "body.h"
 
-//#define EULER
-#define SIMPLETIC
+#define EULER
+//#define SIMPLETIC
 
 using namespace std;
 
 //------------------------------- global parameters ----------------------------
-int N = 50; // number of bodies
+int N = 100; // number of bodies
 
 double t = 0; // time
 double dt = 0.01; // time interval
-int t_f = 20; // final time
+double t_f = 2; // final time
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=10;
-string filename = "s3.json";
+double v_min=0, v_max=5;
+string filename = "s4.json";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -38,7 +38,7 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double mass_i = 100;
-    double radius_i = 1;
+    double radius_i = 0.1;
     double rho = 300;
     double theta;
     double speed = 30;
@@ -52,18 +52,17 @@ int main(){
 
     for(int j=0; j<N; ++j)
     { // random position and velocity initialization
-        /*
         position_i[0] = random_generator(x_min, x_max);
-        position_i[1] = random_generator(x_min, x_max);*/
-        theta = random_generator(0, 2*M_PI);
-        position_i[0] = rho*cos(theta)+600;
-        position_i[1] = rho*sin(theta)+300;
+        position_i[1] = random_generator(x_min, x_max);
+        //theta = random_generator(0, 2*M_PI);
+        //position_i[0] = rho*cos(theta)+600;
+        //position_i[1] = rho*sin(theta)+300;
 
         
-        /*velocity_i[0] = random_generator(v_min, v_max);
-        velocity_i[1] = random_generator(v_min, v_max);*/
-        velocity_i[0] =  -(random_generator(0, speed))*cos(theta);
-        velocity_i[1] =  -(random_generator(0, speed))*sin(theta); 
+        velocity_i[0] = random_generator(v_min, v_max);
+        velocity_i[1] = random_generator(v_min, v_max);
+        //velocity_i[0] =  -(random_generator(0, speed))*cos(theta);
+        //velocity_i[1] =  -(random_generator(0, speed))*sin(theta); 
         
         bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
     }
@@ -96,15 +95,35 @@ int main(){
     //initial conservatives parameters
     double ang_mom_tot=0, E_tot=0;
     double momentum_tot[]{0,0};
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
     {
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+        {
+            Body::force_and_potential(*j, *k);
+        }
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).mass*(*j).velocity[0];
         momentum_tot[1] += (*j).mass*(*j).velocity[1];
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
         //(*j).print();
     }
+
+    Body last = bodies[bodies.size()-1];
+
+    ang_mom_tot += last.get_orbital_momentum() + last.spin;
+    momentum_tot[0] += last.mass*last.velocity[0];
+    momentum_tot[1] += last.mass*last.velocity[1];
+    E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
+    //last.print();
     cout<<"ang momentum: "<<ang_mom_tot<<"\nE: "<<E_tot<<"\nPx: "<<momentum_tot[0]<<"\nPy: "<<momentum_tot[1]<<endl<<endl;
+
+    //reset force and potential energy
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    {
+        (*j).potential_energy = 0;
+        (*j).acceleration[0] = 0;
+        (*j).acceleration[1] = 0;
+    }
 
     Serializer serializer(filename); //writing data on .json file
 
@@ -113,7 +132,8 @@ int main(){
     {   
         //cout << t << "\n";
 
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j){
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+        {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
                 // computing the distance of each couple of bodies: if this distance is minor than the sum of 
                 // their radius, we merge them
@@ -132,13 +152,26 @@ int main(){
 
     #ifdef EULER
     //-------------------------------------- Euler dynamic ----------------------------------------
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j){// computing all the forces between couples of bodies
+
+        //reset potential energy
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+        {
+            (*j).potential_energy = 0;
+        }
+
+        //compute force and potential energy
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+        {   
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
-                Body::force(*j, *k);
+                Body::force_and_potential(*j, *k);
             }
         }
     
-        for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) (*i).update_pos_vel(dt); // evolving the position and the velocity of each particle in dt
+        // evolving the position and the velocity of each particle in dt
+        for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) 
+        {
+            (*i).update_pos_vel(dt); 
+        }
     //----------------------------------------------------------------------------------------------
     #endif
 
@@ -147,6 +180,7 @@ int main(){
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
         {
             (*j).update_position(dt/2);
+            (*j).potential_energy = 0;
         }
         
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -155,13 +189,14 @@ int main(){
             {
                 for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
                 {
-                    Body::force(*j, *k);
+                    Body::force_and_potential(*j, *k);
                 }
             }
             (*j).update_velocity(dt);
             (*j).update_position(dt/2);
             (*j).acceleration[0] = 0;
             (*j).acceleration[1] = 0;
+
         }
     //-----------------------------------------------------------------------------------------------------
     #endif
@@ -173,15 +208,24 @@ int main(){
     //check on consevation
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
     {
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).mass*(*j).velocity[0];
         momentum_tot[1] += (*j).mass*(*j).velocity[1];
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
         //(*j).print();
     }
-    cout<<"ang momentum: "<<ang_mom_tot<<"\nE: "<<E_tot<<"\nPx: "<<momentum_tot[0]<<"\nPy: "<<momentum_tot[1]<<endl<<endl;
+
+    last = bodies[bodies.size()-1];
+
+    ang_mom_tot += last.get_orbital_momentum() + last.spin;
+    momentum_tot[0] += last.mass*last.velocity[0];
+    momentum_tot[1] += last.mass*last.velocity[1];
+    E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
+    //last.print();
+
+    cout<<"ang momentum: "<<ang_mom_tot<<"\nE: "<<E_tot<<"\nPx: "<<momentum_tot[0]<<"\nPy: "<<momentum_tot[1]<<endl;
 
 
 

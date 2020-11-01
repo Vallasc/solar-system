@@ -19,7 +19,7 @@ class Body{
     std::string to_json();//prepare the format for json file
 
     static double distance(const Body &a, const Body &b);//compute the distance between two objects
-    static void force(Body &a, Body &b);//compute the force betwee two objects and change their accelaration accordingly
+    static void force_and_potential(Body &a, Body &b);//compute the force and the potential energy between two objects and change their accelaration accordingly
 
     //getters
     double get_kinetic_energy(); //return kinetic energy
@@ -32,6 +32,7 @@ class Body{
     double radius;
     double mass;
     double internal_energy; 
+    double potential_energy;
     double spin;
    
 
