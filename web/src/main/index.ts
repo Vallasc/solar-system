@@ -14,7 +14,7 @@ class Startup {
         
         
         let canvas = document.createElement("canvas");
-        canvas.height = 400;
+        canvas.height = 900;
         var ctx = canvas.getContext('2d');
     var myChart = new Chart(ctx, {
         type: 'bar',
@@ -64,6 +64,7 @@ class Startup {
         window.onresize = Startup.onWindowResized;
         Startup.resize();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
+        let mouseInput = new MouseInput(Startup.loop);
 
         /*const fileSelector = <HTMLElement> document.getElementById('file-selector');
         fileSelector.addEventListener('change', async (event: Event) => {
@@ -99,22 +100,20 @@ class Startup {
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
-            theme: 'dark', // dark, light, yorha, or theme object
+            theme: 'light', // dark, light, yorha, or theme object
             align: 'right', // left, right
-            width: 300,
+            width: 350,
             barMode: 'offset', // none, overlay, above, offset
             panelMode: 'inner',
-            opacity: 0.95,
+            opacity: 0.9,
             root: guiContainer,
             open: true
         });
         Startup.gui.Register({
             type: 'file',
             label: 'File',
-            onChange: (data: any) => {
-                Startup.loop.loadFile(data);
-                Startup.loop.stop();
-                Startup.loop.play();
+            onChange: async (file: any) => {
+                await Startup.loop.reset(file);
             }
         })
         Startup.gui.Register({
@@ -122,24 +121,6 @@ class Startup {
             label: 'Controls',
             open: true
         });
-        Startup.gui.Register([
-            {
-                type: 'button',
-                label: 'Play/Pause',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    Startup.loop.playPause();
-                }
-            },{
-                type: 'button',
-                label: 'Stop',
-                folder: 'Controls',
-                action: () => {
-                    Startup.loop.stop();
-                }
-            }
-        ]);
         Startup.gui.Register({
             type: 'folder',
             label: 'FPS',
@@ -150,6 +131,7 @@ class Startup {
             label: 'Charts',
             open: false
         });
+        Startup.gui.Loader(false);
     }
 
     private static onWindowResized (event:UIEvent):void {
@@ -159,6 +141,7 @@ class Startup {
     public static resize ():void {
         Startup.mainCanvas.width = window.innerWidth;
         Startup.mainCanvas.height = window.innerHeight;
+        Startup.gui.panel.style += "overflow-y: scroll; height: 300px;"
     }
 
 }
