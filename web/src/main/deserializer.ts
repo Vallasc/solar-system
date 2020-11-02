@@ -21,11 +21,11 @@ class Deserializer {
 
           objects[0] = len;
           for(let j=0; j<len-1; j++){
-            objects[(j+1) * numParams] = Math.ceil(json.states[i].p[j].x);
-            objects[(j+1) * numParams + 1] = Math.ceil(json.states[i].p[j].y);
-            objects[(j+1) * numParams + 2] = Math.ceil(json.states[i].p[j].r);
-            objects[(j+1) * numParams + 3] = Math.ceil(json.states[i].p[j].k);
-            objects[(j+1) * numParams + 4] = Math.ceil(json.states[i].p[j].i);
+            objects[(j+1) * numParams] = json.states[i].p[j].x;
+            objects[(j+1) * numParams + 1] = json.states[i].p[j].y;
+            objects[(j+1) * numParams + 2] = Deserializer.roundTo1(json.states[i].p[j].r);
+            objects[(j+1) * numParams + 3] = json.states[i].p[j].k;
+            objects[(j+1) * numParams + 4] = json.states[i].p[j].i;
           }
 
           fifo.push(objects);
@@ -35,4 +35,10 @@ class Deserializer {
         throw Error("Failed parsing file");
       }
     }
+
+    public static roundTo1(x: number){
+      if( x > 0 && x < 1) return 1;
+      else return x;
+    }
+
 }
