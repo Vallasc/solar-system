@@ -3,7 +3,7 @@ class Fifo<T> {
     private first : FifoElement<T> | null = null;
     private last : FifoElement<T> | null = null;
 
-    public push(element: T) {
+    public push(element: T | null ) {
         if(this.size == 0){
             let e = new FifoElement(element, null);
             this.first = e;
