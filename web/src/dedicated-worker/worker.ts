@@ -135,11 +135,11 @@ class JsonStreamerSync{
 
       objects[0] = len;
       for(let j=0; j<len-1; j++){
-        objects[(j+1) * numParams] = json.p[j].x;
-        objects[(j+1) * numParams + 1] = json.p[j].y;
-        objects[(j+1) * numParams + 2] = json.p[j].r;
-        objects[(j+1) * numParams + 3] = json.p[j].k;
-        objects[(j+1) * numParams + 4] = json.p[j].i;
+        objects[(j+1) * numParams] = Math.ceil(json.p[j].x);
+        objects[(j+1) * numParams + 1] = Math.ceil(json.p[j].y);
+        objects[(j+1) * numParams + 2] = Math.ceil(json.p[j].r);
+        objects[(j+1) * numParams + 3] = Math.ceil(json.p[j].k);
+        objects[(j+1) * numParams + 4] = Math.ceil(json.p[j].i);
       }
       return objects;
   }
