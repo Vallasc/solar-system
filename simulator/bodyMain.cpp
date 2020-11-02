@@ -13,6 +13,21 @@
 
 using namespace std;
 
+//--------------------------- scaling magnitudes ----------------------------
+extern long long int L; // Earth-Sun distance
+extern long double G; // gravitational constant
+extern long double M; // Earth's mass
+
+extern long double T; 
+extern long double F; 
+extern long double V; 
+extern long double A;
+extern long double E;
+extern long double P;
+extern long double M_A;
+
+
+
 //------------------------------- global parameters ----------------------------
 
 int N = 100; // number of bodies
