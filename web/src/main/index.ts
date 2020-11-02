@@ -13,8 +13,8 @@ class Startup {
         Startup.createGui();
         
         //prova grafico
-        let canvas = document.createElement("canvas");
-        canvas.height = 900;
+        /*let canvas = document.createElement("canvas");
+        canvas.height = 300;
         var ctx = canvas.getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'bar',
@@ -81,9 +81,9 @@ class Startup {
             label: 'Kinetic energy',
             folder: "Charts",
             element: canvas,
-        })
+        })*/
 
-        
+
         console.log('Main');
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
 
