@@ -54,22 +54,27 @@ class Deserializer {
     }*/
     static parseJsonFloat64Array(blob) {
         let numParams = 5;
-        let json = JSON.parse(blob);
-        let fifo = new Fifo();
-        for (let i = 0; i < json.states.length; i++) {
-            let len = json.states[i].p.length + 1;
-            let objects = new Float64Array(len * numParams);
-            objects[0] = len;
-            for (let j = 0; j < len - 1; j++) {
-                objects[(j + 1) * numParams] = json.states[i].p[j].x;
-                objects[(j + 1) * numParams + 1] = json.states[i].p[j].y;
-                objects[(j + 1) * numParams + 2] = json.states[i].p[j].r;
-                objects[(j + 1) * numParams + 3] = json.states[i].p[j].k;
-                objects[(j + 1) * numParams + 4] = json.states[i].p[j].i;
+        try {
+            let json = JSON.parse(blob);
+            let fifo = new Fifo();
+            for (let i = 0; i < json.states.length; i++) {
+                let len = json.states[i].p.length + 1;
+                let objects = new Float64Array(len * numParams);
+                objects[0] = len;
+                for (let j = 0; j < len - 1; j++) {
+                    objects[(j + 1) * numParams] = json.states[i].p[j].x;
+                    objects[(j + 1) * numParams + 1] = json.states[i].p[j].y;
+                    objects[(j + 1) * numParams + 2] = json.states[i].p[j].r;
+                    objects[(j + 1) * numParams + 3] = json.states[i].p[j].k;
+                    objects[(j + 1) * numParams + 4] = json.states[i].p[j].i;
+                }
+                fifo.push(objects);
             }
-            fifo.push(objects);
+            return fifo;
         }
-        return fifo;
+        catch (e) {
+            throw Error("Failed parsing file");
+        }
     }
 }
 class Fifo {
@@ -209,7 +214,7 @@ class Startup {
     static main() {
         Startup.createGui();
         let canvas = document.createElement("canvas");
-        canvas.height = 400;
+        canvas.height = 900;
         var ctx = canvas.getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'bar',
@@ -258,6 +263,7 @@ class Startup {
         window.onresize = Startup.onWindowResized;
         Startup.resize();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
+        let mouseInput = new MouseInput(Startup.loop);
         /*const fileSelector = <HTMLElement> document.getElementById('file-selector');
         fileSelector.addEventListener('change', async (event: Event) => {
             const target= event.target as HTMLInputElement;
@@ -289,47 +295,27 @@ class Startup {
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
-            theme: 'dark',
+            theme: 'light',
             align: 'right',
-            width: 300,
+            width: 350,
             barMode: 'offset',
             panelMode: 'inner',
-            opacity: 0.95,
+            opacity: 0.9,
             root: guiContainer,
             open: true
         });
         Startup.gui.Register({
             type: 'file',
             label: 'File',
-            onChange: (data) => {
-                Startup.loop.loadFile(data);
-                Startup.loop.stop();
-                Startup.loop.play();
-            }
+            onChange: (file) => __awaiter(this, void 0, void 0, function* () {
+                yield Startup.loop.reset(file);
+            })
         });
         Startup.gui.Register({
             type: 'folder',
             label: 'Controls',
             open: true
         });
-        Startup.gui.Register([
-            {
-                type: 'button',
-                label: 'Play/Pause',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    Startup.loop.playPause();
-                }
-            }, {
-                type: 'button',
-                label: 'Stop',
-                folder: 'Controls',
-                action: () => {
-                    Startup.loop.stop();
-                }
-            }
-        ]);
         Startup.gui.Register({
             type: 'folder',
             label: 'FPS',
@@ -340,6 +326,7 @@ class Startup {
             label: 'Charts',
             open: false
         });
+        Startup.gui.Loader(false);
     }
     static onWindowResized(event) {
         Startup.resize();
@@ -347,18 +334,25 @@ class Startup {
     static resize() {
         Startup.mainCanvas.width = window.innerWidth;
         Startup.mainCanvas.height = window.innerHeight;
+        Startup.gui.panel.style += "overflow-y: scroll; height: 300px;";
     }
 }
 Startup.someNumber = 0;
 class Loop {
     constructor(canvas, gui) {
-        this.fastMode = true;
-        this.state = 0; // 0 stop, 1 play, 2 pause
+        this.panningOffsetX = 0;
+        this.panningOffsetY = 0;
+        this.loadAllFile = true;
+        this.forceLoadAllCheckbox = false;
+        this.isPlaying = false;
+        this.isEof = false;
+        this.reqId = -1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
-        this.file = null;
+        this.file = new File([], "");
         this.buffer = new Fifo();
+        this.lastObjects = null;
         this.worker = new Worker('./dist/worker/worker.js');
         this.workerIsStopped = true;
         this.workerTimeout = 0;
@@ -366,24 +360,75 @@ class Loop {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
-        gui.Register({
-            type: 'display',
-            label: '',
-            folder: "FPS",
-            element: this.stats.dom,
-        });
+        Startup.gui.Register([
+            {
+                type: 'display',
+                label: '',
+                folder: "FPS",
+                element: this.stats.dom,
+            },
+            {
+                type: 'button',
+                label: 'Play/Pause',
+                folder: 'Controls',
+                streched: true,
+                action: () => {
+                    this.playPause();
+                }
+            }, {
+                type: 'button',
+                label: 'Rewind',
+                folder: 'Controls',
+                streched: true,
+                action: () => {
+                    this.reset();
+                }
+            },
+            {
+                type: 'checkbox',
+                folder: 'Controls',
+                label: 'Force loading all file in memory',
+                object: this,
+                property: 'forceLoadAllCheckbox',
+            },
+            {
+                type: 'display',
+                folder: 'Controls',
+                label: 'Is playing',
+                object: this,
+                property: 'isPlaying',
+            },
+            {
+                type: 'display',
+                folder: 'Controls',
+                label: 'Is EOF',
+                object: this,
+                property: 'isEof',
+            }
+        ]);
+        this.barContainer = document.getElementById("guify-bar-container");
     }
     draw() {
         this.stats.begin();
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = "white";
-        this.setMatrix(this.canvas.width / 2, this.canvas.height / 2, 1, 0);
-        this.drawStates();
-        //console.log(this.buffer.size);
-        if (this.state == 1) {
-            window.requestAnimationFrame(() => this.draw());
+        this.setMatrix(this.canvas.width / 2 + this.panningOffsetX, this.canvas.height / 2 + this.panningOffsetY, 1, 0);
+        if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
+            let objects = this.buffer.pop();
+            if (objects != null && !this.isEof) {
+                this.drawStates(objects);
+                this.lastObjects = objects;
+            }
+            else {
+                this.isEof = true;
+                this.isPlaying = false;
+                this.barContainer.innerText = "⏹";
+            }
         }
+        else if (this.lastObjects != null)
+            this.drawStates(this.lastObjects);
+        this.reqId = window.requestAnimationFrame(() => this.draw());
         this.stats.end();
     }
     setMatrix(x, y, scale, rotate) {
@@ -391,14 +436,13 @@ class Loop {
         var xAy = Math.sin(rotate) * scale; // the x axis y
         this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
     }
-    drawStatesImageData(pixels, canvasWidth, canvasHeight) {
-        if (this.buffer != null) {
+    /*private drawStatesImageData(pixels: Uint8ClampedArray, canvasWidth: number, canvasHeight: number){
+        if(this.buffer != null){
             let el = this.buffer.pop();
             //console.log(this.buffer.size);
-            if (el == null)
-                return;
-            for (let i = 0; i < el.p.length; i++) {
-                if (el.p[i].x < canvasWidth && el.p[i].x > 0 && el.p[i].y < canvasWidth && el.p[i].y > 0) {
+            if(el == null) return;
+            for(let i=0; i<el.p.length; i++){
+                if(el.p[i].x < canvasWidth && el.p[i].x >0 && el.p[i].y < canvasWidth && el.p[i].y >0){
                     let r = 255;
                     let g = 255;
                     let b = 255;
@@ -409,72 +453,85 @@ class Loop {
                     pixels[off + 3] = 255;
                 }
             }
-        }
-        else {
+        } else {
             this.state = 0;
         }
-    }
-    drawStates() {
+    }*/
+    drawStates(objects) {
         let numParams = 5;
-        if (this.buffer != null) {
-            let objects = this.buffer.pop();
-            if (objects == null)
-                return;
-            //console.log(this.buffer.size);
-            this.context.beginPath();
-            for (let i = 1; i <= objects[0]; i++) {
-                //this.context.beginPath();
-                //this.context.drawImage(this.brush, objects[i * numParams] -3, objects[i * numParams + 1] -3)
-                this.context.moveTo(objects[i * numParams], objects[i * numParams + 1]);
-                this.context.arc(objects[i * numParams], objects[i * numParams + 1], objects[i * numParams + 2], 0, 2 * Math.PI);
-                //this.context.fillStyle = "white"; 
-                //this.context.fill();
-            }
-            this.context.fill();
+        //console.log(this.buffer.size);
+        this.context.beginPath();
+        for (let i = 1; i <= objects[0]; i++) {
+            this.context.moveTo(objects[i * numParams], objects[i * numParams + 1]);
+            this.context.arc(objects[i * numParams], objects[i * numParams + 1], objects[i * numParams + 2], 0, 2 * Math.PI);
         }
-        else {
-            this.state = 0;
-        }
+        this.context.fill();
     }
     play() {
-        if (this.state == 1)
+        if (this.isPlaying || this.isEof)
             return;
-        if (!this.fastMode) {
+        if (!this.loadAllFile) {
             this.requestData();
         }
-        this.state = 1;
-        this.draw();
+        this.isPlaying = true;
+        this.barContainer.innerText = "⏵";
     }
     pause() {
-        if (this.state == 2)
+        if (!this.isPlaying || this.isEof)
             return;
-        if (!this.fastMode) {
+        if (!this.loadAllFile) {
             clearTimeout(this.workerTimeout);
         }
-        this.state = 2;
-    }
-    stop() {
-        if (this.state == 0)
-            return;
-        if (!this.fastMode) {
-            this.workerIntervalTime = 200;
-            this.worker.postMessage({ "type": "stop" });
-            clearTimeout(this.workerTimeout);
-        }
-        this.state = 0;
-        this.buffer.clear();
-        this.loadFile();
+        this.isPlaying = false;
+        this.barContainer.innerText = "⏸";
     }
     playPause() {
-        if (this.state == 0)
+        if (!this.isPlaying)
             this.play();
-        else if (this.state == 1)
+        else
             this.pause();
-        else if (this.state == 2)
-            this.play();
     }
-    requestData() {
+    reset(file = this.file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("reset");
+            this.barContainer.innerText = "";
+            window.cancelAnimationFrame(this.reqId);
+            if (!this.loadAllFile) {
+                clearTimeout(this.workerTimeout);
+                console.log(this.workerIsStopped);
+                while (!this.workerIsStopped) { // Aspetto la fine del worker
+                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
+                }
+                this.workerIntervalTime = 200;
+                this.worker.postMessage({ "type": "stop" });
+            }
+            // Reset variabili
+            this.isEof = false;
+            this.isPlaying = false;
+            this.buffer.clear();
+            this.lastObjects = null;
+            try {
+                this.file = file;
+                yield this.loadFile(file);
+                console.log("File loaded");
+            }
+            catch (e) {
+                console.error(e);
+            }
+            if (!this.loadAllFile) {
+                this.requestData(true);
+                while (!this.workerIsStopped) { // Aspetto la fine del worker
+                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
+                }
+            }
+            this.barContainer.innerText = "⏹";
+            this.draw();
+            //this.play();
+        });
+    }
+    requestData(once = false) {
         if (this.workerIsStopped) {
+            console.log("request");
             //console.log(this.buffer.size);
             if (this.buffer.size < 600) {
                 this.worker.postMessage({ "type": "read" });
@@ -484,45 +541,116 @@ class Loop {
                 this.workerIntervalTime += this.workerIntervalTime * 1 / 3;
             }
         }
+        if (once)
+            return;
         this.workerTimeout = setTimeout(() => {
             this.requestData();
         }, this.workerIntervalTime);
     }
-    loadFile(file = this.file) {
-        if (file == null)
+    loadFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            Startup.gui.Loader(true);
+            if (this.file.size < 100000000 || this.forceLoadAllCheckbox) { //100MB this.fastMode
+                this.loadAllFile = true;
+                try {
+                    this.buffer = yield this.loadFileAll(file);
+                }
+                catch (e) {
+                    throw Error("Failed loading file");
+                }
+            }
+            else {
+                this.loadAllFile = false;
+                this.loadFileChunck(file);
+            }
+            Startup.gui.Loader(false);
             return;
-        this.file = file;
-        //if( this.file.size > 100000000){ //100MB this.fastMode
-        //    this.fastMode = false;
-        //    this.loadFileChunck(this.file);
-        //} else {
-        this.fastMode = true;
-        this.loadFileAll(this.file);
-        //}
+        });
     }
     loadFileAll(file) {
-        let reader = new FileReader();
-        let self = this;
-        reader.onload = function (event) {
-            //self.buffer = Deserializer.parseJsonFifo(<string> reader.result);
-            self.buffer = Deserializer.parseJsonFloat64Array(reader.result);
-        };
-        reader.readAsText(file);
+        return __awaiter(this, void 0, void 0, function* () {
+            let reader = new FileReader();
+            reader.readAsText(file);
+            return new Promise((resolve, reject) => {
+                reader.onload = function (event) {
+                    try {
+                        let buffer = Deserializer.parseJsonFloat64Array(reader.result);
+                        resolve(buffer);
+                    }
+                    catch (e) {
+                        reject(e);
+                    }
+                };
+            });
+        });
     }
     loadFileChunck(file) {
         this.worker.postMessage({ "type": "file", "data": file });
         this.worker.onmessage = (event) => {
             let response = event.data;
-            //console.log(event.data);
+            // Sto ricevendo dei messaggi del vecchio file
             if (response.fileName != this.file.name)
                 return;
-            this.workerIsStopped = response.end;
-            this.buffer.push(response.array);
-            this.workerIntervalTime = response.time * response.numIt / 2;
+            // Controllo se il worker ha finito il job
+            this.workerIsStopped = response.endChunck;
+            if (response.endFile) {
+                clearTimeout(this.workerTimeout);
+                this.buffer.push(null);
+                return;
+            }
+            if (response.array != null) {
+                this.buffer.push(response.array);
+                this.workerIntervalTime = response.time * response.numIt / 2;
+                return;
+            }
         };
     }
-    setReadingMode(mode) {
-        this.fastMode = mode;
+    setPanningOffset(x, y) {
+        this.panningOffsetX = x;
+        this.panningOffsetY = y;
+    }
+}
+class MouseInput {
+    constructor(loop) {
+        this.globalScale = 1;
+        this.globalOffsetX = 0;
+        this.globalOffsetY = 0;
+        this.panningStartX = 0;
+        this.panningStartY = 0;
+        this.panningOffsetX = 0;
+        this.panningOffsetY = 0;
+        this.panning = false;
+        this.mouseMoveListener = null;
+        this.mouseUpListener = null;
+        this.loop = loop;
+        this.canvas = loop.canvas;
+        this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
+        this.mouseMoveListener = (e) => this.pan(e, this);
+        this.mouseUpListener = (e) => this.endPan(e, this);
+        this.loop.setPanningOffset(0, 0);
+    }
+    startPan(e, self) {
+        if (self.panning)
+            return;
+        self.panning = true;
+        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.addEventListener("mouseup", self.mouseUpListener);
+        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
+        self.panningStartX = e.clientX;
+        self.panningStartY = e.clientY;
+    }
+    pan(e, self) {
+        self.panningOffsetX = e.clientX - self.panningStartX;
+        self.panningOffsetY = e.clientY - self.panningStartY;
+        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+    }
+    endPan(e, self) {
+        self.panning = false;
+        self.globalOffsetX += self.panningOffsetX;
+        self.globalOffsetY += self.panningOffsetY;
+        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
+        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
     }
 }
 //# sourceMappingURL=bundle.js.map

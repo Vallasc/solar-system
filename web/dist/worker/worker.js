@@ -19,10 +19,18 @@ self.onmessage = function (e) {
             array = fileStream.readFloat64Array();
             endTime = Date.now();
             postMessage({
-                "end": i == numIterations - 1,
+                "endFile": false,
+                "endChunck": i == numIterations - 1,
                 "array": array,
                 "time": endTime - startTime,
                 "numIt": numIterations,
+                "fileName": file.name
+            });
+        }
+        if (array == null) {
+            return postMessage({
+                "endFile": true,
+                "endChunck": true,
                 "fileName": file.name
             });
         }
@@ -76,18 +84,23 @@ class JsonStreamerSync {
         this.rewind();
     }
     read() {
-        if (!this.fs.isEndOfFile()) {
-            let s1 = this.fs.readBlockAsText(this.initialSequenceElementSize);
-            //console.log(s1);
-            if (s1 == ']}')
-                return null;
-            let n = parseInt(s1.slice(8, 16)) || null;
-            if (n == null)
-                return null;
-            //console.log(n);
-            let s2 = this.fs.readBlockAsText(n - this.initialSequenceElementSize + this.afterElementSize);
-            //console.log(s1+s2);
-            return JSON.parse(s1 + s2.slice(0, -1));
+        try {
+            if (!this.fs.isEndOfFile()) {
+                let s1 = this.fs.readBlockAsText(this.initialSequenceElementSize);
+                //console.log(s1);
+                if (s1 == ']}')
+                    return null;
+                let n = parseInt(s1.slice(8, 16)) || null;
+                if (n == null)
+                    return null;
+                //console.log(n);
+                let s2 = this.fs.readBlockAsText(n - this.initialSequenceElementSize + this.afterElementSize);
+                //console.log(s1+s2);
+                return JSON.parse(s1 + s2.slice(0, -1));
+            }
+        }
+        catch (e) {
+            console.log(e);
         }
         return null;
     }
