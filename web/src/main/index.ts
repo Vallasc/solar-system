@@ -12,52 +12,78 @@ class Startup {
     public static main(): number {
         Startup.createGui();
         
-        
+        //prova grafico
         let canvas = document.createElement("canvas");
         canvas.height = 900;
         var ctx = canvas.getContext('2d');
-    var myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-            datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
                 }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
             }
+        });
+
+        let i : number;
+        let data : Array<number>;
+        let time : Array<number>;
+        let dt : number = 0.09;
+        let val : number = 110900;
+        let n: number;
+        let pause : number = 0;
+        data = [115828, 115928, 105828, 105838, 110828, 110928, 111828, 111929];
+        time =[0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08];
+        let chart = new Mychart(canvas, time, data);
+        for (i = 0; i < 10; i++) {
+            n = setTimeout(function () { 
+                time.shift();
+                dt = +(Math.round(dt * 100) / 100).toFixed(2);
+                time.push(dt);
+                chart.updateChart(val);
+                dt += 0.01;
+                val += Math.random() * (500 - (-500)) + (-500);
+            }, pause);
+            pause += 1000;
         }
-    });
-    Startup.gui.Register({
-        type: 'display',
-        label: 'Kinetic energy',
-        folder: "Charts",
-        element: canvas,
-    })
+        
+        
+        Startup.gui.Register({
+            type: 'display',
+            label: 'Kinetic energy',
+            folder: "Charts",
+            element: canvas,
+        })
+
+        
         console.log('Main');
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
 
@@ -65,33 +91,6 @@ class Startup {
         Startup.resize();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop);
-
-        /*const fileSelector = <HTMLElement> document.getElementById('file-selector');
-        fileSelector.addEventListener('change', async (event: Event) => {
-            const target= event.target as HTMLInputElement;
-            const file: File = (target.files as FileList)[0];
-            // Start the loop
-            Startup.loop.loadFile(file);
-            Startup.loop.stop();
-            Startup.loop.play();
-
-        });*/
-
-        /*const buttonStop = <HTMLElement> document.getElementById("stop-button");
-        buttonStop.onclick = ()=>{
-            Startup.loop.stop();
-        }
-
-        const buttonPlay = <HTMLElement> document.getElementById("play-button");
-        buttonPlay.onclick = ()=>{
-            Startup.loop.playPause();
-        }
-
-        const realtimeBox = <HTMLInputElement> document.getElementById("realtime-box");
-        realtimeBox.checked = false;
-        realtimeBox.onchange = ()=>{
-            Startup.loop.setReadingMode(realtimeBox.checked);
-        }*/
         
         return 0;
     }
