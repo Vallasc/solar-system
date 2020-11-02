@@ -115,11 +115,17 @@ class JsonStreamerSync {
         for (let j = 0; j < len - 1; j++) {
             objects[(j + 1) * numParams] = json.p[j].x;
             objects[(j + 1) * numParams + 1] = json.p[j].y;
-            objects[(j + 1) * numParams + 2] = json.p[j].r;
+            objects[(j + 1) * numParams + 2] = JsonStreamerSync.roundTo1(json.p[j].r);
             objects[(j + 1) * numParams + 3] = json.p[j].k;
             objects[(j + 1) * numParams + 4] = json.p[j].i;
         }
         return objects;
+    }
+    static roundTo1(x) {
+        if (x > 0 && x < 1)
+            return 1;
+        else
+            return x;
     }
     rewind() {
         this.fs.rewind();
