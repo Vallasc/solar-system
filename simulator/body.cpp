@@ -40,31 +40,29 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
 
 
 //-----------------class functions---------------------
-//b.get_kinetic_energy; compute and return kinetic enery of b
+
+//get_kinetic_energy()
 double Body::get_kinetic_energy()
 {
     return 0.5*mass*(pow(velocity[0], 2) + pow(velocity[1], 2));
 }
 
+//get_x_momentum()
+double Body::get_x_momentum()
+{
+    return mass*velocity[0];
+}
+
+//get_y_momentum()
+double Body::get_y_momentum()
+{
+    return mass*velocity[1];
+}
+
+//get_orbital_momentum()
 double Body::get_orbital_momentum()
 {
-    double theta, phi, v, r;
-    v=sqrt(pow(velocity[0],2) + pow(velocity[1],2));
-    r=sqrt(pow(position[0],2) + pow(position[1],2));
-    theta=atan(position[1]/position[0]);
-    phi=atan(velocity[1]/velocity[0]);
-
-    if(position[0]<0)
-    {
-        theta += M_PI;
-        if(velocity[0]<0) 
-        {
-            phi += M_PI;
-        }
-    }
- 
-    return mass*r*v*sin(M_PI+theta-phi);
-        
+   return mass*(position[0]*velocity[1]-position[1]*velocity[0]);    
 }
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
@@ -155,7 +153,7 @@ double Body::distance(const Body &a, const Body &b)
      return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
 }
 
-//force(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
+//force_and_potential(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void Body::force_and_potential(Body &a, Body &b)
 {
     double u = (b.mass*a.mass)/(distance(a,b)); 
