@@ -4,8 +4,10 @@ declare var Chart : any;
 class Startup {
 
     static mainCanvas : HTMLCanvasElement;
+    static axesCanvas : HTMLCanvasElement;
     static sideContainer : HTMLElement;
     static loop : Loop;
+    static axes : Axes;
     static gui : any;
     static someNumber = 0;
 
@@ -91,6 +93,10 @@ class Startup {
         Startup.resize();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop);
+
+        Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
+        Startup.axes = new Axes(Startup.axesCanvas);
+        //Startup.axes.drawAxes();
         
         return 0;
     }
