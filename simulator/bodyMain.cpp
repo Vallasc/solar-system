@@ -90,8 +90,8 @@ int main(){
         theta = random_generator(0, 2*M_PI);
         position_i[0] = random_generator(0,rho)*cos(theta);
         position_i[1] = random_generator(0,rho)*sin(theta);
-        velocity_i[0] =  (random_generator(0, v_max))*cos(theta);
-        velocity_i[1] =  (random_generator(0, v_max))*sin(theta);
+        velocity_i[0] = random_generator(0, v_max)*cos(theta);
+        velocity_i[1] = random_generator(0, v_max)*sin(theta);
         #endif
        
         bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
