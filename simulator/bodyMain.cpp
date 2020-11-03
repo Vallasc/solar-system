@@ -11,6 +11,9 @@
 //#define EULER
 #define SIMPLETIC
 
+#define POLAR
+//#define CARTESIAN
+
 using namespace std;
 
 //--------------------------- scaling magnitudes ----------------------------
@@ -30,12 +33,24 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 500; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 150; // final time
+
+#ifdef CARTESIAN
+//cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=1;
+double v_min=0, v_max=10;
+#endif
+
+#ifdef POLAR
+//polar coordinates
+double rho=300;
+double v_max=10;
+double theta=0;
+#endif
+
 string filename = "s4.json";
 
 //------------------------------ real random number generator ---------------
@@ -52,12 +67,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 100;
-    double radius_i = 2;
-    double rho = 300;
-    double theta;
-    double speed = 30;
-    double delta = 50;
+    double mass_i = 1000;
+    double radius_i = 1;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -67,18 +78,22 @@ int main(){
 
     for(int j=0; j<N; ++j)
     { // random position and velocity initialization
+
+        #ifdef CARTESIAN
         position_i[0] = random_generator(x_min, x_max);
         position_i[1] = random_generator(x_min, x_max);
-        //theta = random_generator(0, 2*M_PI);
-        //position_i[0] = rho*cos(theta)+600;
-        //position_i[1] = rho*sin(theta)+300;
-
-        
         velocity_i[0] = random_generator(v_min, v_max);
         velocity_i[1] = random_generator(v_min, v_max);
-        //velocity_i[0] =  -(random_generator(0, speed))*cos(theta);
-        //velocity_i[1] =  -(random_generator(0, speed))*sin(theta); 
-        
+        #endif
+
+        #ifdef POLAR
+        theta = random_generator(0, 2*M_PI);
+        position_i[0] = random_generator(0,rho)*cos(theta);
+        position_i[1] = random_generator(0,rho)*sin(theta);
+        velocity_i[0] =  (random_generator(0, v_max))*cos(theta);
+        velocity_i[1] =  (random_generator(0, v_max))*sin(theta);
+        #endif
+       
         bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
     }
 
