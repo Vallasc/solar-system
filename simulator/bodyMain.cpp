@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 200; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 150; // final time
+double t_f = 15; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -46,12 +46,12 @@ double v_min=0, v_max=10;
 
 #ifdef POLAR
 //polar coordinates
-double rho=300;
-double v_max=10;
+double rho=400;
+double v_max=30;
 double theta=0;
 #endif
 
-string filename = "s4.json";
+string filename = "s3.json";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -67,7 +67,7 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 1000;
+    double mass_i = 200;
     double radius_i = 1;
 
     double position_CM[]{0,0}; //position center of mass
@@ -150,6 +150,13 @@ int main(){
         (*j).acceleration[0] = 0;
         (*j).acceleration[1] = 0;
     }
+
+    int response = 0;
+    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")\n";
+    cin>>response;
+
+    if(response)
+    {
 
     Serializer serializer(filename); //writing data on .json file
 
@@ -245,6 +252,13 @@ int main(){
     
 
 
+
+    }
+    else
+    {
+        cout<<"Next time will be better :)"<<endl;
+    }
+    
 
 
 
