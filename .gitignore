@@ -41,7 +41,7 @@ package-lock.json
 
 simulator/out
 generated
-simulator/s4.json
 simulator/s1.json
 simulator/s2.json
 simulator/s3.json
+simulator/salvare.json
