@@ -11,8 +11,8 @@
 //#define EULER
 #define SIMPLETIC
 
-#define POLAR
-//#define CARTESIAN
+//#define POLAR
+#define CARTESIAN
 
 using namespace std;
 
@@ -33,15 +33,15 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 200; // number of bodies
+int N = 500; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 15; // final time
+double t_f = 60; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=10;
+double v_min=0, v_max=1;
 #endif
 
 #ifdef POLAR
