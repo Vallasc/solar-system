@@ -33,21 +33,21 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 200; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 15; // final time
+double t_f = 60; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=10;
+double v_min=0, v_max=1;
 #endif
 
 #ifdef POLAR
 //polar coordinates
 double rho=400;
-double v_max=30;
+double v_max=5;
 double theta=0;
 #endif
 
@@ -68,7 +68,7 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double mass_i = 200;
-    double radius_i = 1;
+    double radius_i = 0.5;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -153,6 +153,7 @@ int main(){
 
     int response = 0;
     cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")\n";
+    cout<<"Answer: ";
     cin>>response;
 
     if(response)
