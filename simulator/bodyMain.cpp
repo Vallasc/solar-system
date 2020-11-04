@@ -8,8 +8,8 @@
 #include "serializer.h"
 #include "body.h"
 
-//#define EULER
-#define SIMPLETIC
+#define EULER
+//#define SIMPLETIC
 
 #define POLAR
 //#define CARTESIAN
@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 200; // number of bodies
+int N = 2000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 15; // final time
+double t_f = 150; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -68,7 +68,7 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double mass_i = 200;
-    double radius_i = 1;
+    double radius_i = 0.5;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
