@@ -96,7 +96,11 @@ class Startup {
 
         Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
-        //Startup.axes.drawAxes();
+        Startup.axes.drawAxes();
+
+        window.addEventListener("resize", function() {
+            Startup.axes.drawAxes();
+        }); 
         
         return 0;
     }
