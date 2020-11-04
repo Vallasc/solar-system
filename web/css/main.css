@@ -12,6 +12,12 @@ body {
   position: absolute;
 }
 
+#axes-canvas {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
 .flex-container {
   flex: 1;
   display: flex;
