@@ -10,7 +10,6 @@
 
 //#define EULER
 #define SIMPLETIC
-//#define VERLET
 
 #define POLAR
 //#define CARTESIAN
@@ -207,10 +206,6 @@ int main(){
             (*i).update_pos_vel(dt); 
         }
     //----------------------------------------------------------------------------------------------
-    #endif
-
-    #ifdef VERLET //PER IMPLEMENTARLO BISOGNA CAMBIARE UN PO' LA CLASSE
-    //https://en.wikipedia.org/wiki/Verlet_integration#Velocity_Verlet
     #endif
 
     #ifdef SIMPLETIC
