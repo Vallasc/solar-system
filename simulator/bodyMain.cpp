@@ -210,6 +210,7 @@ int main(){
     #endif
 
     #ifdef VERLET //PER IMPLEMENTARLO BISOGNA CAMBIARE UN PO' LA CLASSE
+    //https://en.wikipedia.org/wiki/Verlet_integration#Velocity_Verlet
     /*accelerazione = forza (tempo, posizione) / massa;
 tempo + = timestep;
 posizione + = timestep * ( velocità + timestep * accelerazione / 2) ;
