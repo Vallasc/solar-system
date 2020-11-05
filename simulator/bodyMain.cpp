@@ -10,6 +10,7 @@
 
 //#define EULER
 #define SIMPLETIC
+//#define VERLET
 
 #define POLAR
 //#define CARTESIAN
@@ -33,10 +34,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 2; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 60; // final time
+double t_f = 600; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -67,8 +68,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 200;
-    double radius_i = 0.5;
+    double mass_i = 2000;
+    double radius_i = 2;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -206,6 +207,10 @@ int main(){
             (*i).update_pos_vel(dt); 
         }
     //----------------------------------------------------------------------------------------------
+    #endif
+
+    #ifdef VERLET //PER IMPLEMENTARLO BISOGNA CAMBIARE UN PO' LA CLASSE
+    //https://en.wikipedia.org/wiki/Verlet_integration#Velocity_Verlet
     #endif
 
     #ifdef SIMPLETIC
