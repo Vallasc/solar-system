@@ -211,36 +211,6 @@ int main(){
 
     #ifdef VERLET //PER IMPLEMENTARLO BISOGNA CAMBIARE UN PO' LA CLASSE
     //https://en.wikipedia.org/wiki/Verlet_integration#Velocity_Verlet
-    /*accelerazione = forza (tempo, posizione) / massa;
-tempo + = timestep;
-posizione + = timestep * ( velocità + timestep * accelerazione / 2) ;
-newAcceleration = force (time, position) / mass; 
-velocity + = timestep * ( acceleration + newAcceleration) / 2 ;
-*/
-
-    //----------------------------------------- Verlet dynamic ------------------------------------
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            (*j).potential_energy = 0;
-            (*j).update_position(dt);//mettere quella giusta
-        }
-        
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-        {
-            if(j != bodies.end()-1)
-            {
-                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
-                {
-                    Body::force_and_potential(*j, *k);
-                }
-            }
-            (*j).update_velocity(dt);
-            (*j).update_position(dt/2);
-            (*j).acceleration[0] = 0;
-            (*j).acceleration[1] = 0;
-
-        }
-
     #endif
 
     #ifdef SIMPLETIC
