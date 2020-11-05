@@ -10,6 +10,7 @@
 
 //#define EULER
 #define SIMPLETIC
+//#define VERLET
 
 #define POLAR
 //#define CARTESIAN
@@ -33,10 +34,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 2; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 60; // final time
+double t_f = 600; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -67,8 +68,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 200;
-    double radius_i = 0.5;
+    double mass_i = 2000;
+    double radius_i = 2;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -206,6 +207,39 @@ int main(){
             (*i).update_pos_vel(dt); 
         }
     //----------------------------------------------------------------------------------------------
+    #endif
+
+    #ifdef VERLET //PER IMPLEMENTARLO BISOGNA CAMBIARE UN PO' LA CLASSE
+    /*accelerazione = forza (tempo, posizione) / massa;
+tempo + = timestep;
+posizione + = timestep * ( velocità + timestep * accelerazione / 2) ;
+newAcceleration = force (time, position) / mass; 
+velocity + = timestep * ( acceleration + newAcceleration) / 2 ;
+*/
+
+    //----------------------------------------- Verlet dynamic ------------------------------------
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            (*j).potential_energy = 0;
+            (*j).update_position(dt);//mettere quella giusta
+        }
+        
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+        {
+            if(j != bodies.end()-1)
+            {
+                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+                {
+                    Body::force_and_potential(*j, *k);
+                }
+            }
+            (*j).update_velocity(dt);
+            (*j).update_position(dt/2);
+            (*j).acceleration[0] = 0;
+            (*j).acceleration[1] = 0;
+
+        }
+
     #endif
 
     #ifdef SIMPLETIC
