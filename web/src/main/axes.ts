@@ -20,11 +20,50 @@ class Axes {
         //let y_axis_starting_point = { number: 1, suffix: '' };
         let i : number;
 
+        // Draw >  
+        this.context.beginPath();
+        this.context.lineWidth = 0.8;
+            
+        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
+    
+        this.context.moveTo(w-8+0.5, h*0.5-8+0.5);
+        this.context.lineTo(w, h*0.5+0.5);
+        this.context.stroke();
+
+        this.context.beginPath();
+        this.context.lineWidth = 0.8;
+            
+        this.context.strokeStyle = "rgba(250,0,0,0.70)";
+    
+        this.context.moveTo(w-8+0.5, h*0.5+8+0.5);
+        this.context.lineTo(w, h*0.5+0.5);
+        this.context.stroke();
+
+        // Draw ^ 
+        this.context.beginPath();
+        this.context.lineWidth = 0.8;
+            
+        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
+    
+        this.context.moveTo(w*0.5-8+0.5, 33+0.5);
+        this.context.lineTo(w*0.5+0.5, 25.5);
+        this.context.stroke();
+
+        
+        this.context.beginPath();
+        this.context.lineWidth = 0.8;
+            
+        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
+    
+        this.context.moveTo(w*0.5+8+0.5, 33+0.5);
+        this.context.lineTo(w*0.5+0.5, 25.5);
+        this.context.stroke();
+
         // Draw X-axis
         this.context.beginPath();
         this.context.lineWidth = 0.7;
             
-        this.context.strokeStyle = "#ffffff"; //x axis
+        this.context.strokeStyle = "rgba(250,0,0,0.70)"; //x axis
     
         this.context.moveTo(0+0.5, h*0.5+0.5);
         this.context.lineTo(w+0.5, h*0.5+0.5);
@@ -34,7 +73,7 @@ class Axes {
         this.context.beginPath();
         this.context.lineWidth = 0.7;
         
-        this.context.strokeStyle = "#ffffff"; //y axis
+        this.context.strokeStyle = "rgba(250,0,0,0.70)"; //y axis
         this.context.moveTo(w*0.5+0.5, 0+0.5);
         this.context.lineTo(w*0.5+0.5, h+0.5);
         
@@ -44,7 +83,7 @@ class Axes {
         for(i=1; i<Math.round(w*0.5); i++) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
             
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w*0.5+i*dist_grids+0.5, h*0.5-2+0.5);
@@ -63,7 +102,7 @@ class Axes {
         for(i=Math.round(w*0.5); i>0; i--) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
 
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w*0.5-i*dist_grids+0.5, h*0.5-2+0.5);
@@ -82,7 +121,7 @@ class Axes {
         for(i=1; i<Math.round(h*0.5); i++) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
 
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w*0.5-2+0.5, h*0.5-i*dist_grids+0.5);
@@ -101,7 +140,7 @@ class Axes {
         for(i=Math.round(h*0.5); i>0; i--) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
 
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w*0.5-2+0.5, h*0.5+i*dist_grids+0.5);
