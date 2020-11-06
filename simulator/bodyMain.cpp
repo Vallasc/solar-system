@@ -163,7 +163,7 @@ int main(){
 
     //------------------------------------ evolution -------------------------------
     //
-    ofstream of("test.txt");
+    //ofstream of("test.txt");
     //
     while(1)
     {   
