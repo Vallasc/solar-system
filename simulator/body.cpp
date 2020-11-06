@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include <sstream>
+#include <iomanip>
 
 #include "body.h"
 #include <vector>
@@ -147,6 +148,16 @@ std::string Body::to_json()
     return ss.str();
 }
 
+std::string Body::serialize()
+{
+    std::stringstream ss;
+    ss << this->position[0] << " ";
+    ss << std::setprecision(2) << std::fixed << this->position[1] << " ";
+    ss << std::setprecision(2) << this->radius << " ";
+    ss << std::setprecision(2) << this->get_kinetic_energy() << " ";
+    ss << std::setprecision(2) << this->internal_energy << " ";
+    return ss.str();
+}
 
 //---------------static methods------------------------
 //distance(a,b); return the distance between a and b.

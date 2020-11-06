@@ -18,6 +18,7 @@ class Body{
     void update_pos_vel(double dt); //update position and velocity of the object and reset acceleration.
 
     std::string to_json();//prepare the format for json file
+    std::string serialize();
 
     static double distance(const Body &a, const Body &b);//compute the distance between two objects
     static void force_and_potential(Body &a, Body &b);//compute the force and the potential energy between two objects and change their accelaration accordingly
