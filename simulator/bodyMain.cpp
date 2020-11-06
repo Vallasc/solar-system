@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 2; // number of bodies
+int N = 10000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 600; // final time
+double t_f = 200; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -46,8 +46,8 @@ double v_min=0, v_max=1;
 
 #ifdef POLAR
 //polar coordinates
-double rho=400;
-double v_max=5;
+double rho=600;
+double v_max=10;
 double theta=0;
 #endif
 
@@ -67,8 +67,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 2000;
-    double radius_i = 2;
+    double mass_i = 50;
+    double radius_i = 0.1;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -162,9 +162,13 @@ int main(){
     Serializer serializer(filename); //writing data on .json file
 
     //------------------------------------ evolution -------------------------------
+    //
+    ofstream of("test.txt");
+    //
     while(1)
     {   
-
+        //of<<t<<"\t"<<bodies.size()<<endl;
+        cout<<"\r"<<t/t_f*100<<"%"<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
