@@ -25,8 +25,10 @@ class Body{
 
     //getters
     double get_kinetic_energy(); //return kinetic energy
+    double get_x_momentum(); //return x momentum
+    double get_y_momentum(); //return y momentum
     double get_orbital_momentum(); //return orbital angular momentum
-
+    
     //variables
     double position[2]; 
     double velocity[2]; 

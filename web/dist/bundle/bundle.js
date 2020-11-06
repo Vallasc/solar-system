@@ -8,6 +8,101 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+class Axes {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.context = canvas.getContext("2d");
+        this.context.imageSmoothingEnabled = false;
+    }
+    drawAxes() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        let w = this.canvas.width;
+        let h = this.canvas.height;
+        let dist_grids = 10; //distance between grids
+        //let x_axis_starting_point = { number: 1, suffix: '\u03a0' };
+        //let y_axis_starting_point = { number: 1, suffix: '' };
+        let i;
+        // Draw X-axis
+        this.context.beginPath();
+        this.context.lineWidth = 0.7;
+        this.context.strokeStyle = "#ffffff"; //x axis
+        this.context.moveTo(0 + 0.5, h * 0.5 + 0.5);
+        this.context.lineTo(w + 0.5, h * 0.5 + 0.5);
+        this.context.stroke();
+        // Draw Y-axis
+        this.context.beginPath();
+        this.context.lineWidth = 0.7;
+        this.context.strokeStyle = "#ffffff"; //y axis
+        this.context.moveTo(w * 0.5 + 0.5, 0 + 0.5);
+        this.context.lineTo(w * 0.5 + 0.5, h + 0.5);
+        this.context.stroke();
+        // Ticks marks along the positive X-axis
+        for (i = 1; i < Math.round(w * 0.5); i++) {
+            this.context.beginPath();
+            this.context.lineWidth = 0.7;
+            this.context.strokeStyle = "#ffffff";
+            // Draw a tick mark 5px long (-2 to 2)
+            this.context.moveTo(w * 0.5 + i * dist_grids + 0.5, h * 0.5 - 2 + 0.5);
+            this.context.lineTo(w * 0.5 + i * dist_grids + 0.5, h * 0.5 + 2 + 0.5);
+            this.context.stroke();
+            /*
+            // Text value at that point
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'start';
+            ctx.fillText(x_axis_starting_point.number*i + x_axis_starting_point.suffix, dist_grids*i-2, 15);
+            */
+        }
+        // Ticks marks along the negative X-axis
+        for (i = Math.round(w * 0.5); i > 0; i--) {
+            this.context.beginPath();
+            this.context.lineWidth = 0.7;
+            this.context.strokeStyle = "#ffffff";
+            // Draw a tick mark 5px long (-2 to 2)
+            this.context.moveTo(w * 0.5 - i * dist_grids + 0.5, h * 0.5 - 2 + 0.5);
+            this.context.lineTo(w * 0.5 - i * dist_grids + 0.5, h * 0.5 + 2 + 0.5);
+            this.context.stroke();
+            /*
+            // Text value at that point
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'end';
+            ctx.fillText(-x_axis_starting_point.number*i + x_axis_starting_point.suffix, -dist_grids*i+2, 15);
+            */
+        }
+        // Ticks marks along the positive Y-axis
+        for (i = 1; i < Math.round(h * 0.5); i++) {
+            this.context.beginPath();
+            this.context.lineWidth = 0.7;
+            this.context.strokeStyle = "#ffffff";
+            // Draw a tick mark 5px long (-2 to 2)
+            this.context.moveTo(w * 0.5 - 2 + 0.5, h * 0.5 - i * dist_grids + 0.5);
+            this.context.lineTo(w * 0.5 + 2 + 0.5, h * 0.5 - i * dist_grids + 0.5);
+            this.context.stroke();
+            /*
+            // Text value at that point
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'start';
+            ctx.fillText(-y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, dist_grids*i+2);
+            */
+        }
+        // Ticks marks along the negative Y-axis
+        for (i = Math.round(h * 0.5); i > 0; i--) {
+            this.context.beginPath();
+            this.context.lineWidth = 0.7;
+            this.context.strokeStyle = "#ffffff";
+            // Draw a tick mark 5px long (-2 to 2)
+            this.context.moveTo(w * 0.5 - 2 + 0.5, h * 0.5 + i * dist_grids + 0.5);
+            this.context.lineTo(w * 0.5 + 2 + 0.5, h * 0.5 + i * dist_grids + 0.5);
+            this.context.stroke();
+            /*
+            // Text value at that point
+            ctx.font = '9px Arial';
+            ctx.textAlign = 'start';
+            ctx.fillText(y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, -dist_grids*i+3);
+            */
+        }
+    }
+}
 class Body {
     constructor({ x = 0, y = 0, vX = 0, vY = 0, accX = 0, accY = 0, radius = 1, mass = 0, k_energy = 0, internal_energy = 0 } = {}) {
         this.x = 0;
@@ -213,10 +308,6 @@ class JsonStreamer {
         });
     }
 }
-class Gui {
-    constructor() {
-    }
-}
 class Startup {
     static main() {
         Startup.createGui();
@@ -296,6 +387,12 @@ class Startup {
         Startup.resize();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop);
+        Startup.axesCanvas = document.getElementById('axes-canvas');
+        Startup.axes = new Axes(Startup.axesCanvas);
+        Startup.axes.drawAxes();
+        window.addEventListener("resize", function () {
+            Startup.axes.drawAxes();
+        });
         return 0;
     }
     static createGui() {

@@ -1,5 +1,5 @@
 body {
-  background-color: #ffffff;
+  background-color: #242424;
   margin: 0px;
   height: 100%;
   width: 100%;
@@ -7,6 +7,12 @@ body {
   font-family: monospace;
 }
 #main-canvas {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+#axes-canvas {
   height: 100%;
   width: 100%;
   position: absolute;

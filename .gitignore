@@ -41,3 +41,11 @@ package-lock.json
 
 simulator/out
 generated
+simulator/s1.json
+simulator/s2.json
+simulator/s3.json
+simulator/salvare.json
+simulator/binary_star.json
+simulator/planet.json
+simulator/test.txt
+simulator/5000.json

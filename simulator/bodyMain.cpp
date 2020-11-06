@@ -8,8 +8,11 @@
 #include "serializer.h"
 #include "body.h"
 
-#define EULER
-//#define SIMPLETIC
+//#define EULER
+#define SIMPLETIC
+
+#define POLAR
+//#define CARTESIAN
 
 using namespace std;
 
@@ -30,13 +33,25 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 10000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 2; // final time
+double t_f = 200; // final time
+
+#ifdef CARTESIAN
+//cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=5;
-string filename = "s4.json";
+double v_min=0, v_max=1;
+#endif
+
+#ifdef POLAR
+//polar coordinates
+double rho=600;
+double v_max=10;
+double theta=0;
+#endif
+
+string filename = "s3.json";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -52,12 +67,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 20;
+    double mass_i = 50;
     double radius_i = 0.1;
-    double rho = 300;
-    double theta;
-    double speed = 30;
-    double delta = 50;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -67,18 +78,22 @@ int main(){
 
     for(int j=0; j<N; ++j)
     { // random position and velocity initialization
+
+        #ifdef CARTESIAN
         position_i[0] = random_generator(x_min, x_max);
         position_i[1] = random_generator(x_min, x_max);
-        //theta = random_generator(0, 2*M_PI);
-        //position_i[0] = rho*cos(theta)+600;
-        //position_i[1] = rho*sin(theta)+300;
-
-        
         velocity_i[0] = random_generator(v_min, v_max);
         velocity_i[1] = random_generator(v_min, v_max);
-        //velocity_i[0] =  -(random_generator(0, speed))*cos(theta);
-        //velocity_i[1] =  -(random_generator(0, speed))*sin(theta); 
-        
+        #endif
+
+        #ifdef POLAR
+        theta = random_generator(0, 2*M_PI);
+        position_i[0] = random_generator(0,rho)*cos(theta);
+        position_i[1] = random_generator(0,rho)*sin(theta);
+        velocity_i[0] = random_generator(0, v_max)*cos(theta);
+        velocity_i[1] = random_generator(0, v_max)*sin(theta);
+        #endif
+       
         bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
     }
 
@@ -110,27 +125,23 @@ int main(){
     //initial conservatives parameters
     double ang_mom_tot=0, E_tot=0;
     double momentum_tot[]{0,0};
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
-        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+        if(j != bodies.end()-1)
         {
-            Body::force_and_potential(*j, *k);
+            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+            {
+                Body::force_and_potential(*j, *k);
+            }
         }
-        ang_mom_tot += (*j).get_orbital_momentum()*M_A + (*j).spin*M_A;
-        momentum_tot[0] += (*j).mass*(*j).velocity[0];
-        momentum_tot[1] += (*j).mass*(*j).velocity[1];
-        E_tot += (*j).get_kinetic_energy()*E + (*j).internal_energy*E + 0.5*(*j).potential_energy*E;
-        //(*j).print();
+
+        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
+        momentum_tot[0] += (*j).get_x_momentum();
+        momentum_tot[1] += (*j).get_y_momentum();
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
     }
 
-    Body last = bodies[bodies.size()-1];
-
-    ang_mom_tot += last.get_orbital_momentum() + last.spin;
-    momentum_tot[0] += last.mass*last.velocity[0];
-    momentum_tot[1] += last.mass*last.velocity[1];
-    E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
-    //last.print();
-    cout<<"ang momentum: "<<ang_mom_tot*M_A<<"\nE: "<<E_tot*E<<"\nPx: "<<momentum_tot[0]*P<<"\nPy: "<<momentum_tot[1]*P<<endl<<endl;
+    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl << endl;
 
     //reset force and potential energy
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -140,13 +151,24 @@ int main(){
         (*j).acceleration[1] = 0;
     }
 
+    int response = 0;
+    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")\n";
+    cout<<"Answer: ";
+    cin>>response;
+
+    if(response)
+    {
+
     Serializer serializer(filename); //writing data on .json file
 
     //------------------------------------ evolution -------------------------------
+    //
+    //ofstream of("test.txt");
+    //
     while(1)
     {   
-        //cout << t << "\n";
-
+        //of<<t<<"\t"<<bodies.size()<<endl;
+        cout<<"\r"<<t/t_f*100<<"%"<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
@@ -220,31 +242,28 @@ int main(){
 
     }
 
-    //check on consevation
+    //checking consevation
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
-        momentum_tot[0] += (*j).mass*(*j).velocity[0];
-        momentum_tot[1] += (*j).mass*(*j).velocity[1];
+        momentum_tot[0] += (*j).get_x_momentum();
+        momentum_tot[1] += (*j).get_y_momentum();
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
-        //(*j).print();
     }
 
-    last = bodies[bodies.size()-1];
-
-    ang_mom_tot += last.get_orbital_momentum() + last.spin;
-    momentum_tot[0] += last.mass*last.velocity[0];
-    momentum_tot[1] += last.mass*last.velocity[1];
-    E_tot += last.get_kinetic_energy() + last.internal_energy + 0.5*last.potential_energy;
-    //last.print();
-
-    cout<<"ang momentum: "<<ang_mom_tot*M_A<<"\nE: "<<E_tot*E<<"\nPx: "<<momentum_tot[0]*P<<"\nPy: "<<momentum_tot[1]*P<<endl;
+    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl;
+    
 
 
 
-
+    }
+    else
+    {
+        cout<<"Next time will be better :)"<<endl;
+    }
+    
 
 
 
