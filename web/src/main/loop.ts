@@ -103,7 +103,7 @@ class Loop {
         //this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        this.context.fillStyle = "black"; 
+        this.context.fillStyle = "white"; 
         this.context.strokeStyle = "red";
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
@@ -272,17 +272,17 @@ class Loop {
 
     private async loadFile(file: File) : Promise<void> {
         Startup.gui.Loader(true);
-        if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB 
+        //if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB 
             this.loadAllFile = true;
             try {
                 this.buffer = await this.loadFileAll(file);
             } catch (e) {
                 throw Error("Failed loading file")
             }
-        } else {
-            this.loadAllFile = false;
-            this.loadFileChunck(file);
-        }
+        //} else {
+        //    this.loadAllFile = false;
+        //    this.loadFileChunck(file);
+        //}
         Startup.gui.Loader(false);
         return;
     }
