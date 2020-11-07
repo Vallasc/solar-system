@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 10000; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 200; // final time
+double t_f = 80; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -67,8 +67,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 50;
-    double radius_i = 0.1;
+    double mass_i = 100;
+    double radius_i = 1;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -141,7 +141,11 @@ int main(){
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
     }
 
-    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl << endl;
+    cout<<"Initial state of the system: "<<endl;
+    cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
+    cout<<"Total energy: " << E_tot<<endl;
+    cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
+    cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
     //reset force and potential energy
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -152,7 +156,11 @@ int main(){
     }
 
     int response = 0;
-    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")\n";
+    if(E_tot > 0)
+    {
+        cout<<"WARNING: the energy of the system is positive!"<<endl;
+    }
+    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")"<<endl;
     cout<<"Answer: ";
     cin>>response;
 
@@ -168,7 +176,7 @@ int main(){
     while(1)
     {   
         //of<<t<<"\t"<<bodies.size()<<endl;
-        cout<<"\r"<<t/t_f*100<<"%"<<flush;
+        cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
@@ -253,7 +261,12 @@ int main(){
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
     }
 
-    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl;
+    cout<<"Final state of the system: "<<endl;
+    cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
+    cout<<"Total energy: " << E_tot<<endl;
+    cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
+    cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+
     
 
 
