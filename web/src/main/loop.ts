@@ -1,5 +1,5 @@
 declare var Stats : any;
-
+// TODO hittest
 class Loop {
     private stats; // 0 stop, 1 play, 2 pause
 
@@ -93,14 +93,20 @@ class Loop {
 
     }
 
+    public selectX : number | null = null;
+    public selectY : number | null = null;
+    public savedBody : Body | null = null;
+
     private draw() : void {
         this.stats.begin();
 
-        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        //this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.context.fillStyle = "white"; 
-        this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
+        this.context.strokeStyle = "red";
+        //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+        //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
 
         if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
@@ -116,46 +122,71 @@ class Loop {
             this.drawStates(this.lastObjects);
   
         this.reqId = window.requestAnimationFrame(() => this.draw());
+        //setTimeout(() => this.draw(), 0)
         this.stats.end();
     }
 
-    private setMatrix(x: number, y: number, scale: number, rotate: number){
+    /*private setMatrix(x: number, y: number, scale: number, rotate: number){
         var xAx = Math.cos(rotate) * scale;  // the x axis x
         var xAy = Math.sin(rotate) * scale;  // the x axis y
         this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+    }*/
+
+    // per aumentare la velocita di calcolo utilizzo un quadrato circoscritto
+    private squareHitTest(x: number, y: number, r: number, xp: number, yp: number) : boolean {
+        let x1 = x - r;
+        let y1 = y - r;
+        let x2 = x + r;
+        let y2 = y + r;
+        return (x1 <= xp && xp <= x2 && y1 <= yp && yp <= y2);
     }
 
-    /*private drawStatesImageData(pixels: Uint8ClampedArray, canvasWidth: number, canvasHeight: number){
-        if(this.buffer != null){
-            let el = this.buffer.pop();
-            //console.log(this.buffer.size);
-            if(el == null) return;
-            for(let i=0; i<el.p.length; i++){
-                if(el.p[i].x < canvasWidth && el.p[i].x >0 && el.p[i].y < canvasWidth && el.p[i].y >0){
-                    let r = 255;
-                    let g = 255;
-                    let b = 255;
-                    var off = (el.p[i].y * canvasWidth + el.p[i].x) * 4;
-                    pixels[off] = r;
-                    pixels[off + 1] = g;
-                    pixels[off + 2] = b;
-                    pixels[off + 3] = 255;
-                }
-            }
-        } else {
-            this.state = 0;
-        }
-    }*/
     private drawStates( objects : Float64Array) {
+        let xBase = this.canvas.width/2 + this.panningOffsetX;
+        let yBase = (this.canvas.height/2 + this.panningOffsetY)
+        
         let numParams = 5;
         //console.log(this.buffer.size);
         this.context.beginPath();
         for(let i=1; i<=objects[0]; i++){
-                this.context.moveTo(objects[i * numParams], objects[i * numParams + 1]);
-                this.context.arc(objects[i * numParams], objects[i * numParams + 1], objects[i * numParams + 2], 0, 2 * Math.PI);
+            let x = xBase+objects[i * numParams];
+            let y = yBase-objects[i * numParams + 1];
+            let r = objects[i * numParams + 2];
+
+            this.context.moveTo(x, y);
+            this.context.arc(x, y, r, 0, 2 * Math.PI);
         }
+        this.context.closePath();
         this.context.fill();
     }
+
+    /*private drawStates( objects : Float64Array) {
+        let xBase = this.canvas.width/2 + this.panningOffsetX;
+        let yBase = (this.canvas.height/2 + this.panningOffsetY)
+        
+        let numParams = 5;
+        //console.log(this.buffer.size);
+        console.log(objects[0]);
+        for(let i=1; i<=objects[0]; i++){
+            let x = xBase+objects[i * numParams];
+            let y = yBase-objects[i * numParams + 1];
+            let r = objects[i * numParams + 2];
+
+            if(this.selectX != null && this.selectY != null && this.squareHitTest(x, y, r, this.selectX, this.selectY)){
+                this.savedBody = new Body({x: x, y: y, radius: r})
+            }
+            this.context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16); 
+            this.context.beginPath();
+            this.context.arc(x, y, r, 0, 2 * Math.PI);
+            this.context.fill();
+        }
+
+        if(this.savedBody != null){
+            this.context.beginPath();
+            this.context.arc(this.savedBody.x, this.savedBody.y, this.savedBody.radius+5, 0, 2 * Math.PI);
+            this.context.stroke();
+        }
+    }*/
 
     public play() {
         if(this.isPlaying || this.isEof) return;
@@ -241,17 +272,17 @@ class Loop {
 
     private async loadFile(file: File) : Promise<void> {
         Startup.gui.Loader(true);
-        if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB this.fastMode
+        //if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB 
             this.loadAllFile = true;
             try {
                 this.buffer = await this.loadFileAll(file);
             } catch (e) {
                 throw Error("Failed loading file")
             }
-        } else {
-            this.loadAllFile = false;
-            this.loadFileChunck(file);
-        }
+        //} else {
+        //    this.loadAllFile = false;
+        //    this.loadFileChunck(file);
+        //}
         Startup.gui.Loader(false);
         return;
     }
@@ -337,6 +368,9 @@ class MouseInput {
 
         self.panningStartX = e.clientX;
         self.panningStartY = e.clientY;
+
+        self.loop.selectX = e.clientX;
+        self.loop.selectY = e.clientY;
     }
 
     private pan(e: MouseEvent, self: MouseInput) {
