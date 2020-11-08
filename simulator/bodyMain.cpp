@@ -37,6 +37,8 @@ int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 80; // final time
+double mass_i = 100;
+double radius_i = 1;
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -46,7 +48,7 @@ double v_min=0, v_max=1;
 
 #ifdef POLAR
 //polar coordinates
-double rho=600;
+double rho=400;
 double v_max=10;
 double theta=0;
 #endif
@@ -67,8 +69,6 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 100;
-    double radius_i = 1;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -261,7 +261,7 @@ int main(){
         E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
     }
 
-    cout<<"Final state of the system: "<<endl;
+    cout<<"\n\nFinal state of the system: "<<endl;
     cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
     cout<<"Total energy: " << E_tot<<endl;
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
