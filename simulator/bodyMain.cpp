@@ -11,8 +11,8 @@
 //#define EULER
 #define SIMPLETIC
 
-#define POLAR
-//#define CARTESIAN
+//#define POLAR
+#define CARTESIAN
 
 using namespace std;
 
@@ -33,7 +33,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 4000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 80; // final time
@@ -43,7 +43,7 @@ double radius_i = 1;
 #ifdef CARTESIAN
 //cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=1;
+double v_min=0, v_max=0.5;
 #endif
 
 #ifdef POLAR
@@ -53,7 +53,7 @@ double v_max=10;
 double theta=0;
 #endif
 
-string filename = "s3.json";
+string filename = "s7.json";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -250,7 +250,7 @@ int main(){
 
     }
 
-    //checking consevation
+    //checking conservation
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
