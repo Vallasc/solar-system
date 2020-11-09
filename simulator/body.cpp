@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <sstream>
 #include <iomanip>
@@ -24,7 +25,7 @@ long double M_A = P*L;
 
 //-------------------class constructors and operators-----------------------
 //parametric costructor
-Body::Body(double* position_, double* velocity_, double radius_, double mass_)
+Body::Body(int id_, double* position_, double* velocity_, double radius_, double mass_)
 {
     //default inizialization variables
     acceleration[0]=0; acceleration[1]=0;
@@ -37,6 +38,8 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
     position[0] = position_[0]; position[1] = position_[1];
     radius = radius_;
     mass = mass_;
+    id = id_;
+    is_big_endian = check_big_endian();
 }
 
 
@@ -148,15 +151,22 @@ std::string Body::to_json()
     return ss.str();
 }
 
-std::string Body::serialize()
+int Body::write_to_file(std::ofstream &outfile)
 {
-    std::stringstream ss;
-    ss << this->position[0] << " ";
-    ss << std::setprecision(2) << std::fixed << this->position[1] << " ";
-    ss << std::setprecision(2) << this->radius << " ";
-    ss << std::setprecision(2) << this->get_kinetic_energy() << " ";
-    ss << std::setprecision(2) << this->internal_energy << " ";
-    return ss.str();
+    float id = Body::reverse_float((float) this->id);
+    float x = Body::reverse_float((float) this->position[0]);
+    float y = Body::reverse_float((float) this->position[1]);
+    float r = Body::reverse_float((float) this->radius);
+    float k_energy = Body::reverse_float(this->get_kinetic_energy());
+    float i_energy = Body::reverse_float(this->internal_energy);
+
+    outfile.write(reinterpret_cast<char*>(& id ), sizeof(float)); // 16 bit?
+    outfile.write(reinterpret_cast<char*>(& x ), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& y ), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& r ), sizeof(float)); // 16 bit?
+    outfile.write(reinterpret_cast<char*>(& k_energy ), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& i_energy ), sizeof(float));
+    return sizeof(float) * 6; // N byte scritti
 }
 
 //---------------static methods------------------------
@@ -184,4 +194,19 @@ void Body::force_and_potential(Body &a, Body &b)
     a.potential_energy -= u;
     b.potential_energy -= u;
 
+}
+
+float Body::reverse_float( const float inFloat )
+{
+    if(!is_big_endian) return inFloat;
+    float retVal;
+    char *floatToConvert = ( char* ) & inFloat;
+    char *returnFloat = ( char* ) & retVal;
+
+    returnFloat[0] = floatToConvert[3];
+    returnFloat[1] = floatToConvert[2];
+    returnFloat[2] = floatToConvert[1];
+    returnFloat[3] = floatToConvert[0];
+
+    return retVal;
 }

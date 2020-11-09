@@ -7,7 +7,7 @@
 class Body{
 
     public:
-    Body(double* position_, double* velocity_, double radius_, double mass_);//parametric constructor
+    Body(int id_, double* position_, double* velocity_, double radius_, double mass_);//parametric constructor
     Body() = default; //default constructor
 
     //functions
@@ -18,7 +18,7 @@ class Body{
     void update_pos_vel(double dt); //update position and velocity of the object and reset acceleration.
 
     std::string to_json();//prepare the format for json file
-    std::string serialize();
+    int write_to_file(std::ofstream &outfile);
 
     static double distance(const Body &a, const Body &b);//compute the distance between two objects
     static void force_and_potential(Body &a, Body &b);//compute the force and the potential energy between two objects and change their accelaration accordingly
@@ -30,6 +30,7 @@ class Body{
     double get_orbital_momentum(); //return orbital angular momentum
     
     //variables
+    int id; 
     double position[2]; 
     double velocity[2]; 
     double acceleration[2]; 
@@ -38,8 +39,19 @@ class Body{
     double internal_energy; 
     double potential_energy;
     double spin;
-   
+    bool is_big_endian;
 
+    private:
+    // Swap float if it is big endian
+    float reverse_float( const float inFloat );
+    static bool check_big_endian(void)
+    {
+        union {
+            uint32_t i;
+            char c[4];
+        } bint = {0x01020304};
+        return bint.c[0] == 1; 
+    }
     
 };
 
