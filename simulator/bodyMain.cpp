@@ -53,7 +53,7 @@ double v_max=1;
 double theta=0;
 #endif
 
-string filename = "prova"; // Do not specify the extension
+string filename = "generated/prova"; // Do not specify the extension
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
