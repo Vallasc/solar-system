@@ -5,15 +5,17 @@ body {
   width: 100%;
   /*display: flex;*/
   font-family: monospace;
+  user-select: none;
 }
+
 #main-canvas {
-  height: 100%;
+  margin-top: 25px;
   width: 100%;
   position: absolute;
 }
 
 #axes-canvas {
-  height: 100%;
+  margin-top: 25px;
   width: 100%;
   position: absolute;
 }
