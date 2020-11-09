@@ -17,6 +17,18 @@ class Fifo<T> {
         this.size++;
     }
 
+    public pushFifo(fifo: Fifo<T> ) {
+        if(this.size == 0){
+            this.first = fifo.first;
+            this.last = fifo.last;
+        } else {
+            this.last!.next = fifo.first;
+            this.last = fifo.last;
+        }
+
+        this.size += fifo.size;
+    }
+
     public pop() : T | null {
         if(this.size == 0){
             return null;
