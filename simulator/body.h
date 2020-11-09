@@ -36,7 +36,8 @@ class Body{
     double acceleration[2]; 
     double radius;
     double mass;
-    double internal_energy; 
+    double internal_energy;
+    double binding_energy; 
     double potential_energy;
     double spin;
     bool is_big_endian;

@@ -33,25 +33,27 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 1000; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
-double dt = 0.02; // time interval
-double t_f = 20; // final time
+double dt = 0.01; // time interval
+double t_f = 100; // final time
+double mass_i = 100;
+double radius_i = 1;
 
 #ifdef CARTESIAN
 //cartesian coordinates
-double x_min=0, x_max=600; // lower and upper limit for positions and velocities
-double v_min=0, v_max=80;
+double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
+double v_min=0, v_max=0.5;
 #endif
 
 #ifdef POLAR
 //polar coordinates
 double rho=600;
-double v_max=40;
+double v_max=1;
 double theta=0;
 #endif
 
-string filename = "generated/prova";
+string filename = "prova"; // Do not specify the extension
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -67,8 +69,6 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 4;
-    double radius_i = 2;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -138,10 +138,14 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
     }
 
-    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl << endl;
+    cout<<"Initial state of the system: "<<endl;
+    cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
+    cout<<"Total energy: " << E_tot<<endl;
+    cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
+    cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
     //reset force and potential energy
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -152,7 +156,11 @@ int main(){
     }
 
     int response = 0;
-    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")\n";
+    if(E_tot > 0)
+    {
+        cout<<"WARNING: the energy of the system is positive!"<<endl;
+    }
+    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")"<<endl;
     cout<<"Answer: ";
     cin>>response;
 
@@ -170,7 +178,7 @@ int main(){
     {   
         //of<<t<<"\t"<<bodies.size()<<endl;
         if(n_iteration % 13 == 0)
-            cout<<"\r"<<t/t_f*100<<"%"<<flush;
+            cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
@@ -245,7 +253,7 @@ int main(){
 
     }
 
-    //checking consevation
+    //checking conservation
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -253,10 +261,16 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
     }
 
-    cout << "L: " << ang_mom_tot << "\nE: " << E_tot << "\nPx: " << momentum_tot[0] << "\nPy: " << momentum_tot[1] << endl;
+    cout<<"\rCOMPLETED                          "<<endl<<endl;
+    cout<<"Final state of the system: "<<endl;
+    cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
+    cout<<"Total energy: " << E_tot<<endl;
+    cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
+    cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+
     
 
 
