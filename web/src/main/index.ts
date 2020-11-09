@@ -96,7 +96,7 @@ class Startup {
         Startup.axes.drawAxes();
         
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop);
+        let mouseInput = new MouseInput(Startup.loop, Startup.axes);
 
         Startup.resize();
         return 0;
@@ -158,6 +158,7 @@ class Startup {
 
 class MouseInput {
     private loop: Loop;
+    private axes: Axes;
     private canvas: HTMLCanvasElement;
     private globalScale: number = 1;
     private globalOffsetX: number = 0;
@@ -174,8 +175,9 @@ class MouseInput {
     private mouseUpListener: any = null;
 
 
-    constructor(loop: Loop){
+    constructor(loop: Loop, axes: Axes){
         this.loop = loop;
+        this.axes = axes;
         this.canvas = loop.canvas;
         this.canvas.addEventListener("mousedown", (e: MouseEvent)=>this.startPan(e, this));
         this.mouseMoveListener = (e: MouseEvent) => this.pan(e, this)
@@ -186,7 +188,7 @@ class MouseInput {
     private startPan(e: MouseEvent, self: MouseInput) {
         if(self.panning) return;
         self.panning = true;
-
+        //console.log("start pan");
         self.canvas.addEventListener("mousemove", self.mouseMoveListener);
         self.canvas.addEventListener("mouseup", self.mouseUpListener);
         self.canvas.addEventListener("mouseleave", self.mouseUpListener);
@@ -202,6 +204,7 @@ class MouseInput {
         self.panningOffsetX = e.clientX - self.panningStartX;
         self.panningOffsetY = e.clientY - self.panningStartY;
         self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+        self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
     }
 
     private endPan(e: MouseEvent, self: MouseInput) {
