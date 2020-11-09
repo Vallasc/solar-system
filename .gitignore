@@ -40,6 +40,5 @@ package-lock.json
 
 
 simulator/out
-generated
 
 *.old
