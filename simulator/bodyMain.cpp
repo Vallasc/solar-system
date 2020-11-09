@@ -11,8 +11,8 @@
 //#define EULER
 #define SIMPLETIC
 
-//#define POLAR
-#define CARTESIAN
+#define POLAR
+//#define CARTESIAN
 
 using namespace std;
 
@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 4000; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 80; // final time
+double t_f = 100; // final time
 double mass_i = 100;
 double radius_i = 1;
 
@@ -48,8 +48,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=400;
-double v_max=10;
+double rho=600;
+double v_max=1;
 double theta=0;
 #endif
 
@@ -138,7 +138,7 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
     }
 
     cout<<"Initial state of the system: "<<endl;
@@ -258,10 +258,11 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy;
+        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
     }
 
-    cout<<"\n\nFinal state of the system: "<<endl;
+    cout<<"\rCOMPLETED                          "<<endl<<endl;
+    cout<<"Final state of the system: "<<endl;
     cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
     cout<<"Total energy: " << E_tot<<endl;
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;

@@ -29,6 +29,7 @@ Body::Body(double* position_, double* velocity_, double radius_, double mass_)
     //default inizialization variables
     acceleration[0]=0; acceleration[1]=0;
     internal_energy=0;
+    binding_energy=0;
     potential_energy=0;
     spin=0;
 
@@ -89,11 +90,15 @@ void Body::merge(Body& a)
         //sum of masses
         this->mass += a.mass;
 
-        //update internalEnergy. sum of internal energy + difference of initial and final kinetic energy
-        this->internal_energy += (a.internal_energy + (kinetic_initial - this->get_kinetic_energy()) - delta_potential);
+        //update internal_energy. sum of internal energy + difference of initial and final kinetic energy
+        this->internal_energy += a.internal_energy + (kinetic_initial - this->get_kinetic_energy());
+
+        //update the binding energy.
+        this->binding_energy -= delta_potential;
         
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
+
     }
 
 //b.print(); show all attributes of b.
@@ -106,6 +111,7 @@ void Body::print()
     std::cout<<"mass: "<<this->mass*M<<std::endl;
     std::cout<<"kinetic energy: "<<this->get_kinetic_energy()*E<<std::endl;
     std::cout<<"internal energy: "<<this->internal_energy*E<<std::endl;
+    std::cout<<"binding energy: "<<this->binding_energy*E<<std::endl;
     std::cout<<"potential energy: "<<this->potential_energy*E<<std::endl;
     std::cout<<"orbital momentum: "<<this->get_orbital_momentum()*M_A<<std::endl;
     std::cout<<"spin: "<<this->spin*M_A<<"\n\n";
