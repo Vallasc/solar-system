@@ -1,44 +1,54 @@
+declare var zip : any;
+zip.workerScriptsPath = "/dist/lib/zipjs/";
+
 class Deserializer {
-    /*public static parseJsonFifo(blob: string): Fifo<any> {
-      let json = JSON.parse(blob);
-      let fifo: Fifo<any> = new Fifo();
-      for(let i = 0; i<json.states.length; i++) {
-        fifo.push(json.states[i]);
-      }
-      return fifo;
-    }*/
+    static readonly bodyNumParams = 6;
 
-    public static parseJsonFloat64Array(blob: string): Fifo<any> {
-      let numParams = 5;
+    public static parseBinaryFloat32Array(blob: ArrayBuffer): Fifo<Float32Array> {
+      let floatArray = new Float32Array(blob);
+      let fifo: Fifo<Float32Array> = new Fifo();
+
+      let objects : Float32Array;
+      let last : Float32Array | null = null;
+      let itLen = 0;
       try{
-        let json = JSON.parse(blob);
-        console.log(json);
-        let fifo: Fifo<any> = new Fifo();
-        for(let i = 0; i<json.states.length; i++) {
-
-          let len = json.states[i].p.length+1;
-          let objects = new Float64Array(len*numParams);
-
-          objects[0] = len;
-          for(let j=0; j<len-1; j++){
-            objects[(j+1) * numParams] = json.states[i].p[j].x;
-            objects[(j+1) * numParams + 1] = json.states[i].p[j].y;
-            objects[(j+1) * numParams + 2] = Deserializer.roundTo1(json.states[i].p[j].r);
-            objects[(j+1) * numParams + 3] = json.states[i].p[j].k;
-            objects[(j+1) * numParams + 4] = json.states[i].p[j].i;
-          }
-
+        for(let i=0; i<floatArray.length; i= i+Deserializer.bodyNumParams*itLen+1) {
+          itLen = floatArray[i];
+          objects = new Float32Array(floatArray.slice(i,i+Deserializer.bodyNumParams*itLen+1))
           fifo.push(objects);
+          //console.log(objects);
         }
         return fifo;
       } catch (e) {
         throw Error("Failed parsing file");
       }
     }
+}
 
-    public static roundTo1(x: number){
-      if( x > 0 && x < 1) return 1;
-      else return x;
+class ZipReader {
+  private static zipReader: any | null;
+  public static async getEntries(file: File) : Promise<any> {
+    return new Promise((resolve, reject) =>{
+      zip.createReader(new zip.BlobReader(file), (zipReader: any) => {
+          ZipReader.zipReader = zipReader;
+        zipReader.getEntries( (entries: any) => resolve(entries));
+      }, () => console.log("Error loading zip"));
+    });
+  }
+
+  public static async getEntryFile(entry: any) : Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) =>{
+      entry.getData(new zip.BlobWriter(), async (blob: any) => {
+        resolve(await blob.arrayBuffer());
+      }, (p: any) => { //Decompressing loading
+      });
+    });
+  }
+
+  public static closeZipReader() {
+    if(ZipReader.zipReader != null){
+      ZipReader.zipReader.close();
+      ZipReader.zipReader = null;
     }
-
+  }
 }
