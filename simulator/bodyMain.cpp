@@ -33,25 +33,25 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 10000; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
-double dt = 0.01; // time interval
-double t_f = 200; // final time
+double dt = 0.02; // time interval
+double t_f = 20; // final time
 
 #ifdef CARTESIAN
 //cartesian coordinates
-double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
-double v_min=0, v_max=1;
+double x_min=0, x_max=600; // lower and upper limit for positions and velocities
+double v_min=0, v_max=80;
 #endif
 
 #ifdef POLAR
 //polar coordinates
 double rho=600;
-double v_max=10;
+double v_max=40;
 double theta=0;
 #endif
 
-string filename = "s3.json";
+string filename = "generated/prova";
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -67,8 +67,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
-    double mass_i = 50;
-    double radius_i = 0.1;
+    double mass_i = 4;
+    double radius_i = 2;
 
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
@@ -76,7 +76,7 @@ int main(){
 
     srand(time(NULL)); // random seed
 
-    for(int j=0; j<N; ++j)
+    for(int j=0; j<N; j++)
     { // random position and velocity initialization
 
         #ifdef CARTESIAN
@@ -94,7 +94,7 @@ int main(){
         velocity_i[1] = random_generator(0, v_max)*sin(theta);
         #endif
        
-        bodies.push_back(Body(position_i, velocity_i, radius_i, mass_i));
+        bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
     }
 
     //compute position and velocity of the center of mass and lock the reference
@@ -165,10 +165,12 @@ int main(){
     //
     //ofstream of("test.txt");
     //
+    int n_iteration = 0;
     while(1)
     {   
         //of<<t<<"\t"<<bodies.size()<<endl;
-        cout<<"\r"<<t/t_f*100<<"%"<<flush;
+        if(n_iteration % 13 == 0)
+            cout<<"\r"<<t/t_f*100<<"%"<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
@@ -238,7 +240,8 @@ int main(){
     //-----------------------------------------------------------------------------------------------------
     #endif
 
-    t+=dt; // the time flows
+        t+=dt; // the time flows
+        n_iteration++;
 
     }
 
