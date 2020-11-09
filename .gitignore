@@ -49,3 +49,5 @@ simulator/binary_star.json
 simulator/planet.json
 simulator/test.txt
 simulator/5000.json
+
+*.old
