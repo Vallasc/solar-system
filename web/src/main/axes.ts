@@ -9,74 +9,40 @@ class Axes {
     }
 
     public drawAxes() : void {
-
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
         
         let w : number = this.canvas.width;
         let h : number = this.canvas.height;
         let dist_grids : number = 10; //distance between grids
-        //let x_axis_starting_point = { number: 1, suffix: '\u03a0' };
-        //let y_axis_starting_point = { number: 1, suffix: '' };
         let i : number;
 
+        this.context.strokeStyle = "rgba(255,0,0,0.5)"; 
+        this.context.lineWidth = 2;
         // Draw >  
         this.context.beginPath();
-        this.context.lineWidth = 0.8;
-            
-        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
     
-        this.context.moveTo(w-8+0.5, h*0.5-8+0.5);
-        this.context.lineTo(w, h*0.5+0.5);
-        this.context.stroke();
-
-        this.context.beginPath();
-        this.context.lineWidth = 0.8;
-            
-        this.context.strokeStyle = "rgba(250,0,0,0.70)";
-    
-        this.context.moveTo(w-8+0.5, h*0.5+8+0.5);
-        this.context.lineTo(w, h*0.5+0.5);
+        this.context.moveTo(w-15, h*0.5-10);
+        this.context.lineTo(w, h*0.5);
+        this.context.lineTo(w-15, h*0.5+10);
         this.context.stroke();
 
         // Draw ^ 
         this.context.beginPath();
-        this.context.lineWidth = 0.8;
-            
-        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
-    
-        this.context.moveTo(w*0.5-8+0.5, 33+0.5);
-        this.context.lineTo(w*0.5+0.5, 25.5);
-        this.context.stroke();
-
-        
-        this.context.beginPath();
-        this.context.lineWidth = 0.8;
-            
-        this.context.strokeStyle = "rgba(250,0,0,0.70)"; 
-    
-        this.context.moveTo(w*0.5+8+0.5, 33+0.5);
-        this.context.lineTo(w*0.5+0.5, 25.5);
+        this.context.moveTo(w*0.5-10, 15);
+        this.context.lineTo(w*0.5, 0);
+        this.context.lineTo(w*0.5+10, 15);
         this.context.stroke();
 
         // Draw X-axis
+        this.context.lineWidth = 1.5;
         this.context.beginPath();
-        this.context.lineWidth = 0.7;
-            
-        this.context.strokeStyle = "rgba(250,0,0,0.70)"; //x axis
-    
-        this.context.moveTo(0+0.5, h*0.5+0.5);
-        this.context.lineTo(w+0.5, h*0.5+0.5);
+        this.context.moveTo(0, h*0.5);
+        this.context.lineTo(w, h*0.5);
         this.context.stroke();
 
         // Draw Y-axis
         this.context.beginPath();
-        this.context.lineWidth = 0.7;
-        
-        this.context.strokeStyle = "rgba(250,0,0,0.70)"; //y axis
-        this.context.moveTo(w*0.5+0.5, 0+0.5);
-        this.context.lineTo(w*0.5+0.5, h+0.5);
-        
+        this.context.moveTo(w*0.5, 0);
+        this.context.lineTo(w*0.5, h);
         this.context.stroke();
         
         // Ticks marks along the positive X-axis
