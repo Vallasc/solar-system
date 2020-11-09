@@ -15,33 +15,40 @@ class Axes {
         this.context.imageSmoothingEnabled = false;
     }
     drawAxes() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
         let w = this.canvas.width;
         let h = this.canvas.height;
         let dist_grids = 10; //distance between grids
-        //let x_axis_starting_point = { number: 1, suffix: '\u03a0' };
-        //let y_axis_starting_point = { number: 1, suffix: '' };
         let i;
-        // Draw X-axis
+        this.context.strokeStyle = "rgba(255,0,0,0.5)";
+        this.context.lineWidth = 2;
+        // Draw >  
         this.context.beginPath();
-        this.context.lineWidth = 0.7;
-        this.context.strokeStyle = "#ffffff"; //x axis
-        this.context.moveTo(0 + 0.5, h * 0.5 + 0.5);
-        this.context.lineTo(w + 0.5, h * 0.5 + 0.5);
+        this.context.moveTo(w - 15, h * 0.5 - 10);
+        this.context.lineTo(w, h * 0.5);
+        this.context.lineTo(w - 15, h * 0.5 + 10);
+        this.context.stroke();
+        // Draw ^ 
+        this.context.beginPath();
+        this.context.moveTo(w * 0.5 - 10, 15);
+        this.context.lineTo(w * 0.5, 0);
+        this.context.lineTo(w * 0.5 + 10, 15);
+        this.context.stroke();
+        // Draw X-axis
+        this.context.lineWidth = 1.5;
+        this.context.beginPath();
+        this.context.moveTo(0, h * 0.5);
+        this.context.lineTo(w, h * 0.5);
         this.context.stroke();
         // Draw Y-axis
         this.context.beginPath();
-        this.context.lineWidth = 0.7;
-        this.context.strokeStyle = "#ffffff"; //y axis
-        this.context.moveTo(w * 0.5 + 0.5, 0 + 0.5);
-        this.context.lineTo(w * 0.5 + 0.5, h + 0.5);
+        this.context.moveTo(w * 0.5, 0);
+        this.context.lineTo(w * 0.5, h);
         this.context.stroke();
         // Ticks marks along the positive X-axis
         for (i = 1; i < Math.round(w * 0.5); i++) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w * 0.5 + i * dist_grids + 0.5, h * 0.5 - 2 + 0.5);
             this.context.lineTo(w * 0.5 + i * dist_grids + 0.5, h * 0.5 + 2 + 0.5);
@@ -57,7 +64,7 @@ class Axes {
         for (i = Math.round(w * 0.5); i > 0; i--) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w * 0.5 - i * dist_grids + 0.5, h * 0.5 - 2 + 0.5);
             this.context.lineTo(w * 0.5 - i * dist_grids + 0.5, h * 0.5 + 2 + 0.5);
@@ -73,7 +80,7 @@ class Axes {
         for (i = 1; i < Math.round(h * 0.5); i++) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w * 0.5 - 2 + 0.5, h * 0.5 - i * dist_grids + 0.5);
             this.context.lineTo(w * 0.5 + 2 + 0.5, h * 0.5 - i * dist_grids + 0.5);
@@ -89,7 +96,7 @@ class Axes {
         for (i = Math.round(h * 0.5); i > 0; i--) {
             this.context.beginPath();
             this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "#ffffff";
+            this.context.strokeStyle = "rgba(250,0,0,0.70)";
             // Draw a tick mark 5px long (-2 to 2)
             this.context.moveTo(w * 0.5 - 2 + 0.5, h * 0.5 + i * dist_grids + 0.5);
             this.context.lineTo(w * 0.5 + 2 + 0.5, h * 0.5 + i * dist_grids + 0.5);
@@ -104,25 +111,15 @@ class Axes {
     }
 }
 class Body {
-    constructor({ x = 0, y = 0, vX = 0, vY = 0, accX = 0, accY = 0, radius = 1, mass = 0, k_energy = 0, internal_energy = 0 } = {}) {
+    constructor({ x = 0, y = 0, radius = 1, k_energy = 0, internal_energy = 0 } = {}) {
         this.x = 0;
         this.y = 0;
-        this.vX = 0;
-        this.vY = 0;
-        this.accX = 0;
-        this.accY = 0;
         this.radius = 0;
-        this.mass = 0;
         this.k_energy = 0;
         this.internal_energy = 0;
         this.x = x;
         this.y = y;
-        this.vX = vX;
-        this.vY = vY;
-        this.accX = accX;
-        this.accY = accY;
         this.radius = radius;
-        this.mass = mass;
         this.k_energy = k_energy;
         this.internal_energy = internal_energy;
     }
@@ -138,33 +135,20 @@ class Body {
         console.log(`x: ${this.x}, y: ${this.y}`);
     }
 }
+zip.workerScriptsPath = "/dist/lib/zipjs/";
 class Deserializer {
-    /*public static parseJsonFifo(blob: string): Fifo<any> {
-      let json = JSON.parse(blob);
-      let fifo: Fifo<any> = new Fifo();
-      for(let i = 0; i<json.states.length; i++) {
-        fifo.push(json.states[i]);
-      }
-      return fifo;
-    }*/
-    static parseJsonFloat64Array(blob) {
-        let numParams = 5;
+    static parseBinaryFloat32Array(blob) {
+        let floatArray = new Float32Array(blob);
+        let fifo = new Fifo();
+        let objects;
+        let last = null;
+        let itLen = 0;
         try {
-            let json = JSON.parse(blob);
-            console.log(json);
-            let fifo = new Fifo();
-            for (let i = 0; i < json.states.length; i++) {
-                let len = json.states[i].p.length + 1;
-                let objects = new Float64Array(len * numParams);
-                objects[0] = len;
-                for (let j = 0; j < len - 1; j++) {
-                    objects[(j + 1) * numParams] = json.states[i].p[j].x;
-                    objects[(j + 1) * numParams + 1] = json.states[i].p[j].y;
-                    objects[(j + 1) * numParams + 2] = Deserializer.roundTo1(json.states[i].p[j].r);
-                    objects[(j + 1) * numParams + 3] = json.states[i].p[j].k;
-                    objects[(j + 1) * numParams + 4] = json.states[i].p[j].i;
-                }
+            for (let i = 0; i < floatArray.length; i = i + Deserializer.bodyNumParams * itLen + 1) {
+                itLen = floatArray[i];
+                objects = new Float32Array(floatArray.slice(i, i + Deserializer.bodyNumParams * itLen + 1));
                 fifo.push(objects);
+                //console.log(objects);
             }
             return fifo;
         }
@@ -172,11 +156,34 @@ class Deserializer {
             throw Error("Failed parsing file");
         }
     }
-    static roundTo1(x) {
-        if (x > 0 && x < 1)
-            return 1;
-        else
-            return x;
+}
+Deserializer.bodyNumParams = 6;
+class ZipReader {
+    static getEntries(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                zip.createReader(new zip.BlobReader(file), (zipReader) => {
+                    ZipReader.zipReader = zipReader;
+                    zipReader.getEntries((entries) => resolve(entries));
+                }, () => console.log("Error loading zip"));
+            });
+        });
+    }
+    static getEntryFile(entry) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                entry.getData(new zip.BlobWriter(), (blob) => __awaiter(this, void 0, void 0, function* () {
+                    resolve(yield blob.arrayBuffer());
+                }), (p) => {
+                });
+            });
+        });
+    }
+    static closeZipReader() {
+        if (ZipReader.zipReader != null) {
+            ZipReader.zipReader.close();
+            ZipReader.zipReader = null;
+        }
     }
 }
 class Fifo {
@@ -197,6 +204,17 @@ class Fifo {
             this.last = e;
         }
         this.size++;
+    }
+    pushFifo(fifo) {
+        if (this.size == 0) {
+            this.first = fifo.first;
+            this.last = fifo.last;
+        }
+        else {
+            this.last.next = fifo.first;
+            this.last = fifo.last;
+        }
+        this.size += fifo.size;
     }
     pop() {
         if (this.size == 0) {
@@ -384,15 +402,12 @@ class Startup {
         console.log('Main');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
-        Startup.resize();
-        Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop);
         Startup.axesCanvas = document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
         Startup.axes.drawAxes();
-        window.addEventListener("resize", function () {
-            Startup.axes.drawAxes();
-        });
+        Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
+        let mouseInput = new MouseInput(Startup.loop);
+        Startup.resize();
         return 0;
     }
     static createGui() {
@@ -437,30 +452,84 @@ class Startup {
     }
     static resize() {
         Startup.mainCanvas.width = window.innerWidth;
-        Startup.mainCanvas.height = window.innerHeight;
+        Startup.mainCanvas.height = window.innerHeight - 25;
         Startup.gui.panel.style += "overflow-y: scroll; height: 300px;";
+        Startup.axesCanvas.width = window.innerWidth;
+        Startup.axesCanvas.height = window.innerHeight - 25;
+        Startup.axes.drawAxes();
     }
 }
 Startup.someNumber = 0;
+class MouseInput {
+    constructor(loop) {
+        this.globalScale = 1;
+        this.globalOffsetX = 0;
+        this.globalOffsetY = 0;
+        this.panningStartX = 0;
+        this.panningStartY = 0;
+        this.panningOffsetX = 0;
+        this.panningOffsetY = 0;
+        this.panning = false;
+        this.mouseMoveListener = null;
+        this.mouseUpListener = null;
+        this.loop = loop;
+        this.canvas = loop.canvas;
+        this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
+        this.mouseMoveListener = (e) => this.pan(e, this);
+        this.mouseUpListener = (e) => this.endPan(e, this);
+        this.loop.setPanningOffset(0, 0);
+    }
+    startPan(e, self) {
+        if (self.panning)
+            return;
+        self.panning = true;
+        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.addEventListener("mouseup", self.mouseUpListener);
+        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
+        self.panningStartX = e.clientX;
+        self.panningStartY = e.clientY;
+        self.loop.selectX = e.clientX;
+        self.loop.selectY = e.clientY;
+    }
+    pan(e, self) {
+        self.panningOffsetX = e.clientX - self.panningStartX;
+        self.panningOffsetY = e.clientY - self.panningStartY;
+        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+    }
+    endPan(e, self) {
+        self.panning = false;
+        self.globalOffsetX += self.panningOffsetX;
+        self.globalOffsetY += self.panningOffsetY;
+        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
+        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
+    }
+}
+// TODO hittest
 class Loop {
     constructor(canvas, gui) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
+        this.bufferSize = 90;
         this.loadAllFile = true;
         this.forceLoadAllCheckbox = false;
         this.isPlaying = false;
         this.isEof = false;
+        this.readEnd = false;
         this.reqId = -1;
+        this.selectX = null;
+        this.selectY = null;
+        this.savedBody = null;
+        this.numIteration = 0;
+        this.indexChunck = 0;
+        this.loadingChunck = false;
+        this.entries = null;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.file = new File([], "");
         this.buffer = new Fifo();
         this.lastObjects = null;
-        this.worker = new Worker('./dist/worker/worker.js');
-        this.workerIsStopped = true;
-        this.workerTimeout = 0;
-        this.workerIntervalTime = 200;
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
@@ -508,84 +577,100 @@ class Loop {
                 label: 'Is EOF',
                 object: this,
                 property: 'isEof',
+            },
+            {
+                type: 'display',
+                folder: 'Controls',
+                label: 'Iteration',
+                object: this,
+                property: 'numIteration',
+            },
+            {
+                type: 'display',
+                folder: 'Controls',
+                label: 'Offset X',
+                object: this,
+                property: 'panningOffsetX',
+            },
+            {
+                type: 'display',
+                folder: 'Controls',
+                label: 'Offset Y',
+                object: this,
+                property: 'panningOffsetY',
             }
         ]);
         this.barContainer = document.getElementById("guify-bar-container");
     }
     draw() {
         this.stats.begin();
-        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        //this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = "white";
-        this.setMatrix(this.canvas.width / 2 + this.panningOffsetX, this.canvas.height / 2 + this.panningOffsetY, 1, 0);
+        this.context.strokeStyle = "red";
+        //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+        //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
         if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
             if (objects != null && !this.isEof) {
                 this.drawStates(objects);
                 this.lastObjects = objects;
+                this.numIteration++;
             }
-            else {
+            else if (!this.loadingChunck) {
                 this.isEof = true;
                 this.isPlaying = false;
                 this.barContainer.innerText = "⏹";
-            }
+            } //else if(this.lastObjects != null)
+            // this.drawStates(this.lastObjects);
         }
         else if (this.lastObjects != null)
             this.drawStates(this.lastObjects);
         this.reqId = window.requestAnimationFrame(() => this.draw());
+        if (!this.loadAllFile && !this.readEnd && this.buffer.size < 300)
+            this.loadFileChunck(this.file, false);
         this.stats.end();
     }
-    setMatrix(x, y, scale, rotate) {
-        var xAx = Math.cos(rotate) * scale; // the x axis x
-        var xAy = Math.sin(rotate) * scale; // the x axis y
-        this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+    // per aumentare la velocita di calcolo utilizzo un quadrato circoscritto
+    squareHitTest(x, y, r, xp, yp) {
+        let x1 = x - r;
+        let y1 = y - r;
+        let x2 = x + r;
+        let y2 = y + r;
+        return (x1 <= xp && xp <= x2 && y1 <= yp && yp <= y2);
     }
-    /*private drawStatesImageData(pixels: Uint8ClampedArray, canvasWidth: number, canvasHeight: number){
-        if(this.buffer != null){
-            let el = this.buffer.pop();
-            //console.log(this.buffer.size);
-            if(el == null) return;
-            for(let i=0; i<el.p.length; i++){
-                if(el.p[i].x < canvasWidth && el.p[i].x >0 && el.p[i].y < canvasWidth && el.p[i].y >0){
-                    let r = 255;
-                    let g = 255;
-                    let b = 255;
-                    var off = (el.p[i].y * canvasWidth + el.p[i].x) * 4;
-                    pixels[off] = r;
-                    pixels[off + 1] = g;
-                    pixels[off + 2] = b;
-                    pixels[off + 3] = 255;
-                }
-            }
-        } else {
-            this.state = 0;
-        }
-    }*/
+    static roundTo1(x) {
+        if (x > 0 && x < 1)
+            return 1;
+        else
+            return x;
+    }
     drawStates(objects) {
-        let numParams = 5;
+        let xBase = this.canvas.width / 2 + this.panningOffsetX;
+        let yBase = (this.canvas.height / 2 + this.panningOffsetY);
+        const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
+        //console.log(objects);
         this.context.beginPath();
-        for (let i = 1; i <= objects[0]; i++) {
-            this.context.moveTo(objects[i * numParams], objects[i * numParams + 1]);
-            this.context.arc(objects[i * numParams], objects[i * numParams + 1], objects[i * numParams + 2], 0, 2 * Math.PI);
+        for (let i = 0; i < objects[0]; i++) {
+            let x = xBase + objects[1 + i * numParams + 1]; // posizione 1 dell'array
+            let y = yBase + objects[1 + i * numParams + 2];
+            let r = Loop.roundTo1(objects[1 + i * numParams + 3]);
+            this.context.moveTo(x, y);
+            this.context.arc(x, y, r, 0, 2 * Math.PI);
         }
+        this.context.closePath();
         this.context.fill();
     }
     play() {
         if (this.isPlaying || this.isEof)
             return;
-        if (!this.loadAllFile) {
-            this.requestData();
-        }
         this.isPlaying = true;
         this.barContainer.innerText = "⏵";
     }
     pause() {
         if (!this.isPlaying || this.isEof)
             return;
-        if (!this.loadAllFile) {
-            clearTimeout(this.workerTimeout);
-        }
         this.isPlaying = false;
         this.barContainer.innerText = "⏸";
     }
@@ -600,64 +685,39 @@ class Loop {
             console.log("reset");
             this.barContainer.innerText = "";
             window.cancelAnimationFrame(this.reqId);
-            if (!this.loadAllFile) {
-                clearTimeout(this.workerTimeout);
-                console.log(this.workerIsStopped);
-                while (!this.workerIsStopped) { // Aspetto la fine del worker
-                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
-                }
-                this.workerIntervalTime = 200;
-                this.worker.postMessage({ "type": "stop" });
-            }
             // Reset variabili
             this.isEof = false;
             this.isPlaying = false;
-            this.buffer.clear();
             this.lastObjects = null;
+            this.numIteration = 0;
+            this.bufferSize = 90;
+            if (!this.loadAllFile) {
+                while (this.loadingChunck) { // Aspetto la fine del worker
+                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
+                }
+            }
+            this.buffer.clear();
             try {
                 this.file = file;
                 yield this.loadFile(file);
-                console.log("File loaded");
+                //console.log("File loaded");
             }
             catch (e) {
                 console.error(e);
-            }
-            if (!this.loadAllFile) {
-                this.requestData(true);
-                while (!this.workerIsStopped) { // Aspetto la fine del worker
-                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
-                }
             }
             this.barContainer.innerText = "⏹";
             this.draw();
             //this.play();
         });
     }
-    requestData(once = false) {
-        if (this.workerIsStopped) {
-            console.log("request");
-            //console.log(this.buffer.size);
-            if (this.buffer.size < 600) {
-                this.worker.postMessage({ "type": "read" });
-                this.workerIsStopped = false;
-            }
-            else {
-                this.workerIntervalTime += this.workerIntervalTime * 1 / 3;
-            }
-        }
-        if (once)
-            return;
-        this.workerTimeout = setTimeout(() => {
-            this.requestData();
-        }, this.workerIntervalTime);
-    }
     loadFile(file) {
         return __awaiter(this, void 0, void 0, function* () {
             Startup.gui.Loader(true);
-            if (this.file.size < 100000000 || this.forceLoadAllCheckbox) { //100MB this.fastMode
+            //if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB 
+            if (this.forceLoadAllCheckbox) {
                 this.loadAllFile = true;
                 try {
-                    this.buffer = yield this.loadFileAll(file);
+                    yield this.loadFileAll(file);
                 }
                 catch (e) {
                     throw Error("Failed loading file");
@@ -665,7 +725,7 @@ class Loop {
             }
             else {
                 this.loadAllFile = false;
-                this.loadFileChunck(file);
+                yield this.loadFileChunck(file, true);
             }
             Startup.gui.Loader(false);
             return;
@@ -673,88 +733,54 @@ class Loop {
     }
     loadFileAll(file) {
         return __awaiter(this, void 0, void 0, function* () {
-            let reader = new FileReader();
-            reader.readAsText(file);
-            return new Promise((resolve, reject) => {
-                reader.onload = function (event) {
-                    try {
-                        let buffer = Deserializer.parseJsonFloat64Array(reader.result);
-                        resolve(buffer);
-                    }
-                    catch (e) {
-                        reject(e);
-                    }
-                };
-            });
+            let entries = yield ZipReader.getEntries(file);
+            this.buffer.clear();
+            for (let i = 0; i < entries.length; i++) {
+                console.log("Load file: " + entries[i].filename);
+                let arrayBuffer = yield ZipReader.getEntryFile(entries[i]);
+                this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
+            }
+            console.log(this.buffer.size);
+            ZipReader.closeZipReader();
+            this.readEnd = true;
         });
     }
-    loadFileChunck(file) {
-        this.worker.postMessage({ "type": "file", "data": file });
-        this.worker.onmessage = (event) => {
-            let response = event.data;
-            // Sto ricevendo dei messaggi del vecchio file
-            if (response.fileName != this.file.name)
-                return;
-            // Controllo se il worker ha finito il job
-            this.workerIsStopped = response.endChunck;
-            if (response.endFile) {
-                clearTimeout(this.workerTimeout);
-                this.buffer.push(null);
+    loadFileChunck(file, reset) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if ((this.loadingChunck || this.readEnd) && !reset) {
                 return;
             }
-            if (response.array != null) {
-                this.buffer.push(response.array);
-                this.workerIntervalTime = response.time * response.numIt / 2;
-                return;
+            if (reset) {
+                ZipReader.closeZipReader();
+                this.entries = null;
+                this.indexChunck = 0;
             }
-        };
+            this.readEnd = false;
+            this.loadingChunck = true;
+            if (this.entries == null) {
+                this.entries = yield ZipReader.getEntries(file); // TODO devochiudere lo zip
+            }
+            if (this.entries != null && this.indexChunck < this.entries.length) {
+                console.log("Load file: " + this.entries[this.indexChunck].filename);
+                let arrayBuffer = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
+                // Funzione ch bilancia le richieste
+                this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
+                //this.bufferSize = 600;
+                //console.log(this.bufferSize);
+                this.buffer.pushFifo(b);
+                this.indexChunck++;
+                if (this.indexChunck == this.entries.length) {
+                    this.readEnd = true;
+                    ZipReader.closeZipReader();
+                }
+            }
+            this.loadingChunck = false;
+        });
     }
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-    }
-}
-class MouseInput {
-    constructor(loop) {
-        this.globalScale = 1;
-        this.globalOffsetX = 0;
-        this.globalOffsetY = 0;
-        this.panningStartX = 0;
-        this.panningStartY = 0;
-        this.panningOffsetX = 0;
-        this.panningOffsetY = 0;
-        this.panning = false;
-        this.mouseMoveListener = null;
-        this.mouseUpListener = null;
-        this.loop = loop;
-        this.canvas = loop.canvas;
-        this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
-        this.mouseMoveListener = (e) => this.pan(e, this);
-        this.mouseUpListener = (e) => this.endPan(e, this);
-        this.loop.setPanningOffset(0, 0);
-    }
-    startPan(e, self) {
-        if (self.panning)
-            return;
-        self.panning = true;
-        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.addEventListener("mouseup", self.mouseUpListener);
-        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
-        self.panningStartX = e.clientX;
-        self.panningStartY = e.clientY;
-    }
-    pan(e, self) {
-        self.panningOffsetX = e.clientX - self.panningStartX;
-        self.panningOffsetY = e.clientY - self.panningStartY;
-        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-    }
-    endPan(e, self) {
-        self.panning = false;
-        self.globalOffsetX += self.panningOffsetX;
-        self.globalOffsetY += self.panningOffsetY;
-        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
-        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
     }
 }
 class Mychart {
