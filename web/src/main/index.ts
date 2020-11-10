@@ -134,10 +134,6 @@ class Startup {
             type: 'folder',
             label: 'FPS',
             open: false
-        },{
-            type: 'folder',
-            label: 'Charts',
-            open: false
         }]);
         Startup.gui.Loader(false);
     }
@@ -197,8 +193,6 @@ class MouseInput {
 
         self.panningStartX = e.clientX;
         self.panningStartY = e.clientY;
-
-        self.loop.setSelected(e.clientX, e.clientY - 25) // TODO aggiustare 25
     }
 
     private pan(e: MouseEvent, self: MouseInput) {
@@ -215,5 +209,12 @@ class MouseInput {
         self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
         self.canvas.removeEventListener("mouseup", self.mouseUpListener);
         self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
+        
+        if(self.panningStartX == e.clientX && self.panningStartY == e.clientY)
+            self.click(self, e.clientX, e.clientY);
+    }
+
+    private click(self: MouseInput, x: number, y: number){
+        self.loop.setSelected(x, y - 25) // TODO aggiustare 25
     }
 }
