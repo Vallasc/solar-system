@@ -6,7 +6,7 @@
 #include "miniz.h"
 
 using namespace std;
-
+// TODO mettere il deltaT di ogni iterazione
 Serializer::Serializer(string file_name) {
     this->byte_written = 0;
     this->name_index = 0;
