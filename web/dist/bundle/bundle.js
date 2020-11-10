@@ -61,83 +61,51 @@ class Axes {
         this.context.moveTo(offX + w * 0.5, 0);
         this.context.lineTo(offX + w * 0.5, h);
         this.context.stroke();
-        /*
         // Ticks marks along the positive X-axis
-        for(let i=1; i<Math.round(w*0.5); i++) {
+        for (let i = 0; i < Math.round(w * 0.5); i++) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-            
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5+i*dist_grids+0.5, h*0.5-2+0.5);
-            this.context.lineTo(w*0.5+i*dist_grids+0.5, h*0.5+2+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            //  if (offX != w*0.5-margin) {
+            //      this.context.moveTo(offX + w*0.5+i*dist_grids, offY + h*0.5-4);
+            //      this.context.lineTo(offX + w*0.5+i*dist_grids, offY + h*0.5+4);
+            //  } else {
+            this.context.moveTo(this.panningOffsetX + w * 0.5 + i * dist_grids, offY + h * 0.5 - 4);
+            this.context.lineTo(this.panningOffsetX + w * 0.5 + i * dist_grids, offY + h * 0.5 + 4);
+            //  }
             this.context.stroke();
-        
-            
             // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(x_axis_starting_point.number*i + x_axis_starting_point.suffix, dist_grids*i-2, 15);
-            
+            //this.context.font = '100 20px Arial';
+            //this.context.fillStyle = "red";
+            //this.context.fillText("m", offX + w*0.5 - 30, 15);
         }
-
         // Ticks marks along the negative X-axis
-        for(let i=Math.round(w*0.5); i>0; i--) {
+        for (let i = Math.round(w * 0.5); i > 0; i--) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-i*dist_grids+0.5, h*0.5-2+0.5);
-            this.context.lineTo(w*0.5-i*dist_grids+0.5, h*0.5+2+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(this.panningOffsetX + w * 0.5 - i * dist_grids, offY + h * 0.5 - 4);
+            this.context.lineTo(this.panningOffsetX + w * 0.5 - i * dist_grids, offY + h * 0.5 + 4);
             this.context.stroke();
-
-            
-            // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'end';
-            //ctx.fillText(-x_axis_starting_point.number*i + x_axis_starting_point.suffix, -dist_grids*i+2, 15);
-            
         }
-
         // Ticks marks along the positive Y-axis
-        for(let i=1; i<Math.round(h*0.5); i++) {
+        for (let i = 1; i < Math.round(h * 0.5); i++) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-2+0.5, h*0.5-i*dist_grids+0.5);
-            this.context.lineTo(w*0.5+2+0.5, h*0.5-i*dist_grids+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 - 4, this.panningOffsetY + h * 0.5 - i * dist_grids);
+            this.context.lineTo(offX + w * 0.5 + 4, this.panningOffsetY + h * 0.5 - i * dist_grids);
             this.context.stroke();
-
-            
             // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(-y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, dist_grids*i+2);
-            
+            //this.context.font = '100 20px Arial';
+            //this.context.fillStyle = "red";
+            //this.context.fillText("m", w - 30, offY + h*0.5 + 30);
         }
-
         // Ticks marks along the negative Y-axis
-        for(let i=Math.round(h*0.5); i>0; i--) {
+        for (let i = Math.round(h * 0.5); i > 0; i--) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-2+0.5, h*0.5+i*dist_grids+0.5);
-            this.context.lineTo(w*0.5+2+0.5, h*0.5+i*dist_grids+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 - 4, this.panningOffsetY + h * 0.5 + i * dist_grids);
+            this.context.lineTo(offX + w * 0.5 + 4, this.panningOffsetY + h * 0.5 + i * dist_grids);
             this.context.stroke();
-
-            
-            // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, -dist_grids*i+3);
-            
         }
-        */
     }
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
