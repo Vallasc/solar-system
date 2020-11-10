@@ -5,11 +5,12 @@ class Body {
     public radius: number = 0;
     public k_energy: number = 0;
     public internal_energy: number = 0;
+    public visible: boolean = false;
 
-    constructor( {  id = 0,
+    constructor( {  id = -1,
                     x = 0, 
                     y = 0, 
-                    radius = 1,
+                    radius = 0,
                     k_energy = 0,
                     internal_energy = 0} = {}) {
         this.id = id;
@@ -31,6 +32,18 @@ class Body {
 
     public print() : void {
         console.log(`x: ${this.x}, y: ${this.y}`);
+    }
+
+    public setVisible(value: boolean) {
+        this.visible = value;
+        if(!value){
+            this.id = -1;
+            this.x = 0;
+            this.y = 0;
+            this.radius = 0;
+            this.k_energy = 0;
+            this.internal_energy = 0;
+        }
     }
 
 }
