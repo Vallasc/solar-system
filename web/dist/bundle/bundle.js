@@ -61,83 +61,46 @@ class Axes {
         this.context.moveTo(offX + w * 0.5, 0);
         this.context.lineTo(offX + w * 0.5, h);
         this.context.stroke();
-        /*
         // Ticks marks along the positive X-axis
-        for(let i=1; i<Math.round(w*0.5); i++) {
+        for (let i = 1; i < Math.round(w * 0.5); i++) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-            
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5+i*dist_grids+0.5, h*0.5-2+0.5);
-            this.context.lineTo(w*0.5+i*dist_grids+0.5, h*0.5+2+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 + i * dist_grids, offY + h * 0.5 - 4);
+            this.context.lineTo(offX + w * 0.5 + i * dist_grids, offY + h * 0.5 + 4);
             this.context.stroke();
-        
-            
             // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(x_axis_starting_point.number*i + x_axis_starting_point.suffix, dist_grids*i-2, 15);
-            
+            //this.context.font = '100 20px Arial';
+            //this.context.fillStyle = "red";
+            //this.context.fillText("m", offX + w*0.5 - 30, 15);
         }
-
         // Ticks marks along the negative X-axis
-        for(let i=Math.round(w*0.5); i>0; i--) {
+        for (let i = Math.round(w * 0.5); i > 0; i--) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-i*dist_grids+0.5, h*0.5-2+0.5);
-            this.context.lineTo(w*0.5-i*dist_grids+0.5, h*0.5+2+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 - i * dist_grids, offY + h * 0.5 - 4);
+            this.context.lineTo(offX + w * 0.5 - i * dist_grids, offY + h * 0.5 + 4);
             this.context.stroke();
-
-            
-            // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'end';
-            //ctx.fillText(-x_axis_starting_point.number*i + x_axis_starting_point.suffix, -dist_grids*i+2, 15);
-            
         }
-
         // Ticks marks along the positive Y-axis
-        for(let i=1; i<Math.round(h*0.5); i++) {
+        for (let i = 1; i < Math.round(h * 0.5); i++) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-2+0.5, h*0.5-i*dist_grids+0.5);
-            this.context.lineTo(w*0.5+2+0.5, h*0.5-i*dist_grids+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 - 4, offY + h * 0.5 - i * dist_grids);
+            this.context.lineTo(offX + w * 0.5 + 4, offY + h * 0.5 - i * dist_grids);
             this.context.stroke();
-
-            
             // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(-y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, dist_grids*i+2);
-            
+            //this.context.font = '100 20px Arial';
+            //this.context.fillStyle = "red";
+            //this.context.fillText("m", w - 30, offY + h*0.5 + 30);
         }
-
         // Ticks marks along the negative Y-axis
-        for(let i=Math.round(h*0.5); i>0; i--) {
+        for (let i = Math.round(h * 0.5); i > 0; i--) {
             this.context.beginPath();
-            this.context.lineWidth = 0.7;
-            this.context.strokeStyle = "rgba(250,0,0,0.70)";
-
-            // Draw a tick mark 5px long (-2 to 2)
-            this.context.moveTo(w*0.5-2+0.5, h*0.5+i*dist_grids+0.5);
-            this.context.lineTo(w*0.5+2+0.5, h*0.5+i*dist_grids+0.5);
+            // Draw a tick mark 5px long (-4 to 4)
+            this.context.moveTo(offX + w * 0.5 - 4, offY + h * 0.5 + i * dist_grids);
+            this.context.lineTo(offX + w * 0.5 + 4, offY + h * 0.5 + i * dist_grids);
             this.context.stroke();
-
-            
-            // Text value at that point
-            //ctx.font = '9px Arial';
-            //ctx.textAlign = 'start';
-            //ctx.fillText(y_axis_starting_point.number*i + y_axis_starting_point.suffix, 8, -dist_grids*i+3);
-            
         }
-        */
     }
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
@@ -214,7 +177,7 @@ class ZipReader {
                 zip.createReader(new zip.BlobReader(file), (zipReader) => {
                     ZipReader.zipReader = zipReader;
                     zipReader.getEntries((entries) => resolve(entries));
-                }, () => console.log("Error loading zip"));
+                }, () => { console.log("Error loading zip"); reject("error"); });
             });
         });
     }
@@ -491,10 +454,6 @@ class Startup {
                 type: 'folder',
                 label: 'FPS',
                 open: false
-            }, {
-                type: 'folder',
-                label: 'Charts',
-                open: false
             }]);
         Startup.gui.Loader(false);
     }
@@ -541,7 +500,6 @@ class MouseInput {
         self.canvas.addEventListener("mouseleave", self.mouseUpListener);
         self.panningStartX = e.clientX;
         self.panningStartY = e.clientY;
-        self.loop.setSelected(e.clientX, e.clientY - 25); // TODO aggiustare 25
     }
     pan(e, self) {
         self.panningOffsetX = e.clientX - self.panningStartX;
@@ -556,6 +514,11 @@ class MouseInput {
         self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
         self.canvas.removeEventListener("mouseup", self.mouseUpListener);
         self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
+        if (self.panningStartX == e.clientX && self.panningStartY == e.clientY)
+            self.click(self, e.clientX, e.clientY);
+    }
+    click(self, x, y) {
+        self.loop.setSelected(x, y - 25); // TODO aggiustare 25
     }
 }
 // TODO hittest
@@ -586,14 +549,14 @@ class Loop {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
+        this.chart = new NumberChart("Kinetic energy");
         Startup.gui.Register([
             {
                 type: 'display',
                 label: '',
                 folder: "FPS",
                 element: this.stats.dom,
-            },
-            {
+            }, {
                 type: 'button',
                 label: 'Play/Pause',
                 folder: 'Controls',
@@ -601,8 +564,7 @@ class Loop {
                 action: () => {
                     this.playPause();
                 }
-            },
-            {
+            }, {
                 type: 'button',
                 label: 'Rewind',
                 folder: 'Controls',
@@ -610,83 +572,77 @@ class Loop {
                 action: () => {
                     this.reset();
                 }
-            },
-            {
+            }, {
                 type: 'checkbox',
                 folder: 'Controls',
                 label: 'Force loading all file in memory',
                 object: this,
                 property: 'forceLoadAllCheckbox',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Controls',
                 label: 'Is playing',
                 object: this,
                 property: 'isPlaying',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Controls',
                 label: 'Is EOF',
                 object: this,
                 property: 'isEof',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Controls',
                 label: 'Iteration',
                 object: this,
                 property: 'numIteration',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Controls',
                 label: 'Offset X',
                 object: this,
                 property: 'panningOffsetX',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Controls',
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Selected',
                 label: 'X',
                 object: this.selectedBody,
                 property: 'x',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Selected',
                 label: 'Y',
                 object: this.selectedBody,
                 property: 'y',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Selected',
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Selected',
                 label: 'Kinetic energy',
                 object: this.selectedBody,
                 property: 'k_energy',
-            },
-            {
+            }, {
                 type: 'display',
                 folder: 'Selected',
                 label: 'Internal energy',
                 object: this.selectedBody,
                 property: 'internal_energy',
+            }, {
+                type: 'display',
+                label: 'K energy chart',
+                folder: "Selected",
+                element: this.chart.container,
             }
         ]);
         this.barContainer = document.getElementById("guify-bar-container");
@@ -742,7 +698,7 @@ class Loop {
         //console.log(this.buffer.size);
         //console.log(objects);
         this.context.beginPath();
-        let selectedIsMerged = true;
+        let bodyIsMerged = true;
         for (let i = 0; i < objects[0]; i++) {
             let id = objects[1 + i * numParams + 0];
             let x = objects[1 + i * numParams + 1]; // posizione 1 dell'array
@@ -753,38 +709,47 @@ class Loop {
             this.context.moveTo(xBase + x, yBase + y);
             this.context.arc(xBase + x, yBase + y, Loop.roundTo1(r), 0, 2 * Math.PI);
             // End draw
+            // Se il corpo e' stato selezionato
             if (this.selectedBody.visible && this.selectedBody.id == id) {
                 this.selectedBody.x = x;
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
                 this.selectedBody.k_energy = k_energy;
                 this.selectedBody.internal_energy = i_energy;
-                selectedIsMerged = false;
+                bodyIsMerged = false;
             }
-            if (this.selectX != null && this.selectY != null &&
-                this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)) {
-                this.selectedBody.id = id;
-                this.selectedBody.x = x;
-                this.selectedBody.y = y;
-                this.selectedBody.radius = r;
-                this.selectedBody.k_energy = k_energy;
-                this.selectedBody.internal_energy = i_energy;
-                this.selectedBody.setVisible(true);
-                this.selectX = null;
-                this.selectY = null;
-                selectedIsMerged = false;
+            if (this.selectX != null && this.selectY != null) {
+                if (this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)) {
+                    this.selectedBody.id = id;
+                    this.selectedBody.x = x;
+                    this.selectedBody.y = y;
+                    this.selectedBody.radius = r;
+                    this.selectedBody.k_energy = k_energy;
+                    this.selectedBody.internal_energy = i_energy;
+                    this.selectedBody.setVisible(true);
+                    this.selectX = null;
+                    this.selectY = null;
+                    this.chart.deleteData();
+                    bodyIsMerged = false;
+                }
+                else {
+                    bodyIsMerged = true;
+                }
             }
         }
         this.context.closePath();
         this.context.fill();
-        if (selectedIsMerged) {
+        if (bodyIsMerged) { // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
+            this.chart.deleteData();
         }
-        if (this.selectedBody.visible) {
+        if (this.selectedBody.visible) { // Body selezionato
             this.context.beginPath();
             this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
+            if (this.numIteration % 60 == 0)
+                this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
         }
     }
     play() {
@@ -861,16 +826,21 @@ class Loop {
     }
     loadFileAll(file) {
         return __awaiter(this, void 0, void 0, function* () {
-            let entries = yield ZipReader.getEntries(file);
-            this.buffer.clear();
-            for (let i = 0; i < entries.length; i++) {
-                console.log("Load file: " + entries[i].filename);
-                let arrayBuffer = yield ZipReader.getEntryFile(entries[i]);
-                this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
+            try {
+                let entries = yield ZipReader.getEntries(file);
+                this.buffer.clear();
+                for (let i = 0; i < entries.length; i++) {
+                    console.log("Load file: " + entries[i].filename);
+                    let arrayBuffer = yield ZipReader.getEntryFile(entries[i]);
+                    this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
+                }
+                console.log(this.buffer.size);
+                ZipReader.closeZipReader();
+                this.readEnd = true;
             }
-            console.log(this.buffer.size);
-            ZipReader.closeZipReader();
-            this.readEnd = true;
+            catch (e) {
+                console.log(e);
+            }
         });
     }
     loadFileChunck(file, reset) {
@@ -885,25 +855,33 @@ class Loop {
             }
             this.readEnd = false;
             this.loadingChunck = true;
-            if (this.entries == null) {
-                this.entries = yield ZipReader.getEntries(file); // TODO devochiudere lo zip
-            }
-            if (this.entries != null && this.indexChunck < this.entries.length) {
-                console.log("Load file: " + this.entries[this.indexChunck].filename);
-                let arrayBuffer = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
-                let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
-                // Funzione ch bilancia le richieste
-                this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
-                //this.bufferSize = 600;
-                //console.log(this.bufferSize);
-                this.buffer.pushFifo(b);
-                this.indexChunck++;
-                if (this.indexChunck == this.entries.length) {
-                    this.readEnd = true;
-                    ZipReader.closeZipReader();
+            try {
+                if (this.entries == null) {
+                    this.entries = yield ZipReader.getEntries(file); // TODO devochiudere lo zip
+                }
+                if (this.entries != null && this.indexChunck < this.entries.length) {
+                    console.log("Load file: " + this.entries[this.indexChunck].filename);
+                    let arrayBuffer = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                    let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
+                    // Funzione ch bilancia le richieste
+                    this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
+                    //this.bufferSize = 600;
+                    //console.log(this.bufferSize);
+                    this.buffer.pushFifo(b);
+                    this.indexChunck++;
+                    if (this.indexChunck == this.entries.length) {
+                        this.readEnd = true;
+                        ZipReader.closeZipReader();
+                    }
                 }
             }
-            this.loadingChunck = false;
+            catch (e) {
+                console.log(e);
+                this.readEnd = true;
+            }
+            finally {
+                this.loadingChunck = false;
+            }
         });
     }
     setPanningOffset(x, y) {
@@ -915,56 +893,63 @@ class Loop {
         this.selectY = y;
     }
 }
-class Mychart {
-    constructor(canvas, time, data) {
-        this.canvas = canvas;
-        this.canvas.height = 400;
-        this.context = canvas.getContext("2d");
+class NumberChart {
+    constructor(title) {
+        this.width = 280;
+        this.height = 250;
+        this.container = document.createElement("div");
+        this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
+        this.div = document.createElement("div");
+        this.div.setAttribute("style", "width: " + this.width + "px; height: " + this.height + "px; position: relative;");
+        this.container.appendChild(this.div);
+        this.canvas = document.createElement("canvas");
+        this.canvas.height = this.height;
+        //this.canvas.width = this.width;
+        this.context = this.canvas.getContext("2d");
+        this.div.appendChild(this.canvas);
         this.chart = new Chart(this.context, {
             type: 'line',
             data: {
-                labels: time,
                 datasets: [{
-                        data: data,
-                        label: "Body",
-                        borderColor: "#3e95cd",
-                        fill: false
-                    }
-                ]
+                        backgroundColor: "rgba(255, 0, 0, 0.5)",
+                        borderColor: "rgba(255, 0, 0, 1)",
+                        filled: true,
+                        data: []
+                    }]
             },
             options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: {
+                    display: false
+                },
                 scales: {
-                    yAxes: [{
-                            ticks: {
-                                suggestedMax: 116000,
-                                suggestedMin: 109000
-                            }
+                    xAxes: [{
+                            type: 'linear',
+                            position: 'bottom'
                         }]
-                },
-                //options to remove animation
-                animation: {
-                    duration: 0 // general animation time
-                },
-                hover: {
-                    animationDuration: 0 // duration of animations when hovering an item
-                },
-                responsiveAnimationDuration: 0,
-                title: {
-                    display: true,
-                    text: 'Evolution of Internal Energy'
                 }
             }
         });
     }
-    updateChart(data) {
-        var _a;
-        //this.chart.data.labels?.shift();
-        //this.chart.data.labels?.push(); 
-        (_a = this.chart.data.datasets) === null || _a === void 0 ? void 0 : _a.forEach((dataset) => {
-            var _a, _b;
-            (_a = dataset.data) === null || _a === void 0 ? void 0 : _a.shift();
-            (_b = dataset.data) === null || _b === void 0 ? void 0 : _b.push(data);
-        });
+    updateChart(x, y) {
+        // allow 1px inaccuracy by adding 1
+        const isScrolledToLeft = this.container.scrollWidth - this.container.clientWidth <= this.container.scrollLeft + 1;
+        if (this.chart.data.datasets[0].data.length % 4 == 0) {
+            this.width += 30;
+            this.div.style.width = this.width + 'px';
+        }
+        // Scroll to left
+        if (isScrolledToLeft) {
+            this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth;
+        }
+        this.chart.data.datasets[0].data.push({ x: x, y: y });
+        this.chart.update();
+    }
+    deleteData() {
+        this.width = 250;
+        this.div.style.width = this.width + 'px';
+        this.chart.data.datasets[0].data = [];
         this.chart.update();
     }
 }
