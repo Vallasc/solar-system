@@ -196,8 +196,7 @@ class MouseInput {
         self.panningStartX = e.clientX;
         self.panningStartY = e.clientY;
 
-        self.loop.selectX = e.clientX;
-        self.loop.selectY = e.clientY;
+        self.loop.setSelected(e.clientX, e.clientY - 25) // TODO aggiustare 25
     }
 
     private pan(e: MouseEvent, self: MouseInput) {

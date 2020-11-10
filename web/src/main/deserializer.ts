@@ -1,5 +1,5 @@
 declare var zip : any;
-zip.workerScriptsPath = "/dist/lib/zipjs/";
+zip.workerScriptsPath = "./dist/lib/zipjs/";
 
 class Deserializer {
     static readonly bodyNumParams = 6;

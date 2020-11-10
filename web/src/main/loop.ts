@@ -51,7 +51,8 @@ class Loop {
                 action: () => {
                     this.playPause();
                 }
-            },{
+            },
+            {
                 type: 'button',
                 label: 'Rewind',
                 folder: 'Controls',
@@ -109,7 +110,7 @@ class Loop {
 
     public selectX : number | null = null;
     public selectY : number | null = null;
-    public savedBody : Body | null = null;
+    public selectedBody : Body | null = null;
 
     private numIteration : number = 0;
     private draw() : void {
@@ -119,7 +120,8 @@ class Loop {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.context.fillStyle = "white"; 
-        this.context.strokeStyle = "red";
+        this.context.strokeStyle = "green";
+        this.context.lineWidth = 2;
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
 
@@ -168,16 +170,42 @@ class Loop {
         //console.log(this.buffer.size);
         //console.log(objects);
         this.context.beginPath();
+        let selectedIsMerged = true;
         for(let i=0; i<objects[0]; i++){
+            let id = objects[1 + i * numParams + 0];
             let x = xBase + objects[1 + i * numParams + 1]; // posizione 1 dell'array
             let y = yBase + objects[1 + i * numParams + 2];
             let r = Loop.roundTo1(objects[1 + i * numParams + 3]);
 
             this.context.moveTo(x, y);
             this.context.arc(x, y, r, 0, 2 * Math.PI);
+
+            // End draw
+
+            /*if( this.selectedBody != null && this.selectedBody.id == id){
+                this.selectedBody.x = x;
+                this.selectedBody.y = y;
+                this.selectedBody.radius = r;
+                selectedIsMerged = false;
+            } 
+            if( this.selectX != null && this.selectY != null && 
+                this.squareHitTest(x, y, r, this.selectX, this.selectY)){
+                    this.selectedBody = new Body({ id: id, x: x, y: y, radius: r});
+                    this.selectX = null;
+                    this.selectY = null;
+            }*/
         }
         this.context.closePath();
         this.context.fill();
+        /*if(selectedIsMerged){
+            this.selectedBody = null;
+        }
+        if( this.selectedBody != null){
+            this.context.beginPath();
+            this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.closePath();
+            this.context.stroke();
+        }*/
     }
 
     public play() {
@@ -307,4 +335,8 @@ class Loop {
         this.panningOffsetY = y;
     }
 
+    public setSelected(x: number, y: number){
+        this.selectX = x;
+        this.selectY = y;
+    }
 }
