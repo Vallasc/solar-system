@@ -32,7 +32,7 @@ class ZipReader {
       zip.createReader(new zip.BlobReader(file), (zipReader: any) => {
           ZipReader.zipReader = zipReader;
         zipReader.getEntries( (entries: any) => resolve(entries));
-      }, () => console.log("Error loading zip"));
+      }, () => {console.log("Error loading zip"); reject("error")});
     });
   }
 
