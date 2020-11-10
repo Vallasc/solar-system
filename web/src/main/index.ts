@@ -122,21 +122,23 @@ class Startup {
                 await Startup.loop.reset(file);
             }
         })
-        Startup.gui.Register({
+        Startup.gui.Register([{
             type: 'folder',
             label: 'Controls',
             open: true
-        });
-        Startup.gui.Register({
+        },{
+            type: 'folder',
+            label: 'Selected',
+            open: true
+        },{
             type: 'folder',
             label: 'FPS',
             open: false
-        });
-        Startup.gui.Register({
+        },{
             type: 'folder',
             label: 'Charts',
             open: false
-        });
+        }]);
         Startup.gui.Loader(false);
     }
 

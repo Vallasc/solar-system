@@ -102,6 +102,41 @@ class Loop {
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',
+            },
+            {
+                type: 'display',
+                folder: 'Selected',
+                label: 'X',
+                object: this.selectedBody,
+                property: 'x',
+            },
+            {
+                type: 'display',
+                folder: 'Selected',
+                label: 'Y',
+                object: this.selectedBody,
+                property: 'y',
+            },
+            {
+                type: 'display',
+                folder: 'Selected',
+                label: 'Radius',
+                object: this.selectedBody,
+                property: 'radius',
+            },
+            {
+                type: 'display',
+                folder: 'Selected',
+                label: 'Kinetic energy',
+                object: this.selectedBody,
+                property: 'k_energy',
+            },
+            {
+                type: 'display',
+                folder: 'Selected',
+                label: 'Internal energy',
+                object: this.selectedBody,
+                property: 'internal_energy',
             }
         ]);
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
@@ -110,7 +145,7 @@ class Loop {
 
     public selectX : number | null = null;
     public selectY : number | null = null;
-    public selectedBody : Body | null = null;
+    public selectedBody : Body = new Body();
 
     private numIteration : number = 0;
     private draw() : void {
@@ -121,7 +156,7 @@ class Loop {
         
         this.context.fillStyle = "white"; 
         this.context.strokeStyle = "green";
-        this.context.lineWidth = 2;
+        this.context.lineWidth = 3;
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
 
@@ -173,39 +208,51 @@ class Loop {
         let selectedIsMerged = true;
         for(let i=0; i<objects[0]; i++){
             let id = objects[1 + i * numParams + 0];
-            let x = xBase + objects[1 + i * numParams + 1]; // posizione 1 dell'array
-            let y = yBase + objects[1 + i * numParams + 2];
-            let r = Loop.roundTo1(objects[1 + i * numParams + 3]);
+            let x = objects[1 + i * numParams + 1]; // posizione 1 dell'array
+            let y = objects[1 + i * numParams + 2];
+            let r = objects[1 + i * numParams + 3];
+            let k_energy = objects[1 + i * numParams + 4];
+            let i_energy = objects[1 + i * numParams + 5]
 
-            this.context.moveTo(x, y);
-            this.context.arc(x, y, r, 0, 2 * Math.PI);
+            this.context.moveTo(xBase + x, yBase + y);
+            this.context.arc(xBase + x, yBase + y, Loop.roundTo1(r), 0, 2 * Math.PI);
 
             // End draw
 
-            /*if( this.selectedBody != null && this.selectedBody.id == id){
+            if( this.selectedBody.visible && this.selectedBody.id == id){
                 this.selectedBody.x = x;
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
+                this.selectedBody.k_energy = k_energy;
+                this.selectedBody.internal_energy = i_energy;
                 selectedIsMerged = false;
             } 
             if( this.selectX != null && this.selectY != null && 
-                this.squareHitTest(x, y, r, this.selectX, this.selectY)){
-                    this.selectedBody = new Body({ id: id, x: x, y: y, radius: r});
+                this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)){
+                    this.selectedBody.id = id;
+                    this.selectedBody.x = x;
+                    this.selectedBody.y = y;
+                    this.selectedBody.radius = r;
+                    this.selectedBody.k_energy = k_energy;
+                    this.selectedBody.internal_energy = i_energy;
+                    this.selectedBody.setVisible(true);
+
                     this.selectX = null;
                     this.selectY = null;
-            }*/
+                    selectedIsMerged = false;
+            }
         }
         this.context.closePath();
         this.context.fill();
-        /*if(selectedIsMerged){
-            this.selectedBody = null;
+        if(selectedIsMerged){
+            this.selectedBody.setVisible(false);
         }
-        if( this.selectedBody != null){
+        if( this.selectedBody.visible){
             this.context.beginPath();
-            this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-        }*/
+        }
     }
 
     public play() {
@@ -238,6 +285,10 @@ class Loop {
         this.lastObjects = null;
         this.numIteration = 0;
         this.bufferSize = 90;
+
+        this.selectedBody.visible = false;
+        this.selectX = null;
+        this.selectY = null;
 
         if(!this.loadAllFile) {
             while(this.loadingChunck){ // Aspetto la fine del worker
