@@ -146,12 +146,14 @@ class Axes {
     }
 }
 class Body {
-    constructor({ x = 0, y = 0, radius = 1, k_energy = 0, internal_energy = 0 } = {}) {
+    constructor({ id = 0, x = 0, y = 0, radius = 1, k_energy = 0, internal_energy = 0 } = {}) {
+        this.id = 0;
         this.x = 0;
         this.y = 0;
         this.radius = 0;
         this.k_energy = 0;
         this.internal_energy = 0;
+        this.id = id;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -170,7 +172,7 @@ class Body {
         console.log(`x: ${this.x}, y: ${this.y}`);
     }
 }
-zip.workerScriptsPath = "/dist/lib/zipjs/";
+zip.workerScriptsPath = "./dist/lib/zipjs/";
 class Deserializer {
     static parseBinaryFloat32Array(blob) {
         let floatArray = new Float32Array(blob);
@@ -525,8 +527,7 @@ class MouseInput {
         self.canvas.addEventListener("mouseleave", self.mouseUpListener);
         self.panningStartX = e.clientX;
         self.panningStartY = e.clientY;
-        self.loop.selectX = e.clientX;
-        self.loop.selectY = e.clientY;
+        self.loop.setSelected(e.clientX, e.clientY - 25); // TODO aggiustare 25
     }
     pan(e, self) {
         self.panningOffsetX = e.clientX - self.panningStartX;
@@ -557,7 +558,7 @@ class Loop {
         this.reqId = -1;
         this.selectX = null;
         this.selectY = null;
-        this.savedBody = null;
+        this.selectedBody = null;
         this.numIteration = 0;
         this.indexChunck = 0;
         this.loadingChunck = false;
@@ -586,7 +587,8 @@ class Loop {
                 action: () => {
                     this.playPause();
                 }
-            }, {
+            },
+            {
                 type: 'button',
                 label: 'Rewind',
                 folder: 'Controls',
@@ -645,7 +647,8 @@ class Loop {
         //this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = "white";
-        this.context.strokeStyle = "red";
+        this.context.strokeStyle = "green";
+        this.context.lineWidth = 2;
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
         if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
@@ -690,15 +693,39 @@ class Loop {
         //console.log(this.buffer.size);
         //console.log(objects);
         this.context.beginPath();
+        let selectedIsMerged = true;
         for (let i = 0; i < objects[0]; i++) {
+            let id = objects[1 + i * numParams + 0];
             let x = xBase + objects[1 + i * numParams + 1]; // posizione 1 dell'array
             let y = yBase + objects[1 + i * numParams + 2];
             let r = Loop.roundTo1(objects[1 + i * numParams + 3]);
             this.context.moveTo(x, y);
             this.context.arc(x, y, r, 0, 2 * Math.PI);
+            // End draw
+            /*if( this.selectedBody != null && this.selectedBody.id == id){
+                this.selectedBody.x = x;
+                this.selectedBody.y = y;
+                this.selectedBody.radius = r;
+                selectedIsMerged = false;
+            }
+            if( this.selectX != null && this.selectY != null &&
+                this.squareHitTest(x, y, r, this.selectX, this.selectY)){
+                    this.selectedBody = new Body({ id: id, x: x, y: y, radius: r});
+                    this.selectX = null;
+                    this.selectY = null;
+            }*/
         }
         this.context.closePath();
         this.context.fill();
+        /*if(selectedIsMerged){
+            this.selectedBody = null;
+        }
+        if( this.selectedBody != null){
+            this.context.beginPath();
+            this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.closePath();
+            this.context.stroke();
+        }*/
     }
     play() {
         if (this.isPlaying || this.isEof)
@@ -819,6 +846,10 @@ class Loop {
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+    }
+    setSelected(x, y) {
+        this.selectX = x;
+        this.selectY = y;
     }
 }
 class Mychart {
