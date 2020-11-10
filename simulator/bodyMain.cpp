@@ -53,7 +53,7 @@ double v_max=1;
 double theta=0;
 #endif
 
-string filename = "generated/prova"; // Do not specify the extension
+string filename = "prova2"; // Do not specify the extension
 
 //------------------------------ real random number generator ---------------
 double random_generator(double x_min_, double x_max_)
@@ -181,12 +181,23 @@ int main(){
             cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
-            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){             
+            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
+            {             
                 // computing the distance of each couple of bodies: if this distance is minor than the sum of 
                 // their radius, we merge them
-                if(Body::distance(*j, *k) < ((*j).radius + (*k).radius)){
-                    (*j).merge(*k);
-                    bodies.erase(k);
+                if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
+                {
+                    if((*j).radius > (*k).radius)
+                    {
+                       (*j).merge(*k);
+                        bodies.erase(k); 
+                    }
+                    else
+                    {
+                        (*k).merge(*j);
+                        bodies.erase(j);
+                    }
+                    
                 }
             }
         }

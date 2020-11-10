@@ -42,3 +42,5 @@ package-lock.json
 simulator/out
 
 *.old
+simulator/close_orbital.zip
+simulator/prova2.zip
