@@ -23,6 +23,8 @@ class Loop {
     private reqId : number = -1;
     private barContainer : HTMLElement;
 
+    private chart : NumberChart;
+
     constructor( canvas: HTMLCanvasElement, gui: any) {
 
         this.canvas = canvas;
@@ -36,14 +38,15 @@ class Loop {
         this.stats = new Stats();
         this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
+
+        this.chart = new NumberChart("Kinetic energy");
         Startup.gui.Register([
             {
                 type: 'display',
                 label: '',
                 folder: "FPS",
                 element: this.stats.dom,
-            },
-            {
+            },{
                 type: 'button',
                 label: 'Play/Pause',
                 folder: 'Controls',
@@ -51,8 +54,7 @@ class Loop {
                 action: () => {
                     this.playPause();
                 }
-            },
-            {
+            },{
                 type: 'button',
                 label: 'Rewind',
                 folder: 'Controls',
@@ -60,83 +62,77 @@ class Loop {
                 action: () => {
                     this.reset();
                 }
-            },
-            {
+            },{
                 type: 'checkbox',
                 folder: 'Controls',
                 label: 'Force loading all file in memory',
                 object: this,
                 property: 'forceLoadAllCheckbox',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Is playing',
                 object: this,
                 property: 'isPlaying',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Is EOF',
                 object: this,
                 property: 'isEof',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Iteration',
                 object: this,
                 property: 'numIteration',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Offset X',
                 object: this,
                 property: 'panningOffsetX',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Selected',
                 label: 'X',
                 object: this.selectedBody,
                 property: 'x',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Selected',
                 label: 'Y',
                 object: this.selectedBody,
                 property: 'y',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Selected',
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Selected',
                 label: 'Kinetic energy',
                 object: this.selectedBody,
                 property: 'k_energy',
-            },
-            {
+            },{
                 type: 'display',
                 folder: 'Selected',
                 label: 'Internal energy',
                 object: this.selectedBody,
                 property: 'internal_energy',
+            },{
+                type: 'display',
+                label: 'K energy chart',
+                folder: "Selected",
+                element: this.chart.container,
             }
         ]);
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
@@ -205,7 +201,8 @@ class Loop {
         //console.log(this.buffer.size);
         //console.log(objects);
         this.context.beginPath();
-        let selectedIsMerged = true;
+        let bodyIsMerged = true;
+
         for(let i=0; i<objects[0]; i++){
             let id = objects[1 + i * numParams + 0];
             let x = objects[1 + i * numParams + 1]; // posizione 1 dell'array
@@ -219,16 +216,17 @@ class Loop {
 
             // End draw
 
+            // Se il corpo e' stato selezionato
             if( this.selectedBody.visible && this.selectedBody.id == id){
                 this.selectedBody.x = x;
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
                 this.selectedBody.k_energy = k_energy;
                 this.selectedBody.internal_energy = i_energy;
-                selectedIsMerged = false;
+                bodyIsMerged = false;
             } 
-            if( this.selectX != null && this.selectY != null && 
-                this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)){
+            if( this.selectX != null && this.selectY != null){
+                if(this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)){
                     this.selectedBody.id = id;
                     this.selectedBody.x = x;
                     this.selectedBody.y = y;
@@ -239,19 +237,27 @@ class Loop {
 
                     this.selectX = null;
                     this.selectY = null;
-                    selectedIsMerged = false;
+                    this.chart.deleteData();
+
+                    bodyIsMerged = false;
+                } else {
+                    bodyIsMerged = true;
+                }
             }
         }
         this.context.closePath();
         this.context.fill();
-        if(selectedIsMerged){
+        if(bodyIsMerged){ // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
+            this.chart.deleteData();
         }
-        if( this.selectedBody.visible){
+        if( this.selectedBody.visible){ // Body selezionato
             this.context.beginPath();
             this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
+            if(this.numIteration % 60 == 0)
+                this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
         }
     }
 
@@ -329,16 +335,20 @@ class Loop {
     }
 
     private async loadFileAll(file: File) {
-        let entries : Array<any> = await ZipReader.getEntries(file);
-        this.buffer.clear();
-        for(let i=0; i<entries.length; i++) {
-            console.log("Load file: "+entries[i].filename);
-            let arrayBuffer = await ZipReader.getEntryFile(entries[i]);
-            this.buffer.pushFifo( Deserializer.parseBinaryFloat32Array(arrayBuffer) );
+        try {
+            let entries : Array<any> = await ZipReader.getEntries(file);
+            this.buffer.clear();
+            for(let i=0; i<entries.length; i++) {
+                console.log("Load file: "+entries[i].filename);
+                let arrayBuffer = await ZipReader.getEntryFile(entries[i]);
+                this.buffer.pushFifo( Deserializer.parseBinaryFloat32Array(arrayBuffer) );
+            }
+            console.log(this.buffer.size);
+            ZipReader.closeZipReader();
+            this.readEnd = true;
+        } catch(e){
+            console.log(e);
         }
-        console.log(this.buffer.size);
-        ZipReader.closeZipReader();
-        this.readEnd = true;
     }
 
     private indexChunck = 0;
@@ -359,26 +369,32 @@ class Loop {
         this.readEnd = false;
         this.loadingChunck = true;
 
-        if(this.entries == null){
-            this.entries = await ZipReader.getEntries(file); // TODO devochiudere lo zip
-        }
-        if(this.entries != null && this.indexChunck < this.entries.length) {
-            console.log("Load file: "+this.entries[this.indexChunck].filename);
-            let arrayBuffer = await ZipReader.getEntryFile(this.entries[this.indexChunck]);
-            let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
-            // Funzione ch bilancia le richieste
-            this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
-            //this.bufferSize = 600;
-
-            //console.log(this.bufferSize);
-            this.buffer.pushFifo( b );
-            this.indexChunck++;
-            if(this.indexChunck == this.entries.length) {
-                this.readEnd = true;
-                ZipReader.closeZipReader();
+        try {
+            if(this.entries == null){
+                this.entries = await ZipReader.getEntries(file); // TODO devochiudere lo zip
             }
+            if(this.entries != null && this.indexChunck < this.entries.length) {
+                console.log("Load file: "+this.entries[this.indexChunck].filename);
+                let arrayBuffer = await ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
+                // Funzione ch bilancia le richieste
+                this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
+                //this.bufferSize = 600;
+
+                //console.log(this.bufferSize);
+                this.buffer.pushFifo( b );
+                this.indexChunck++;
+                if(this.indexChunck == this.entries.length) {
+                    this.readEnd = true;
+                    ZipReader.closeZipReader();
+                }
+            }
+        } catch(e){
+            console.log(e);
+            this.readEnd = true;
+        } finally {
+            this.loadingChunck = false;
         }
-        this.loadingChunck = false;
     }
 
     public setPanningOffset(x: number, y: number){
