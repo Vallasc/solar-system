@@ -369,76 +369,6 @@ class JsonStreamer {
 class Startup {
     static main() {
         Startup.createGui();
-        //prova grafico
-        /*let canvas = document.createElement("canvas");
-        canvas.height = 300;
-        var ctx = canvas.getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                datasets: [{
-                    label: '# of Votes',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }]
-                }
-            }
-        });
-
-        let i : number;
-        let data : Array<number>;
-        let time : Array<number>;
-        let dt : number = 0.09;
-        let val : number = 110900;
-        let n: number;
-        let pause : number = 0;
-        data = [115828, 115928, 105828, 105838, 110828, 110928, 111828, 111929];
-        time =[0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08];
-        let chart = new Mychart(canvas, time, data);
-        for (i = 0; i < 10; i++) {
-            n = setTimeout(function () {
-                time.shift();
-                dt = +(Math.round(dt * 100) / 100).toFixed(2);
-                time.push(dt);
-                chart.updateChart(val);
-                dt += 0.01;
-                val += Math.random() * (500 - (-500)) + (-500);
-            }, pause);
-            pause += 1000;
-        }
-        
-        
-        Startup.gui.Register({
-            type: 'display',
-            label: 'Kinetic energy',
-            folder: "Charts",
-            element: canvas,
-        })*/
         console.log('Main');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
@@ -497,20 +427,11 @@ class Startup {
         Startup.axesCanvas.width = window.innerWidth;
         Startup.axesCanvas.height = window.innerHeight - 25;
         Startup.axes.drawAxes();
-        //prova traiettoria
-        /*
         Startup.trajectoryCanvas.width = window.innerWidth;
         Startup.trajectoryCanvas.height = window.innerHeight - 25;
-        let n: number;
-        let pause : number = 0;
-        for(let i = 0; i < 30; i++) {
-            n = setTimeout(function () {
-                Startup.trajectory.addCords(Math.random() * (500 - (200)) + (200), Math.random() * (500 - (200)) + (200));
-                Startup.trajectory.drawTrajectory();
-            }, pause);
-            pause += 1000;
-        }
-        */
+        //prova traiettoria
+        Startup.trajectoryCanvas.width = window.innerWidth;
+        Startup.trajectoryCanvas.height = window.innerHeight - 25;
     }
 }
 Startup.someNumber = 0;
@@ -740,7 +661,7 @@ class Loop {
     }
     drawStates(objects) {
         let xBase = this.canvas.width / 2 + this.panningOffsetX;
-        let yBase = (this.canvas.height / 2 + this.panningOffsetY);
+        let yBase = this.canvas.height / 2 + this.panningOffsetY;
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
         //console.log(objects);
@@ -777,6 +698,7 @@ class Loop {
                     this.selectX = null;
                     this.selectY = null;
                     this.chart.deleteData();
+                    Startup.trajectory.clear();
                     bodyIsMerged = false;
                 }
                 else {
@@ -789,6 +711,7 @@ class Loop {
         if (bodyIsMerged) { // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
             this.chart.deleteData();
+            Startup.trajectory.clear();
         }
         if (this.selectedBody.visible) { // Body selezionato
             this.context.beginPath();
@@ -797,6 +720,8 @@ class Loop {
             this.context.stroke();
             if (this.numIteration % 60 == 0)
                 this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
+            if (this.numIteration % 10 == 0)
+                Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
     }
     play() {
@@ -985,7 +910,10 @@ class NumberChart {
             type: 'line',
             data: {
                 datasets: [{
-                        backgroundColor: "rgba(255, 0, 0, 0.5)",
+                        borderWidth: 1,
+                        pointRadius: 2,
+                        pointHoverRadius: 8,
+                        backgroundColor: "rgba(255, 0, 0, 0.6)",
                         borderColor: "rgba(255, 0, 0, 1)",
                         filled: true,
                         data: []
@@ -1034,44 +962,36 @@ class Trajectory {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
-        this.cordX = [];
-        this.cordY = [];
-        this.len = 0;
+        this.points = [];
+        this.maxSize = 1000;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
     }
     addCords(x, y) {
-        this.cordX.push(x);
-        this.cordY.push(y);
-        this.len++;
+        this.points.push([x, y]);
+        if (this.points.length > this.maxSize)
+            this.points.shift();
+        this.drawTrajectory();
     }
     drawTrajectory() {
-        let w = this.canvas.width;
-        let h = this.canvas.height;
-        let offX = 0;
-        let offY = 0;
-        let i;
-        this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgba(255,0,0,0.5)";
-        this.context.lineWidth = 2;
-        for (i = 0; i < this.len; i++) {
-            this.context.beginPath();
-            if (this.len == 1) {
-                this.context.moveTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
-            }
-            else {
-                this.context.moveTo(this.cordX[i - 1] + this.panningOffsetX, this.cordY[i - 1] + this.panningOffsetY);
-                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
-            }
-            this.context.stroke();
-        }
-    }
-    clearCanvas() {
+        let xBase = this.canvas.width / 2 + this.panningOffsetX;
+        let yBase = this.canvas.height / 2 + this.panningOffsetY;
+        this.context.strokeStyle = "rgba(255,255,255,0.4)";
+        this.context.lineWidth = 0.7;
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.beginPath();
+        for (let i = 1; i < this.points.length; i++) {
+            if (this.points.length != 1) {
+                this.context.moveTo(this.points[i - 1][0] + xBase, this.points[i - 1][1] + yBase);
+                this.context.lineTo(this.points[i][0] + xBase, this.points[i][1] + yBase);
+            }
+        }
+        this.context.stroke();
+    }
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.points = [];
     }
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
