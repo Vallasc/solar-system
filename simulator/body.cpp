@@ -77,7 +77,6 @@ void Body::merge(Body& a)
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
         double orbital_initial = a.get_orbital_momentum() + this->get_orbital_momentum();
         double delta_potential = -(this->mass*a.mass)/distance(*this,a);
-        //double potential_initial = a.potential_energy + this->potential_energy;
 
         //center of mass position
         this->position[0] = (a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);

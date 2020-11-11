@@ -11,8 +11,8 @@
 //#define EULER
 #define SIMPLETIC
 
-//#define POLAR
-#define CARTESIAN
+#define POLAR
+//#define CARTESIAN
 
 using namespace std;
 
@@ -33,7 +33,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 100; // final time
@@ -50,16 +50,22 @@ double v_min=0, v_max=0.5;
 //polar coordinates
 double rho=600;
 double v_max=1;
-double theta=0;
+double theta=0, R_module=0, V_module=0;
 #endif
 
 string filename = "prova2"; // Do not specify the extension
 
 //------------------------------ real random number generator ---------------
-double random_generator(double x_min_, double x_max_)
+double uniform_generator(double x_min_, double x_max_)
 {
     double r = ((double)(rand())) / RAND_MAX;
     return x_min_ + r * (x_max_ - x_min_);
+}
+
+double uniform_generator_polar(double x_min_, double x_max_)
+{
+    double r = ((double)(rand())) / RAND_MAX;
+    return x_min_ + pow(r,0.5) * (x_max_ - x_min_);
 }
 
 //------------------------------------- main -----------------------------------
@@ -80,18 +86,20 @@ int main(){
     { // random position and velocity initialization
 
         #ifdef CARTESIAN
-        position_i[0] = random_generator(x_min, x_max);
-        position_i[1] = random_generator(x_min, x_max);
-        velocity_i[0] = random_generator(v_min, v_max);
-        velocity_i[1] = random_generator(v_min, v_max);
+        position_i[0] = uniform_generator(x_min, x_max);
+        position_i[1] = uniform_generator(x_min, x_max);
+        velocity_i[0] = uniform_generator(v_min, v_max);
+        velocity_i[1] = uniform_generator(v_min, v_max);
         #endif
 
         #ifdef POLAR
-        theta = random_generator(0, 2*M_PI);
-        position_i[0] = random_generator(0,rho)*cos(theta);
-        position_i[1] = random_generator(0,rho)*sin(theta);
-        velocity_i[0] = random_generator(0, v_max)*cos(theta);
-        velocity_i[1] = random_generator(0, v_max)*sin(theta);
+        theta = uniform_generator(0, 2*M_PI);
+        R_module = uniform_generator_polar(0,rho);
+        V_module = uniform_generator_polar(0, v_max);
+        position_i[0] = R_module*cos(theta);
+        position_i[1] = R_module*sin(theta);
+        velocity_i[0] = V_module*cos(theta);
+        velocity_i[1] = V_module*sin(theta);
         #endif
        
         bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
@@ -152,16 +160,6 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
-    /*
-    //reset force and potential energy
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
-        (*j).potential_energy = 0;
-        (*j).acceleration[0] = 0;
-        (*j).acceleration[1] = 0;
-    }
-    */
-
     int response = 0;
     if(E_tot > 0)
     {
@@ -185,7 +183,10 @@ int main(){
     {   
         //of<<t<<"\t"<<bodies.size()<<endl;
         if(n_iteration % 13 == 0)
+        {
             cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
+        }
+            
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
@@ -246,6 +247,8 @@ int main(){
         {
             (*j).update_position(dt/2);
             (*j).potential_energy = 0;
+            (*j).acceleration[0] = 0;
+            (*j).acceleration[1] = 0;
         }
         
         for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -259,9 +262,7 @@ int main(){
             }
             (*j).update_velocity(dt);
             (*j).update_position(dt/2);
-            (*j).acceleration[0] = 0;
-            (*j).acceleration[1] = 0;
-
+            
         }
     //-----------------------------------------------------------------------------------------------------
     #endif
