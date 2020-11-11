@@ -25,7 +25,10 @@ class NumberChart {
             type: 'line',
             data: {
                 datasets: [{
-                    backgroundColor: "rgba(255, 0, 0, 0.5)",
+                    borderWidth: 1,
+                    pointRadius: 2,
+                    pointHoverRadius: 8,
+                    backgroundColor: "rgba(255, 0, 0, 0.6)",
                     borderColor: "rgba(255, 0, 0, 1)",
                     filled: true,
                     data: []

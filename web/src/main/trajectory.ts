@@ -5,10 +5,8 @@ class Trajectory {
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
 
-    private cordX : Array<number> = [];
-    private cordY : Array<number> = [];
-
-    private len : number = 0;
+    private points : Array<[number, number]> = [];
+    private readonly maxSize : number = 1000;
 
     constructor( canvas : HTMLCanvasElement) {
         this.canvas = canvas;
@@ -17,44 +15,31 @@ class Trajectory {
     }
 
     public addCords(x :number, y : number) : void {
-        this.cordX.push(x);
-        this.cordY.push(y);
-        this.len++;
+        this.points.push([x, y]);
+        if(this.points.length > this.maxSize)
+        this.points.shift();
+        this.drawTrajectory();
     }
 
     public drawTrajectory() : void {
-        let w : number = this.canvas.width;
-        let h : number = this.canvas.height;
-        let offX : number = 0;
-        let offY : number = 0;
-        let i : number;
-        
-        this.context.clearRect(0, 0, w, h);
-
-        this.context.strokeStyle = "rgba(255,0,0,0.5)"; 
-        this.context.lineWidth = 2;
-         
-        
-        
-        for(i = 0; i < this.len; i++) {
-            this.context.beginPath();
-            
-            if (this.len == 1) {
-                this.context.moveTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
-            } else {
-                this.context.moveTo(this.cordX[i-1] + this.panningOffsetX, this.cordY[i-1] + this.panningOffsetY);
-                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
-                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
+        let xBase = this.canvas.width/2 + this.panningOffsetX;
+        let yBase = this.canvas.height/2 + this.panningOffsetY;
+        this.context.strokeStyle = "rgba(255,255,255,0.4)"; 
+        this.context.lineWidth = 0.7;
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.beginPath();
+        for(let i=1; i<this.points.length; i++){
+            if (this.points.length != 1) {
+                this.context.moveTo(this.points[i-1][0] + xBase, this.points[i-1][1] + yBase);
+                this.context.lineTo(this.points[i][0] + xBase, this.points[i][1] + yBase);
             }
-            
-            this.context.stroke();
         }
+        this.context.stroke();
     }
 
-    public clearCanvas() : void {
+    public clear() : void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.points = [];
     }
 
     public setPanningOffset(x: number, y: number){
