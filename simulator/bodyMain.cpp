@@ -33,7 +33,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 1000; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 100; // final time
@@ -147,10 +147,6 @@ int main(){
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
         E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
-
-        (*j).potential_energy = 0;
-        (*j).acceleration[0] = 0;
-        (*j).acceleration[1] = 0;
     
     }
 
@@ -214,7 +210,7 @@ int main(){
 
         serializer.write(t, bodies);
 
-        if (t >= t_f) break; // when we reach t_f the evolution terminates
+        if (t > (t_f - dt)) break; // when we reach t_f the evolution terminates
 
     #ifdef EULER
     //-------------------------------------- Euler dynamic ----------------------------------------
