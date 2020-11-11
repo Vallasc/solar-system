@@ -98,6 +98,7 @@ void Body::merge(Body& a)
         //update the binding energy.
         this->binding_energy += delta_potential + a.binding_energy;
         
+        this->potential_energy -= delta_potential;
         
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
