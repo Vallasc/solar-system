@@ -19,7 +19,8 @@ class Axes {
     drawAxes() {
         let w = this.canvas.width;
         let h = this.canvas.height;
-        let dist_grids = 10; //distance between grids
+        let distGrids = 10; //distance between grids
+        let bigEvery = 5; // 1 big every 10 small
         let offX = 0;
         let offY = 0;
         let margin = 20;
@@ -36,7 +37,7 @@ class Axes {
         else
             offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgba(255,0,0,0.5)";
+        this.context.strokeStyle = "rgba(255,0,0,0.8)";
         this.context.lineWidth = 2;
         // Draw >  
         this.context.beginPath();
@@ -61,49 +62,71 @@ class Axes {
         this.context.moveTo(offX + w * 0.5, 0);
         this.context.lineTo(offX + w * 0.5, h);
         this.context.stroke();
-        // Ticks marks along the positive X-axis
-        for (let i = 0; i < Math.round(w * 0.5); i++) {
-            this.context.beginPath();
-            // Draw a tick mark 5px long (-4 to 4)
-            //  if (offX != w*0.5-margin) {
-            //      this.context.moveTo(offX + w*0.5+i*dist_grids, offY + h*0.5-4);
-            //      this.context.lineTo(offX + w*0.5+i*dist_grids, offY + h*0.5+4);
-            //  } else {
-            this.context.moveTo(this.panningOffsetX + w * 0.5 + i * dist_grids, offY + h * 0.5 - 4);
-            this.context.lineTo(this.panningOffsetX + w * 0.5 + i * dist_grids, offY + h * 0.5 + 4);
-            //  }
-            this.context.stroke();
-            // Text value at that point
-            //this.context.font = '100 20px Arial';
-            //this.context.fillStyle = "red";
-            //this.context.fillText("m", offX + w*0.5 - 30, 15);
-        }
+        this.context.lineWidth = 1;
+        let bigTick = 6;
+        let smallTick = 3;
+        let newW = Math.floor(w / 2) - (Math.floor(w / 2) % (distGrids * bigEvery));
+        let xNumTick = (newW / distGrids);
         // Ticks marks along the negative X-axis
-        for (let i = Math.round(w * 0.5); i > 0; i--) {
+        for (let i = 0; i < xNumTick; i++) {
             this.context.beginPath();
-            // Draw a tick mark 5px long (-4 to 4)
-            this.context.moveTo(this.panningOffsetX + w * 0.5 - i * dist_grids, offY + h * 0.5 - 4);
-            this.context.lineTo(this.panningOffsetX + w * 0.5 - i * dist_grids, offY + h * 0.5 + 4);
+            let mod = (this.panningOffsetX + i * distGrids) % (newW);
+            mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
+            if (i % bigEvery == 0) {
+                this.context.moveTo(w / 2 + mod, offY + h / 2 - bigTick);
+                this.context.lineTo(w / 2 + mod, offY + h / 2 + bigTick);
+            }
+            else {
+                this.context.moveTo(w / 2 + mod, offY + h / 2 - smallTick);
+                this.context.lineTo(w / 2 + mod, offY + h / 2 + smallTick);
+            }
+            this.context.stroke();
+        }
+        // Ticks marks along the positive X-axis
+        for (let i = xNumTick; i > 0; i--) {
+            this.context.beginPath();
+            let mod = (i * distGrids - this.panningOffsetX) % (newW);
+            mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
+            if ((i) % bigEvery == 0) {
+                this.context.moveTo(w / 2 - mod, offY + h / 2 - bigTick);
+                this.context.lineTo(w / 2 - mod, offY + h / 2 + bigTick);
+            }
+            else {
+                this.context.moveTo(w / 2 - mod, offY + h / 2 - smallTick);
+                this.context.lineTo(w / 2 - mod, offY + h / 2 + smallTick);
+            }
+            this.context.stroke();
+        }
+        let newH = Math.floor(h / 2) - (Math.floor(h / 2) % (distGrids * bigEvery));
+        let yNumTick = (newH / distGrids);
+        // Ticks marks along the negative Y-axis
+        for (let i = 0; i < yNumTick; i++) {
+            this.context.beginPath();
+            let mod = (this.panningOffsetY + i * distGrids) % (newH);
+            mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
+            if (i % bigEvery == 0) {
+                this.context.moveTo(offX + w / 2 - bigTick, h / 2 + mod);
+                this.context.lineTo(offX + w / 2 + bigTick, h / 2 + mod);
+            }
+            else {
+                this.context.moveTo(offX + w / 2 - smallTick, h / 2 + mod);
+                this.context.lineTo(offX + w / 2 + smallTick, h / 2 + mod);
+            }
             this.context.stroke();
         }
         // Ticks marks along the positive Y-axis
-        for (let i = 1; i < Math.round(h * 0.5); i++) {
+        for (let i = yNumTick; i > 0; i--) {
             this.context.beginPath();
-            // Draw a tick mark 5px long (-4 to 4)
-            this.context.moveTo(offX + w * 0.5 - 4, this.panningOffsetY + h * 0.5 - i * dist_grids);
-            this.context.lineTo(offX + w * 0.5 + 4, this.panningOffsetY + h * 0.5 - i * dist_grids);
-            this.context.stroke();
-            // Text value at that point
-            //this.context.font = '100 20px Arial';
-            //this.context.fillStyle = "red";
-            //this.context.fillText("m", w - 30, offY + h*0.5 + 30);
-        }
-        // Ticks marks along the negative Y-axis
-        for (let i = Math.round(h * 0.5); i > 0; i--) {
-            this.context.beginPath();
-            // Draw a tick mark 5px long (-4 to 4)
-            this.context.moveTo(offX + w * 0.5 - 4, this.panningOffsetY + h * 0.5 + i * dist_grids);
-            this.context.lineTo(offX + w * 0.5 + 4, this.panningOffsetY + h * 0.5 + i * dist_grids);
+            let mod = (i * distGrids - this.panningOffsetY) % (newH);
+            mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
+            if (i % bigEvery == 0) {
+                this.context.moveTo(offX + w / 2 - bigTick, h / 2 - mod);
+                this.context.lineTo(offX + w / 2 + bigTick, h / 2 - mod);
+            }
+            else {
+                this.context.moveTo(offX + w / 2 - smallTick, h / 2 - mod);
+                this.context.lineTo(offX + w / 2 + smallTick, h / 2 - mod);
+            }
             this.context.stroke();
         }
     }
@@ -545,6 +568,7 @@ class Loop {
         this.indexChunck = 0;
         this.loadingChunck = false;
         this.entries = null;
+        this.rangeSlider = null;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
@@ -657,8 +681,8 @@ class Loop {
         //this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = "white";
-        this.context.strokeStyle = "green";
-        this.context.lineWidth = 3;
+        this.context.strokeStyle = "rgba(0,255,0,0.4)";
+        this.context.lineWidth = 2.5;
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
         if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
@@ -842,6 +866,7 @@ class Loop {
                 console.log(this.buffer.size);
                 ZipReader.closeZipReader();
                 this.readEnd = true;
+                //this.addGuiRange(0, entries.length);
             }
             catch (e) {
                 console.log(e);
@@ -878,6 +903,7 @@ class Loop {
                         this.readEnd = true;
                         ZipReader.closeZipReader();
                     }
+                    //this.addGuiRange(0, this.entries.length-1);
                 }
             }
             catch (e) {
@@ -896,6 +922,31 @@ class Loop {
     setSelected(x, y) {
         this.selectX = x;
         this.selectY = y;
+    }
+    addGuiRange(min, max) {
+        if (this.rangeSlider != null) {
+            Startup.gui.Remove(this.rangeSlider);
+        }
+        this.rangeSlider = Startup.gui.Register({
+            type: 'range',
+            label: 'Stepped Range',
+            min: min, max: max, step: 1,
+            object: this, property: "indexChunck",
+            onChange: (data) => __awaiter(this, void 0, void 0, function* () {
+                yield this.setCursor(data);
+            })
+        });
+    }
+    setCursor(cursor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.loadAllFile) {
+                while (this.loadingChunck) { // Aspetto la fine del worker
+                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
+                }
+            }
+            this.buffer.clear();
+            yield this.loadFileChunck(this.file, false);
+        });
     }
 }
 class NumberChart {
@@ -933,6 +984,9 @@ class NumberChart {
                             type: 'linear',
                             position: 'bottom'
                         }]
+                },
+                animation: {
+                    duration: 200
                 }
             }
         });
