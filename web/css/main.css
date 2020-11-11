@@ -20,6 +20,12 @@ body {
   position: absolute;
 }
 
+#trajectory-canvas {
+  margin-top: 25px;
+  width: 100%;
+  position: absolute;  
+}
+
 .flex-container {
   flex: 1;
   display: flex;

@@ -5,9 +5,11 @@ class Startup {
 
     static mainCanvas : HTMLCanvasElement;
     static axesCanvas : HTMLCanvasElement;
+    static trajectoryCanvas : HTMLCanvasElement;
     static sideContainer : HTMLElement;
     static loop : Loop;
     static axes : Axes;
+    static trajectory : Trajectory;
     static gui : any;
     static someNumber = 0;
 
@@ -85,18 +87,20 @@ class Startup {
             element: canvas,
         })*/
 
-
         console.log('Main');
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
 
         window.onresize = Startup.onWindowResized;
 
+        Startup.trajectoryCanvas = <HTMLCanvasElement> document.getElementById('trajectory-canvas');
+        Startup.trajectory = new Trajectory(Startup.trajectoryCanvas);
+        
         Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
         Startup.axes.drawAxes();
         
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop, Startup.axes);
+        let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
 
         Startup.resize();
         return 0;
@@ -150,6 +154,21 @@ class Startup {
         Startup.axesCanvas.width = window.innerWidth;
         Startup.axesCanvas.height = window.innerHeight - 25;
         Startup.axes.drawAxes();
+
+        //prova traiettoria
+        /*
+        Startup.trajectoryCanvas.width = window.innerWidth;
+        Startup.trajectoryCanvas.height = window.innerHeight - 25;
+        let n: number;
+        let pause : number = 0;
+        for(let i = 0; i < 30; i++) {
+            n = setTimeout(function () { 
+                Startup.trajectory.addCords(Math.random() * (500 - (200)) + (200), Math.random() * (500 - (200)) + (200));
+                Startup.trajectory.drawTrajectory();
+            }, pause);
+            pause += 1000;
+        }       
+        */ 
     }
 
 }
@@ -157,6 +176,7 @@ class Startup {
 class MouseInput {
     private loop: Loop;
     private axes: Axes;
+    private trajectory: Trajectory;
     private canvas: HTMLCanvasElement;
     private globalScale: number = 1;
     private globalOffsetX: number = 0;
@@ -173,9 +193,10 @@ class MouseInput {
     private mouseUpListener: any = null;
 
 
-    constructor(loop: Loop, axes: Axes){
+    constructor(loop: Loop, axes: Axes, trajectory : Trajectory){
         this.loop = loop;
         this.axes = axes;
+        this.trajectory = trajectory;
         this.canvas = loop.canvas;
         this.canvas.addEventListener("mousedown", (e: MouseEvent)=>this.startPan(e, this));
         this.mouseMoveListener = (e: MouseEvent) => this.pan(e, this)
@@ -200,6 +221,7 @@ class MouseInput {
         self.panningOffsetY = e.clientY - self.panningStartY;
         self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
         self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+        self.trajectory.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
     }
 
     private endPan(e: MouseEvent, self: MouseInput) {

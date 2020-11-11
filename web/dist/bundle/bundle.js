@@ -419,11 +419,13 @@ class Startup {
         console.log('Main');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
+        Startup.trajectoryCanvas = document.getElementById('trajectory-canvas');
+        Startup.trajectory = new Trajectory(Startup.trajectoryCanvas);
         Startup.axesCanvas = document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
         Startup.axes.drawAxes();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop, Startup.axes);
+        let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
         Startup.resize();
         return 0;
     }
@@ -472,11 +474,25 @@ class Startup {
         Startup.axesCanvas.width = window.innerWidth;
         Startup.axesCanvas.height = window.innerHeight - 25;
         Startup.axes.drawAxes();
+        //prova traiettoria
+        /*
+        Startup.trajectoryCanvas.width = window.innerWidth;
+        Startup.trajectoryCanvas.height = window.innerHeight - 25;
+        let n: number;
+        let pause : number = 0;
+        for(let i = 0; i < 30; i++) {
+            n = setTimeout(function () {
+                Startup.trajectory.addCords(Math.random() * (500 - (200)) + (200), Math.random() * (500 - (200)) + (200));
+                Startup.trajectory.drawTrajectory();
+            }, pause);
+            pause += 1000;
+        }
+        */
     }
 }
 Startup.someNumber = 0;
 class MouseInput {
-    constructor(loop, axes) {
+    constructor(loop, axes, trajectory) {
         this.globalScale = 1;
         this.globalOffsetX = 0;
         this.globalOffsetY = 0;
@@ -489,6 +505,7 @@ class MouseInput {
         this.mouseUpListener = null;
         this.loop = loop;
         this.axes = axes;
+        this.trajectory = trajectory;
         this.canvas = loop.canvas;
         this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
         this.mouseMoveListener = (e) => this.pan(e, this);
@@ -511,6 +528,7 @@ class MouseInput {
         self.panningOffsetY = e.clientY - self.panningStartY;
         self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
         self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+        self.trajectory.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
     }
     endPan(e, self) {
         self.panning = false;
@@ -956,6 +974,55 @@ class NumberChart {
         this.div.style.width = this.width + 'px';
         this.chart.data.datasets[0].data = [];
         this.chart.update();
+    }
+}
+class Trajectory {
+    constructor(canvas) {
+        this.panningOffsetX = 0;
+        this.panningOffsetY = 0;
+        this.cordX = [];
+        this.cordY = [];
+        this.len = 0;
+        this.canvas = canvas;
+        this.context = canvas.getContext("2d");
+        this.context.imageSmoothingEnabled = false;
+    }
+    addCords(x, y) {
+        this.cordX.push(x);
+        this.cordY.push(y);
+        this.len++;
+    }
+    drawTrajectory() {
+        let w = this.canvas.width;
+        let h = this.canvas.height;
+        let offX = 0;
+        let offY = 0;
+        let i;
+        this.context.clearRect(0, 0, w, h);
+        this.context.strokeStyle = "rgba(255,0,0,0.5)";
+        this.context.lineWidth = 2;
+        for (i = 0; i < this.len; i++) {
+            this.context.beginPath();
+            if (this.len == 1) {
+                this.context.moveTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
+                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
+                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
+            }
+            else {
+                this.context.moveTo(this.cordX[i - 1] + this.panningOffsetX, this.cordY[i - 1] + this.panningOffsetY);
+                this.context.lineTo(this.cordX[i] + this.panningOffsetX, this.cordY[i] + this.panningOffsetY);
+                console.log(this.cordX[i], this.panningOffsetX, this.cordY[i], this.panningOffsetY, this.len);
+            }
+            this.context.stroke();
+        }
+    }
+    clearCanvas() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    setPanningOffset(x, y) {
+        this.panningOffsetX = x;
+        this.panningOffsetY = y;
+        this.drawTrajectory();
     }
 }
 //# sourceMappingURL=bundle.js.map
