@@ -32,6 +32,7 @@ class Loop {
         this.context.imageSmoothingEnabled = false;
 
         this.file = new File([],"");
+
         this.buffer = new Fifo();
         this.lastObjects = null;
 
@@ -136,7 +137,6 @@ class Loop {
             }
         ]);
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
-
     }
 
     public selectX : number | null = null;
@@ -151,8 +151,8 @@ class Loop {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.context.fillStyle = "white"; 
-        this.context.strokeStyle = "green";
-        this.context.lineWidth = 3;
+        this.context.strokeStyle = "rgba(0,255,0,0.4)"; 
+        this.context.lineWidth = 2.5;
         //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
         //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
 
@@ -346,6 +346,7 @@ class Loop {
             console.log(this.buffer.size);
             ZipReader.closeZipReader();
             this.readEnd = true;
+            //this.addGuiRange(0, entries.length);
         } catch(e){
             console.log(e);
         }
@@ -388,6 +389,7 @@ class Loop {
                     this.readEnd = true;
                     ZipReader.closeZipReader();
                 }
+                //this.addGuiRange(0, this.entries.length-1);
             }
         } catch(e){
             console.log(e);
@@ -405,5 +407,31 @@ class Loop {
     public setSelected(x: number, y: number){
         this.selectX = x;
         this.selectY = y;
+    }
+
+    private rangeSlider : any = null;
+    public addGuiRange(min: number, max: number){
+        if(this.rangeSlider != null) {
+            Startup.gui.Remove(this.rangeSlider);
+        }
+        this.rangeSlider = Startup.gui.Register({
+            type: 'range',
+            label: 'Stepped Range',
+            min: min, max: max, step: 1,
+            object: this, property: "indexChunck",
+            onChange: async (data: any) => {
+                await this.setCursor(data);
+            }
+        });
+    }
+
+    public async setCursor(cursor: number){
+        if(!this.loadAllFile) {
+            while(this.loadingChunck){ // Aspetto la fine del worker
+                await new Promise((resolve)=>{setTimeout(()=>{resolve()}, 100)});
+            }
+        }
+        this.buffer.clear();
+        await this.loadFileChunck(this.file, false);
     }
 }
