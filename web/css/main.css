@@ -3,7 +3,6 @@ body {
   margin: 0px;
   height: 100%;
   width: 100%;
-  /*display: flex;*/
   font-family: monospace;
   user-select: none;
 }
@@ -20,24 +19,12 @@ body {
   position: absolute;
 }
 
-.flex-container {
-  flex: 1;
-  display: flex;
-  background-color: black;
+#trajectory-canvas {
+  margin-top: 25px;
+  width: 100%;
+  position: absolute;  
 }
-  
-.flex-container > div {
-  background-color: #d0d0d0;
-  width: 20%;
-  height: 100%;
-  overflow-y: scroll
-}
-
-.flex-container > canvas {
-}
-
 
 ::backdrop {
     background: none;
-
 }
