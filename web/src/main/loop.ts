@@ -195,7 +195,7 @@ class Loop {
 
     private drawStates( objects : Float32Array) {
         let xBase = this.canvas.width/2 + this.panningOffsetX;
-        let yBase = (this.canvas.height/2 + this.panningOffsetY)
+        let yBase = this.canvas.height/2 + this.panningOffsetY;
         
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
@@ -238,6 +238,7 @@ class Loop {
                     this.selectX = null;
                     this.selectY = null;
                     this.chart.deleteData();
+                    Startup.trajectory.clear();
 
                     bodyIsMerged = false;
                 } else {
@@ -250,6 +251,7 @@ class Loop {
         if(bodyIsMerged){ // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
             this.chart.deleteData();
+            Startup.trajectory.clear();
         }
         if( this.selectedBody.visible){ // Body selezionato
             this.context.beginPath();
@@ -258,6 +260,8 @@ class Loop {
             this.context.stroke();
             if(this.numIteration % 60 == 0)
                 this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
+            if(this.numIteration % 10 == 0)
+                Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
     }
 
