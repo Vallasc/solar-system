@@ -42,6 +42,9 @@ class NumberChart {
                         type: 'linear',
                         position: 'bottom'
                     }]
+                },
+                animation: {
+                    duration: 200
                 }
             }
         });
@@ -59,7 +62,6 @@ class NumberChart {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
         }
     
-
         this.chart.data.datasets[0].data.push({x: x, y: y});
         this.chart.update();
     }
