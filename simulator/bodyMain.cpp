@@ -11,8 +11,8 @@
 //#define EULER
 #define SIMPLETIC
 
-#define POLAR
-//#define CARTESIAN
+//#define POLAR
+#define CARTESIAN
 
 using namespace std;
 
@@ -138,7 +138,12 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
+        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
+
+        (*j).potential_energy = 0;
+        (*j).acceleration[0] = 0;
+        (*j).acceleration[1] = 0;
+    
     }
 
     cout<<"Initial state of the system: "<<endl;
@@ -147,6 +152,7 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
+    /*
     //reset force and potential energy
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
@@ -154,6 +160,7 @@ int main(){
         (*j).acceleration[0] = 0;
         (*j).acceleration[1] = 0;
     }
+    */
 
     int response = 0;
     if(E_tot > 0)
@@ -272,7 +279,7 @@ int main(){
         ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
         momentum_tot[0] += (*j).get_x_momentum();
         momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += (*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy;
+        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
     }
 
     cout<<"\rCOMPLETED                          "<<endl<<endl;
@@ -282,9 +289,35 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
-    
+/*
+    cout << "Kinetic energy" << endl;
+     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            cout << (*j).get_kinetic_energy() << endl;
+            
+        }  
 
+    cout << "Potential energy" << endl;
+     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            cout << (*j).potential_energy << endl;
+            
+        }  
 
+            cout << "Binding energy" << endl;
+     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            cout << (*j).binding_energy << endl;
+            
+        }  
+
+            cout << "Internal energy" << endl;
+     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            cout << (*j).internal_energy << endl;
+            
+        }      
+*/
 
     }
     else

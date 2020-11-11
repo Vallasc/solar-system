@@ -76,7 +76,7 @@ void Body::merge(Body& a)
         //dummy variables
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
         double orbital_initial = a.get_orbital_momentum() + this->get_orbital_momentum();
-        double delta_potential = this->mass*a.mass/distance(*this,a);
+        double delta_potential = -(this->mass*a.mass)/distance(*this,a);
         //double potential_initial = a.potential_energy + this->potential_energy;
 
         //center of mass position
@@ -94,10 +94,11 @@ void Body::merge(Body& a)
         this->mass += a.mass;
 
         //update internal_energy. sum of internal energy + difference of initial and final kinetic energy
-        this->internal_energy += a.internal_energy + (kinetic_initial - this->get_kinetic_energy());
+        this->internal_energy += (a.internal_energy + (kinetic_initial - this->get_kinetic_energy()));
 
         //update the binding energy.
-        this->binding_energy -= delta_potential;
+        this->binding_energy += delta_potential + a.binding_energy;
+        
         
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
