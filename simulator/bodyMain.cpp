@@ -208,7 +208,7 @@ int main(){
 
         bodies.shrink_to_fit();
 
-        serializer.write(t, bodies);
+        serializer.write(t, bodies, 0, 0, 0, 0, 0);
 
         if (t > (t_f - dt)) break; // when we reach t_f the evolution terminates
 
