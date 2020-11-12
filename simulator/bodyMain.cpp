@@ -215,7 +215,7 @@ int feedback(int &response)
     
 }
 
-double get_total_energies(vector<Body> &bodies)
+void get_total_energies(vector<Body> &bodies)
 {
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
