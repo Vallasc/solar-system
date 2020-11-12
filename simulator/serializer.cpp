@@ -14,6 +14,8 @@ Serializer::Serializer(string file_name) {
     this->file_name = file_name;
     this->open_file();
     cout << "File opened" << endl;
+
+    this->split_file(); // temporaneo per creare il file iniziale degli input
 }
 
 Serializer::~Serializer() {
@@ -25,19 +27,29 @@ Serializer::~Serializer() {
 }
 
 
-void Serializer::write(float time, vector<Body> &state) { // Si possono aggiungere altri parametri da salvare
+void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot) {
+    outfile.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& e_k_tot), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
     float size = (float) state.size();
     outfile.write(reinterpret_cast<char*>(& size), sizeof(float));
     this->byte_written += sizeof(float);
     for(int i = 0; i < state.size(); i++) {
         this->byte_written += state[i].write_to_file(outfile);
     }
+
     if(this->byte_written >= this->max_file_size){
-        outfile.close();
-        this->byte_written = 0;
-        this->open_file();
+        this->split_file();
     }
     this->num_iteration++;
+}
+
+void Serializer::split_file() {
+    outfile.close();
+    this->byte_written = 0;
+    this->open_file();
 }
 
 void Serializer::open_file() {

@@ -294,7 +294,7 @@ int main(){
             compute_CM(bodies);
         }
 
-        serializer.write(t, bodies);
+        serializer.write(t, bodies, 0, 0, 0, 0, 0);
 
     /*ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
