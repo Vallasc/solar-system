@@ -513,7 +513,7 @@ class Loop {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
-        this.chart = new NumberChart("Kinetic energy");
+        this.chart = new NumberChart(["Total energy", "Kinetic energy", "Internal energy", "Potential energy", "Binding energy"], ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]);
         Startup.gui.Register([
             {
                 type: 'display',
@@ -590,12 +590,12 @@ class Loop {
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            } /*,{
+            }, {
                 type: 'display',
-                label: 'K energy chart',
+                label: 'Charts',
                 folder: "Selected",
                 element: this.chart.container,
-            }*/
+            }
         ]);
         this.barContainer = document.getElementById("guify-bar-container");
     }
@@ -675,7 +675,6 @@ class Loop {
                     this.selectedBody.setVisible(true);
                     this.selectX = null;
                     this.selectY = null;
-                    this.chart.deleteData();
                     Startup.trajectory.clear();
                     bodyIsMerged = false;
                 }
@@ -688,7 +687,6 @@ class Loop {
         this.context.fill();
         if (bodyIsMerged) { // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
-            this.chart.deleteData();
             Startup.trajectory.clear();
         }
         if (this.selectedBody.visible) { // Body selezionato
@@ -696,11 +694,17 @@ class Loop {
             this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            //if(this.numIteration % 60 == 0)
-            //this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
             if (this.numIteration % 10 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
+        if (this.numIteration % 60 == 0)
+            this.chart.updateChart([
+                { x: this.numIteration, y: objects[0] },
+                { x: this.numIteration, y: objects[1] },
+                { x: this.numIteration, y: objects[2] },
+                { x: this.numIteration, y: objects[3] },
+                { x: this.numIteration, y: objects[4] }
+            ]);
     }
     play() {
         if (this.isPlaying || this.isEof)
@@ -740,6 +744,7 @@ class Loop {
                 }
             }
             this.buffer.clear();
+            this.chart.deleteData();
             try {
                 this.file = file;
                 yield this.loadFile(file);
@@ -871,9 +876,10 @@ class Loop {
     }
 }
 class NumberChart {
-    constructor(title) {
+    constructor(titles, colors) {
         this.width = 280;
         this.height = 250;
+        this.size = titles.length;
         this.container = document.createElement("div");
         this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
         this.div = document.createElement("div");
@@ -884,24 +890,29 @@ class NumberChart {
         //this.canvas.width = this.width;
         this.context = this.canvas.getContext("2d");
         this.div.appendChild(this.canvas);
+        let datasets = [];
+        for (let i = 0; i < titles.length; i++) {
+            datasets.push({
+                label: titles[i],
+                borderWidth: 1,
+                pointRadius: 2,
+                pointHoverRadius: 8,
+                //backgroundColor: "rgba(255, 0, 0, 0.6)",
+                borderColor: colors[i],
+                filled: true,
+                data: []
+            });
+        }
         this.chart = new Chart(this.context, {
             type: 'line',
             data: {
-                datasets: [{
-                        borderWidth: 1,
-                        pointRadius: 2,
-                        pointHoverRadius: 8,
-                        backgroundColor: "rgba(255, 0, 0, 0.6)",
-                        borderColor: "rgba(255, 0, 0, 1)",
-                        filled: true,
-                        data: []
-                    }]
+                datasets: datasets
             },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
                 legend: {
-                    display: false
+                    display: true
                 },
                 scales: {
                     xAxes: [{
@@ -915,7 +926,7 @@ class NumberChart {
             }
         });
     }
-    updateChart(x, y) {
+    updateChart(data) {
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth - this.container.clientWidth <= this.container.scrollLeft + 1;
         if (this.chart.data.datasets[0].data.length % 4 == 0) {
@@ -926,13 +937,17 @@ class NumberChart {
         if (isScrolledToLeft) {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth;
         }
-        this.chart.data.datasets[0].data.push({ x: x, y: y });
+        for (let i = 0; i < this.size; i++) {
+            this.chart.data.datasets[i].data.push({ x: data[i].x, y: data[i].y });
+        }
         this.chart.update();
     }
     deleteData() {
         this.width = 250;
         this.div.style.width = this.width + 'px';
-        this.chart.data.datasets[0].data = [];
+        for (let i = 0; i < this.size; i++) {
+            this.chart.data.datasets[i].data = [];
+        }
         this.chart.update();
     }
 }
