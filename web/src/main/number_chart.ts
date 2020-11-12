@@ -8,7 +8,10 @@ class NumberChart {
     private width : number = 280;
     private height : number = 250;
 
-    constructor(title: string) {
+    private size : number;
+
+    constructor(titles: Array<string>, colors: Array<string>) {
+        this.size = titles.length;
         this.container = document.createElement("div");
         this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
         this.div = document.createElement("div");
@@ -21,24 +24,29 @@ class NumberChart {
         this.context = <CanvasRenderingContext2D> this.canvas.getContext("2d");
         this.div.appendChild(this.canvas);
 
+        let datasets = [];
+        for(let i=0; i<titles.length; i++){
+            datasets.push({
+                label: titles[i],
+                borderWidth: 1,
+                pointRadius: 2,
+                pointHoverRadius: 8,
+                //backgroundColor: "rgba(255, 0, 0, 0.6)",
+                borderColor: colors[i],
+                filled: true,
+                data: []
+            });
+        }
         this.chart = new Chart(this.context, {
             type: 'line',
             data: {
-                datasets: [{
-                    borderWidth: 1,
-                    pointRadius: 2,
-                    pointHoverRadius: 8,
-                    backgroundColor: "rgba(255, 0, 0, 0.6)",
-                    borderColor: "rgba(255, 0, 0, 1)",
-                    filled: true,
-                    data: []
-                }]
+                datasets: datasets
             },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
                 legend: {
-                    display: false
+                    display: true
                 },
                 scales: {
                     xAxes: [{
@@ -53,7 +61,7 @@ class NumberChart {
         });
     }
 
-    public updateChart(x : number, y : number) : void {
+    public updateChart( data : Array<{x : number, y : number}>) : void {
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
         if(this.chart.data.datasets[0].data.length % 4 == 0){
@@ -65,14 +73,18 @@ class NumberChart {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
         }
     
-        this.chart.data.datasets[0].data.push({x: x, y: y});
+        for(let i=0; i<this.size; i++){
+            this.chart.data.datasets[i].data.push({x: data[i].x, y: data[i].y});
+        }
         this.chart.update();
     }
 
     public deleteData() : void {
         this.width = 250;
         this.div.style.width = this.width+'px';
-        this.chart.data.datasets[0].data = [];
+        for(let i=0; i<this.size; i++){
+            this.chart.data.datasets[i].data = [];
+        }
         this.chart.update();
     }
 }
