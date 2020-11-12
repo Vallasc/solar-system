@@ -36,8 +36,11 @@ int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
-double mass_i = 100;
+double mass_i = 70;
 double radius_i = 1;
+
+double ang_mom_tot=0, E_tot=0;
+double momentum_tot[]{0,0};
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -47,14 +50,13 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=300;
-double v_max=15;
+double rho=500;
+double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
 string filename = "prova2"; // Do not specify the extension
 
-//------------------------------ real random number generator ---------------
 double uniform_generator(double x_min_, double x_max_)
 {
     double r = ((double)(rand())) / RAND_MAX;
@@ -67,45 +69,12 @@ double uniform_generator_polar(double x_min_, double x_max_)
     return x_min_ + pow(r,0.5) * (x_max_ - x_min_);
 }
 
-//------------------------------------- main -----------------------------------
-int main(){
-
-    //------------------------------------- start line ----------------------------------
-    vector<Body> bodies; // bodies vector
-    double position_i[2]; // variables with starting values
-    double velocity_i[2];
-
+void compute_CM(vector<Body> &bodies)
+{
     double position_CM[]{0,0}; //position center of mass
     double velocity_CM[]{0,0}; //velocity center of mass
     double total_mass=0; //total mass of the system
 
-    srand(time(NULL)); // random seed
-
-    for(int j=0; j<N; j++)
-    { // random position and velocity initialization
-
-        #ifdef CARTESIAN
-        position_i[0] = uniform_generator(x_min, x_max);
-        position_i[1] = uniform_generator(x_min, x_max);
-        velocity_i[0] = uniform_generator(v_min, v_max);
-        velocity_i[1] = uniform_generator(v_min, v_max);
-        #endif
-
-        #ifdef POLAR
-        theta = uniform_generator(0, 2*M_PI);
-        phi = uniform_generator(0, 2*M_PI);
-        R_module = uniform_generator_polar(0,rho);
-        V_module = uniform_generator_polar(0, v_max);
-        position_i[0] = R_module*cos(theta);
-        position_i[1] = R_module*sin(theta);
-        velocity_i[0] = V_module*cos(phi);
-        velocity_i[1] = V_module*sin(phi);
-        #endif
-       
-        bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
-    }
-
-    //compute position and velocity of the center of mass and lock the reference
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {    
         total_mass += (*j).mass;
@@ -128,11 +97,145 @@ int main(){
         (*j).velocity[1] -= velocity_CM[1];
          
     }
-    //-------------------------------------------------
+}
+
+void initial_condition(vector<Body> &bodies, double* position_i, double* velocity_i)
+{
+    for(int j=0; j<N; j++)
+    { 
+        #ifdef CARTESIAN
+        position_i[0] = uniform_generator(x_min, x_max);
+        position_i[1] = uniform_generator(x_min, x_max);
+        velocity_i[0] = uniform_generator(v_min, v_max);
+        velocity_i[1] = uniform_generator(v_min, v_max);
+        #endif
+
+        #ifdef POLAR
+        theta = uniform_generator(0, 2*M_PI);
+        phi = uniform_generator(0, 2*M_PI);
+        R_module = uniform_generator_polar(0,rho);
+        V_module = uniform_generator_polar(0, v_max);
+        position_i[0] = R_module*cos(theta);
+        position_i[1] = R_module*sin(theta);
+        velocity_i[0] = V_module*cos(phi);
+        velocity_i[1] = V_module*sin(phi);
+        #endif
+       
+        bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
+    }
+
+
+}
+
+void check_up(Body &j)
+{
+    ang_mom_tot += j.get_orbital_momentum() + j.spin;
+    momentum_tot[0] += j.get_x_momentum();
+    momentum_tot[1] += j.get_y_momentum();
+    E_tot += (j.get_kinetic_energy() + j.internal_energy + 0.5*j.potential_energy + j.binding_energy);
+
+}
+
+void collision(vector<Body> &bodies)
+{
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+    {
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
+        {             
+            // computing the distance of each couple of bodies: if this distance is minor than the sum of 
+            // their radius, we merge them
+            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
+            {
+                if((*j).radius > (*k).radius)
+                {
+                   (*j).merge(*k);
+                    bodies.erase(k); 
+                }
+                else
+                {
+                    (*k).merge(*j);
+                    bodies.erase(j);
+                }
+                
+            }
+        }
+    }
+
+    bodies.shrink_to_fit();
+
+}
+
+void simpletic_dynamic(vector<Body> &bodies)
+{
+            for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+        {
+            (*j).update_position(dt/2);
+            (*j).potential_energy = 0;
+            (*j).acceleration[0] = 0;
+            (*j).acceleration[1] = 0;
+        }
+        
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+        {
+            if(j != bodies.end()-1)
+            {
+                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
+                {
+                    Body::force_and_potential(*j, *k);
+                }
+            }
+            (*j).update_velocity(dt);
+            (*j).update_position(dt/2);
+            
+        }
+
+}
+
+int feedback(int &response)
+{
+    string answer;
+
+    cout<<"Do you want to start the computation? (\"YES\", \"NO\")"<<endl;
+    cout<<"Answer: ";
+    cin>>answer;
+    if(answer == "YES" || answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+    {
+        response = 1;
+        return 1;
+    }
+    else if(answer == "NO" || answer =="no" || answer == "No" || answer == "n" || answer == "N")
+    {
+        response = 0;
+        return 1;
+    }
+    else
+        return 0;
+
+    
+}
+
+
+
+
+
+
+//------------------------------------- main -----------------------------------
+int main(){
+
+    //------------------------------------- start line ----------------------------------
+    vector<Body> bodies; // bodies vector
+    double position_i[2]; // variables with starting values
+    double velocity_i[2];
+
+    srand(time(NULL)); // random seed
+
+    //set initial condition
+    initial_condition(bodies, position_i, velocity_i);
+
+    //compute position and velocity of the center of mass and lock the reference
+    compute_CM(bodies);
 
     //initial conservatives parameters
-    double ang_mom_tot=0, E_tot=0;
-    double momentum_tot[]{0,0};
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
         if(j != bodies.end()-1)
@@ -143,11 +246,7 @@ int main(){
             }
         }
 
-        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
-        momentum_tot[0] += (*j).get_x_momentum();
-        momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
-    
+        check_up(*j);    
     }
 
     cout<<"Initial state of the system: "<<endl;
@@ -156,14 +255,19 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
-    int response = 0;
+
     if(E_tot > 0)
     {
         cout<<"WARNING: the energy of the system is positive!"<<endl;
     }
-    cout<<"Do you want to start the computation? (1:\"YES\", 0:\"NO\")"<<endl;
-    cout<<"Answer: ";
-    cin>>response;
+
+    int response = 0; 
+    while(1)
+    {
+        if(feedback(response))
+            break;
+    }
+
 
     if(response)
     {
@@ -182,31 +286,13 @@ int main(){
         {
             cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         }
-            
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-        {
-            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
-            {             
-                // computing the distance of each couple of bodies: if this distance is minor than the sum of 
-                // their radius, we merge them
-                if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
-                {
-                    if((*j).radius > (*k).radius)
-                    {
-                       (*j).merge(*k);
-                        bodies.erase(k); 
-                    }
-                    else
-                    {
-                        (*k).merge(*j);
-                        bodies.erase(j);
-                    }
-                    
-                }
-            }
-        }
 
-        bodies.shrink_to_fit();
+        collision(bodies);
+
+        if(n_iteration % 2000 == 0)
+        {
+            compute_CM(bodies);
+        }
 
         serializer.write(t, bodies);
 
@@ -221,8 +307,10 @@ int main(){
     }
 
         of<<t<<"\t"<<bodies.size()<<"\t"<<ang_mom_tot<<"\t"<<E_tot<<"\t"<<momentum_tot[0]<<"\t"<<momentum_tot[1]<<endl;
+
     */
-        if (t > (t_f - dt)) break; // when we reach t_f the evolution terminates
+    
+        if (t > (t_f - 2*dt)) break; // when we reach t_f the evolution terminates
 
     
 
@@ -253,27 +341,7 @@ int main(){
 
     #ifdef SIMPLETIC
     //----------------------------------------- Simpletic dynamic ------------------------------------
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            (*j).update_position(dt/2);
-            (*j).potential_energy = 0;
-            (*j).acceleration[0] = 0;
-            (*j).acceleration[1] = 0;
-        }
-        
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-        {
-            if(j != bodies.end()-1)
-            {
-                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
-                {
-                    Body::force_and_potential(*j, *k);
-                }
-            }
-            (*j).update_velocity(dt);
-            (*j).update_position(dt/2);
-            
-        }
+    simpletic_dynamic(bodies);
     //-----------------------------------------------------------------------------------------------------
     #endif
 
@@ -287,10 +355,7 @@ int main(){
     momentum_tot[0]=0, momentum_tot[1]=0;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
-        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
-        momentum_tot[0] += (*j).get_x_momentum();
-        momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
+        check_up((*j));
     }
 
     cout<<"\rCOMPLETED                          "<<endl<<endl;

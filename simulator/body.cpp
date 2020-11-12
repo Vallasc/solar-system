@@ -21,6 +21,8 @@ long double E = F*L;
 long double P = M*V;
 long double M_A = P*L;
 
+long double Temp_max = 1;
+
 
 
 //-------------------class constructors and operators-----------------------
@@ -69,6 +71,26 @@ double Body::get_orbital_momentum()
 {
    return mass*(position[0]*velocity[1]-position[1]*velocity[0]);    
 }
+
+//get_color()
+double Body::get_color()
+{
+    int color;
+    double temperature = this->internal_energy/this->mass;
+    if(temperature < Temp_max/10) color = 1;
+    else if(temperature < 2*Temp_max/10) color = 2;
+    else if(temperature < 3*Temp_max/10) color = 3;
+    else if(temperature < 4*Temp_max/10) color = 4;
+    else if(temperature < 5*Temp_max/10) color = 5;
+    else if(temperature < 6*Temp_max/10) color = 6;
+    else if(temperature < 7*Temp_max/10) color = 7;
+    else if(temperature < 8*Temp_max/10) color = 8;
+    else if(temperature < 9*Temp_max/10) color = 9;
+    else color = 10;
+    
+    return color;
+}
+
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
 void Body::merge(Body& a)

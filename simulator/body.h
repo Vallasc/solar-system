@@ -28,6 +28,8 @@ class Body{
     double get_x_momentum(); //return x momentum
     double get_y_momentum(); //return y momentum
     double get_orbital_momentum(); //return orbital angular momentum
+    double get_color();
+
     
     //variables
     int id; 
