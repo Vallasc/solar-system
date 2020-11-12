@@ -49,6 +49,13 @@ class NumberChart {
                     display: true
                 },
                 scales: {
+                    yAxes: [{
+                        ticks: {
+                            callback: function(val: any) {
+                                return val.toExponential()
+                            }
+                        }
+                    }],
                     xAxes: [{
                         type: 'linear',
                         position: 'bottom'
@@ -65,7 +72,7 @@ class NumberChart {
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
         if(this.chart.data.datasets[0].data.length % 4 == 0){
-            this.width += 30;
+            this.width += 80;
             this.div.style.width = this.width+'px';
         }
         // Scroll to left
