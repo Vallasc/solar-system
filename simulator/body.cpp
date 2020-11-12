@@ -163,15 +163,13 @@ int Body::write_to_file(std::ofstream &outfile)
     float x = Body::reverse_float((float) this->position[0]);
     float y = Body::reverse_float((float) this->position[1]);
     float r = Body::reverse_float((float) this->radius);
-    float k_energy = Body::reverse_float(this->get_kinetic_energy());
-    float i_energy = Body::reverse_float(this->internal_energy);
+    float t = 0;
 
     outfile.write(reinterpret_cast<char*>(& id ), sizeof(float)); // 16 bit?
     outfile.write(reinterpret_cast<char*>(& x ), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& y ), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& r ), sizeof(float)); // 16 bit?
-    outfile.write(reinterpret_cast<char*>(& k_energy ), sizeof(float));
-    outfile.write(reinterpret_cast<char*>(& i_energy ), sizeof(float));
+    outfile.write(reinterpret_cast<char*>(& t ), sizeof(float));
     return sizeof(float) * 6; // N byte scritti
 }
 
