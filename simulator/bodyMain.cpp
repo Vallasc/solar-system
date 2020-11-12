@@ -40,6 +40,7 @@ double mass_i = 70;
 double radius_i = 1;
 
 double ang_mom_tot=0, E_tot=0;
+double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
 double momentum_tot[]{0,0};
 
 #ifdef CARTESIAN
@@ -214,10 +215,18 @@ int feedback(int &response)
     
 }
 
-
-
-
-
+double get_total_energies(vector<Body> &bodies)
+{
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    {
+        total_energies[1] += (*j).get_kinetic_energy();
+        total_energies[2] += (*j).internal_energy;
+        total_energies[3] += 0.5*(*j).potential_energy;
+        total_energies[4] += (*j).binding_energy;
+        total_energies[0] += total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4];
+    }
+      
+}
 
 //------------------------------------- main -----------------------------------
 int main(){
@@ -294,7 +303,11 @@ int main(){
             compute_CM(bodies);
         }
 
-        serializer.write(t, bodies, 0, 0, 0, 0, 0);
+        get_total_energies(bodies);
+
+        serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
+
+        for(auto &i : total_energies) i=0;
 
     /*ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
