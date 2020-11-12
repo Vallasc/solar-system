@@ -3,8 +3,8 @@
 #ifndef BODY_H
 #define BODY_H
 
-//---------------------------------- Body -----------------------------------
-class Body{
+class Body
+{
 
     public:
     Body(int id_, double* position_, double* velocity_, double radius_, double mass_);//parametric constructor
