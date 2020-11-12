@@ -33,10 +33,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 500; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 200; // final time
+double t_f = 100; // final time
 double mass_i = 50;
 double radius_i = 1;
 
@@ -244,17 +244,22 @@ void get_total_energies(vector<Body> &bodies)
     }
 total_energies[0] += (total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4]);
 }
- /*
-void loading_bar(double t)
+ 
+void loading_bar(double step)
 {
-    int n = int(t_f / t);
-    cout << "\r";
+    int n = int(step/10);
+    cout << "\r" << "??" << ' ' <<flush;
     for(int i=0; i<n; ++i)
-    cout << "|" << ' ' << flush;
-    
-    if (t > t_f) cout << endl;
-}
-*/
+    cout <<  '|' << ' ' << flush; 
+    for(int i=0; i<10-n; ++i)
+    {
+        if(i==0) cout << ' ' << flush;
+        cout << ' ' << ' ' << flush;
+    }
+    cout << "??" << ' ' << flush;
+
+   }
+
 //------------------------------------- main -----------------------------------
 int main(){
 
@@ -262,6 +267,8 @@ int main(){
     vector<Body> bodies; // bodies vector
     double position_i[2]; // variables with starting values
     double velocity_i[2];
+    double step = 0;
+    
 
     srand(time(NULL)); // random seed
 
@@ -317,16 +324,22 @@ int main(){
     while(1)
     {   
 
-        if(n_iteration % 13 == 0)
+        /*if(n_iteration % 13 == 0)
         {
-            cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
+            step=t/(t_f+1)*100;
+            cout<<"\r"<< step<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         }
+        */
 
-        //loading_bar(t);
+        if(n_iteration % 200 == 0)
+        {
+            step=t/(t_f)*100;
+            loading_bar(step);
+        }
 
         collision(bodies);
 
-        if(n_iteration % 2000 == 0)
+        if(n_iteration % 200 == 0)
         {
             compute_CM(bodies);
         }
@@ -337,8 +350,6 @@ int main(){
 
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
-
-        //for(auto &i : total_energies) i=0;
 
     /*ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
@@ -354,7 +365,7 @@ int main(){
 
     */
     
-        if (t > (t_f - 2*dt)) break; // when we reach t_f the evolution terminates
+        if (t > (t_f)) break; // when we reach t_f the evolution terminates
 
     
 
@@ -402,7 +413,7 @@ int main(){
         check_up((*j));
     }
 
-    cout<<"\rCOMPLETED                          "<<endl<<endl;
+    cout<< ' ' << endl << "COMPLETED                          "<<endl<<endl;
     cout<<"Final state of the system: "<<endl;
     cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
     cout<<"Total energy: " << E_tot<<endl;
