@@ -244,7 +244,7 @@ class Loop {
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
 
-        if(this.numIteration % 60 == 0)
+        if(this.numIteration % 30 == 0)
                 this.chart.updateChart([
                     {x: this.numIteration, y:objects[0]},
                     {x: this.numIteration, y:objects[1]},
