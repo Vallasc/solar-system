@@ -3,22 +3,16 @@ class Body {
     public x: number = 0;
     public y: number = 0;
     public radius: number = 0;
-    public k_energy: number = 0;
-    public internal_energy: number = 0;
     public visible: boolean = false;
 
     constructor( {  id = -1,
                     x = 0, 
                     y = 0, 
-                    radius = 0,
-                    k_energy = 0,
-                    internal_energy = 0} = {}) {
+                    radius = 0,} = {}) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.radius = radius;
-        this.k_energy = k_energy;
-        this.internal_energy = internal_energy;
     }
     
     public drawOnCanvas (ctx: CanvasRenderingContext2D): void {
@@ -41,8 +35,6 @@ class Body {
             this.x = 0;
             this.y = 0;
             this.radius = 0;
-            this.k_energy = 0;
-            this.internal_energy = 0;
         }
     }
 
