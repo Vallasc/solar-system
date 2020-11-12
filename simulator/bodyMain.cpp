@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <vector>
-//#include <bits/stdc++.h> 
 
 #include "serializer.h"
 #include "body.h"
@@ -36,7 +35,7 @@ extern long double M_A;
 int N = 100; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 100; // final time
+double t_f = 200; // final time
 double mass_i = 100;
 double radius_i = 1;
 
@@ -48,9 +47,9 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=600;
-double v_max=1;
-double theta=0, R_module=0, V_module=0;
+double rho=300;
+double v_max=15;
+double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
 string filename = "prova2"; // Do not specify the extension
@@ -94,12 +93,13 @@ int main(){
 
         #ifdef POLAR
         theta = uniform_generator(0, 2*M_PI);
+        phi = uniform_generator(0, 2*M_PI);
         R_module = uniform_generator_polar(0,rho);
         V_module = uniform_generator_polar(0, v_max);
         position_i[0] = R_module*cos(theta);
         position_i[1] = R_module*sin(theta);
-        velocity_i[0] = V_module*cos(theta);
-        velocity_i[1] = V_module*sin(theta);
+        velocity_i[0] = V_module*cos(phi);
+        velocity_i[1] = V_module*sin(phi);
         #endif
        
         bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
@@ -177,7 +177,7 @@ int main(){
     int n_iteration = 0;
     while(1)
     {   
-        //of<<t<<"\t"<<bodies.size()<<endl;
+
         if(n_iteration % 13 == 0)
         {
             cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
@@ -210,7 +210,21 @@ int main(){
 
         serializer.write(t, bodies, 0, 0, 0, 0, 0);
 
+    /*ang_mom_tot=0, E_tot=0;
+    momentum_tot[0]=0, momentum_tot[1]=0;
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    {
+        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
+        momentum_tot[0] += (*j).get_x_momentum();
+        momentum_tot[1] += (*j).get_y_momentum();
+        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
+    }
+
+        of<<t<<"\t"<<bodies.size()<<"\t"<<ang_mom_tot<<"\t"<<E_tot<<"\t"<<momentum_tot[0]<<"\t"<<momentum_tot[1]<<endl;
+    */
         if (t > (t_f - dt)) break; // when we reach t_f the evolution terminates
+
+    
 
     #ifdef EULER
     //-------------------------------------- Euler dynamic ----------------------------------------
@@ -285,36 +299,6 @@ int main(){
     cout<<"Total energy: " << E_tot<<endl;
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
-
-/*
-    cout << "Kinetic energy" << endl;
-     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            cout << (*j).get_kinetic_energy() << endl;
-            
-        }  
-
-    cout << "Potential energy" << endl;
-     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            cout << (*j).potential_energy << endl;
-            
-        }  
-
-            cout << "Binding energy" << endl;
-     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            cout << (*j).binding_energy << endl;
-            
-        }  
-
-            cout << "Internal energy" << endl;
-     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            cout << (*j).internal_energy << endl;
-            
-        }      
-*/
 
     }
     else
