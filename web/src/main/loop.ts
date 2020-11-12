@@ -40,7 +40,9 @@ class Loop {
         this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
 
-        this.chart = new NumberChart("Kinetic energy");
+        this.chart = new NumberChart(
+            ["Total energy","Kinetic energy", "Internal energy", "Potential energy", "Binding energy"],
+            ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]);
         Startup.gui.Register([
             {
                 type: 'display',
@@ -117,12 +119,12 @@ class Loop {
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            }/*,{
+            },{
                 type: 'display',
-                label: 'K energy chart',
+                label: 'Charts',
                 folder: "Selected",
                 element: this.chart.container,
-            }*/
+            }
         ]);
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
@@ -219,7 +221,6 @@ class Loop {
 
                     this.selectX = null;
                     this.selectY = null;
-                    this.chart.deleteData();
                     Startup.trajectory.clear();
 
                     bodyIsMerged = false;
@@ -232,7 +233,6 @@ class Loop {
         this.context.fill();
         if(bodyIsMerged){ // Il body ha fatto il merge
             this.selectedBody.setVisible(false);
-            this.chart.deleteData();
             Startup.trajectory.clear();
         }
         if( this.selectedBody.visible){ // Body selezionato
@@ -240,11 +240,18 @@ class Loop {
             this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            //if(this.numIteration % 60 == 0)
-                //this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
             if(this.numIteration % 10 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
+
+        if(this.numIteration % 60 == 0)
+                this.chart.updateChart([
+                    {x: this.numIteration, y:objects[0]},
+                    {x: this.numIteration, y:objects[1]},
+                    {x: this.numIteration, y:objects[2]},
+                    {x: this.numIteration, y:objects[3]},
+                    {x: this.numIteration, y:objects[4]}
+                ]);
     }
 
     public play() {
@@ -288,6 +295,7 @@ class Loop {
             }
         }
         this.buffer.clear();
+        this.chart.deleteData();
 
         try {
             this.file = file
