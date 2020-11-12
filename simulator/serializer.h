@@ -25,12 +25,13 @@ class Serializer {
             return path.substr(path.find_last_of("/\\") + 1);
         }
         void open_file();
+        void split_file();
         void compress_files();
 
     public:
         Serializer(string file_name);
         ~Serializer();
-        void write(float time, vector<Body> &state);
+        void write(float time, vector<Body> &state, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot);
 
 };
 
