@@ -32,11 +32,11 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
-double mass_i = 70;
+double mass_i = 50;
 double radius_i = 1;
 
 double ang_mom_tot=0, E_tot=0;
@@ -52,7 +52,7 @@ double v_min=0, v_max=0.5;
 #ifdef POLAR
 //polar coordinates
 double rho=500;
-double v_max=3;
+double v_max=4;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
@@ -210,8 +210,10 @@ int feedback(int &response)
         return 1;
     }
     else
+    {
+        cout<<"\nINPUT ERROR. RETRY PLEASE.\n";
         return 0;
-
+    }
     
 }
 
