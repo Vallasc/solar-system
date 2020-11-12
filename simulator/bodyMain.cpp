@@ -12,6 +12,7 @@
 
 #define POLAR
 //#define CARTESIAN
+//#define POLAR_VORTEX
 
 using namespace std;
 
@@ -32,7 +33,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 1000; // number of bodies
+int N = 500; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
@@ -54,6 +55,12 @@ double v_min=0, v_max=0.5;
 double rho=500;
 double v_max=4;
 double theta=0, phi=0, R_module=0, V_module=0;
+#endif
+
+#ifdef POLAR_VORTEX
+//polar coordinates with dependent rotation
+double rho=300;
+double theta=0, R_module=0;
 #endif
 
 string filename = "prova2"; // Do not specify the extension
@@ -122,6 +129,15 @@ void initial_condition(vector<Body> &bodies, double* position_i, double* velocit
         velocity_i[1] = V_module*sin(phi);
         #endif
        
+        #ifdef POLAR_VORTEX
+        theta = uniform_generator(0, 2*M_PI);
+        R_module = uniform_generator_polar(0, rho);
+        position_i[0] = R_module*cos(theta);
+        position_i[1] = R_module*sin(theta);
+        velocity_i[0] = -(1/10)*(300-R_module)*sin(theta);
+        velocity_i[1] = (1/10)*(300-R_module)*cos(theta);
+        #endif
+
         bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
     }
 
@@ -225,11 +241,20 @@ void get_total_energies(vector<Body> &bodies)
         total_energies[2] += (*j).internal_energy;
         total_energies[3] += 0.5*(*j).potential_energy;
         total_energies[4] += (*j).binding_energy;
-        total_energies[0] += total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4];
     }
-      
+total_energies[0] += (total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4]);
 }
-
+ /*
+void loading_bar(double t)
+{
+    int n = int(t_f / t);
+    cout << "\r";
+    for(int i=0; i<n; ++i)
+    cout << "|" << ' ' << flush;
+    
+    if (t > t_f) cout << endl;
+}
+*/
 //------------------------------------- main -----------------------------------
 int main(){
 
@@ -266,7 +291,6 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
-
     if(E_tot > 0)
     {
         cout<<"WARNING: the energy of the system is positive!"<<endl;
@@ -298,6 +322,8 @@ int main(){
             cout<<"\r"<<t/(t_f+1)*100<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         }
 
+        //loading_bar(t);
+
         collision(bodies);
 
         if(n_iteration % 2000 == 0)
@@ -309,7 +335,10 @@ int main(){
 
         serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
 
-        for(auto &i : total_energies) i=0;
+        for(int i=0; i<5; ++i)
+        total_energies[i] = 0;
+
+        //for(auto &i : total_energies) i=0;
 
     /*ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
@@ -386,6 +415,7 @@ int main(){
         cout<<"Next time will be better :)"<<endl;
     }
     
+
 
 
 
