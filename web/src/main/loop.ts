@@ -117,24 +117,12 @@ class Loop {
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            },{
-                type: 'display',
-                folder: 'Selected',
-                label: 'Kinetic energy',
-                object: this.selectedBody,
-                property: 'k_energy',
-            },{
-                type: 'display',
-                folder: 'Selected',
-                label: 'Internal energy',
-                object: this.selectedBody,
-                property: 'internal_energy',
-            },{
+            }/*,{
                 type: 'display',
                 label: 'K energy chart',
                 folder: "Selected",
                 element: this.chart.container,
-            }
+            }*/
         ]);
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
@@ -203,13 +191,11 @@ class Loop {
         this.context.beginPath();
         let bodyIsMerged = true;
 
-        for(let i=0; i<objects[0]; i++){
-            let id = objects[1 + i * numParams + 0];
-            let x = objects[1 + i * numParams + 1]; // posizione 1 dell'array
-            let y = objects[1 + i * numParams + 2];
-            let r = objects[1 + i * numParams + 3];
-            let k_energy = objects[1 + i * numParams + 4];
-            let i_energy = objects[1 + i * numParams + 5]
+        for(let i=0; i<objects[Deserializer.numIterationParam -1]; i++){
+            let id = objects[Deserializer.numIterationParam + i * numParams + 0];
+            let x = objects[Deserializer.numIterationParam  + i * numParams + 1]; // posizione 1 dell'array
+            let y = objects[Deserializer.numIterationParam  + i * numParams + 2];
+            let r = objects[Deserializer.numIterationParam  + i * numParams + 3];
 
             this.context.moveTo(xBase + x, yBase + y);
             this.context.arc(xBase + x, yBase + y, Loop.roundTo1(r), 0, 2 * Math.PI);
@@ -221,8 +207,6 @@ class Loop {
                 this.selectedBody.x = x;
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
-                this.selectedBody.k_energy = k_energy;
-                this.selectedBody.internal_energy = i_energy;
                 bodyIsMerged = false;
             } 
             if( this.selectX != null && this.selectY != null){
@@ -231,8 +215,6 @@ class Loop {
                     this.selectedBody.x = x;
                     this.selectedBody.y = y;
                     this.selectedBody.radius = r;
-                    this.selectedBody.k_energy = k_energy;
-                    this.selectedBody.internal_energy = i_energy;
                     this.selectedBody.setVisible(true);
 
                     this.selectX = null;
@@ -258,8 +240,8 @@ class Loop {
             this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            if(this.numIteration % 60 == 0)
-                this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
+            //if(this.numIteration % 60 == 0)
+                //this.chart.updateChart(this.numIteration, this.selectedBody.k_energy);
             if(this.numIteration % 10 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
@@ -342,7 +324,7 @@ class Loop {
         try {
             let entries : Array<any> = await ZipReader.getEntries(file);
             this.buffer.clear();
-            for(let i=0; i<entries.length; i++) {
+            for(let i=1; i<entries.length; i++) { //TODO cambiare in i=0, primo file non letto perche contiene metadati
                 console.log("Load file: "+entries[i].filename);
                 let arrayBuffer = await ZipReader.getEntryFile(entries[i]);
                 this.buffer.pushFifo( Deserializer.parseBinaryFloat32Array(arrayBuffer) );
@@ -356,7 +338,7 @@ class Loop {
         }
     }
 
-    private indexChunck = 0;
+    private indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
     private loadingChunck = false;
     private entries : Array<any> | null = null;
 
@@ -368,7 +350,7 @@ class Loop {
         if(reset){
             ZipReader.closeZipReader();
             this.entries = null;
-            this.indexChunck = 0;
+            this.indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
         }
 
         this.readEnd = false;
