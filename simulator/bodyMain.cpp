@@ -331,12 +331,13 @@ int main(){
         }
         */
 
+       /*
         if(n_iteration % 200 == 0)
         {
             step=t/(t_f)*100;
             loading_bar(step);
         }
-
+    */
         collision(bodies);
 
         if(n_iteration % 200 == 0)
