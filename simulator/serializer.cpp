@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
+#include <functional>
 
 #include "serializer.h"
 #include "miniz.h"
@@ -26,19 +28,26 @@ Serializer::~Serializer() {
     cout << "Minutes of simulation: " << this->num_iteration/60/60 << endl;
 }
 
-
 void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot) {
     outfile.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& e_k_tot), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
+    
+    //sorting by temperature's color
+    std::sort(state.begin(), state.end(), [](Body& lhs, Body& rhs) {
+        return lhs.get_color() < rhs.get_color();
+    });
+
     float size = (float) state.size();
     outfile.write(reinterpret_cast<char*>(& size), sizeof(float));
     this->byte_written += sizeof(float);
     for(int i = 0; i < state.size(); i++) {
         this->byte_written += state[i].write_to_file(outfile);
+        cout<<state[i].get_color()<<" ";
     }
+    cout<<endl;
 
     if(this->byte_written >= this->max_file_size){
         this->split_file();
