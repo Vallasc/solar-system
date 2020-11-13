@@ -45,9 +45,7 @@ void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_t
     this->byte_written += sizeof(float);
     for(int i = 0; i < state.size(); i++) {
         this->byte_written += state[i].write_to_file(outfile);
-        cout<<state[i].get_color()<<" ";
     }
-    cout<<endl;
 
     if(this->byte_written >= this->max_file_size){
         this->split_file();
