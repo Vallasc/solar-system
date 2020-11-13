@@ -7,12 +7,15 @@
 #include "serializer.h"
 #include "body.h"
 
-//#define EULER
-#define SIMPLETIC
-
-#define POLAR
+#define POLAR               // coordinates
 //#define CARTESIAN
 //#define POLAR_VORTEX
+
+//#define EULER             //evolution
+#define SIMPLETIC
+
+#define PERCENTAGE          //loading
+//#define LOADING_BAR
 
 using namespace std;
 
@@ -33,10 +36,10 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 500; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 100; // final time
+double t_f = 200; // final time
 double mass_i = 50;
 double radius_i = 1;
 
@@ -268,9 +271,10 @@ int main(){
     double position_i[2]; // variables with starting values
     double velocity_i[2];
     double step = 0;
-    
+    int n_iteration = 0;
 
-    srand(time(NULL)); // random seed
+    //random seed
+    srand(time(NULL)); 
 
     //set initial condition
     initial_condition(bodies, position_i, velocity_i);
@@ -316,34 +320,35 @@ int main(){
 
     Serializer serializer(filename); //writing data on .json file
 
-    //------------------------------------ evolution -------------------------------
-    //
-    //ofstream of("test.txt");
-    //
-    int n_iteration = 0;
+    //------------------------------------ evolution ------------------------------
+    
     while(1)
     {   
-
-        /*if(n_iteration % 13 == 0)
+        
+        #ifdef  PERCENTAGE
+        if(n_iteration % 13 == 0)
         {
             step=t/(t_f+1)*100;
             cout<<"\r"<< step<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         }
-        */
+        #endif
 
-       
+        #ifdef LOADING_BAR      
         if(n_iteration % 200 == 0)
         {
             step=t/(t_f)*100;
             loading_bar(step);
         }
-    
+        #endif 
+
         collision(bodies);
 
+        
         if(n_iteration % 200 == 0)
         {
             compute_CM(bodies);
         }
+        
 
         get_total_energies(bodies);
 
@@ -352,23 +357,11 @@ int main(){
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
 
-    /*ang_mom_tot=0, E_tot=0;
-    momentum_tot[0]=0, momentum_tot[1]=0;
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
-        ang_mom_tot += (*j).get_orbital_momentum() + (*j).spin;
-        momentum_tot[0] += (*j).get_x_momentum();
-        momentum_tot[1] += (*j).get_y_momentum();
-        E_tot += ((*j).get_kinetic_energy() + (*j).internal_energy + 0.5*(*j).potential_energy + (*j).binding_energy);
-    }
-
-        of<<t<<"\t"<<bodies.size()<<"\t"<<ang_mom_tot<<"\t"<<E_tot<<"\t"<<momentum_tot[0]<<"\t"<<momentum_tot[1]<<endl;
-
-    */
-    
-        if (t > (t_f)) break; // when we reach t_f the evolution terminates
-
-    
+        if (t > (t_f)) 
+        {
+            break; // when we reach t_f the evolution terminates
+            --n_iteration;
+        }
 
     #ifdef EULER
     //-------------------------------------- Euler dynamic ----------------------------------------
@@ -402,7 +395,7 @@ int main(){
     #endif
 
         t+=dt; // the time flows
-        n_iteration++;
+        n_iteration++; //the iterations rise
 
     }
 

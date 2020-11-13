@@ -35,10 +35,12 @@ void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_t
     outfile.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
     
+    
     //sorting by temperature's color
     std::sort(state.begin(), state.end(), [](Body& lhs, Body& rhs) {
         return lhs.get_color() < rhs.get_color();
     });
+    
 
     float size = (float) state.size();
     outfile.write(reinterpret_cast<char*>(& size), sizeof(float));
