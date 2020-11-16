@@ -28,7 +28,6 @@ class Startup {
         
         Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
-        Startup.axes.drawAxes(0,0);
 
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
@@ -103,14 +102,6 @@ class Startup {
                 _web_main();
                 Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
             }
-        },{
-            folder: 'Selected',
-            type: 'button',
-            label: 'Change center axes',
-            streched: true,
-            action: () => {
-                Startup.loop.changeCenter = true;
-            }
         }]);
         Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Loader(false);
@@ -132,7 +123,7 @@ class Startup {
         Startup.axesCanvas.height = window.innerHeight - Startup.canvasMarginTop;
         Startup.axesCanvas.style.marginRight = Startup.canvasMarginRight + "px";
         Startup.axesCanvas.style.marginTop = Startup.canvasMarginTop + "px";
-        Startup.axes.drawAxes(0, 0);
+        Startup.axes.drawAxes();
 
         Startup.trajectoryCanvas.width = window.innerWidth - Startup.canvasMarginRight;
         Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
