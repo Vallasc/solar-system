@@ -73,7 +73,7 @@ double Body::get_orbital_momentum()
 }
 
 //get_color()
-double Body::get_color()
+int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
@@ -186,7 +186,7 @@ int Body::write_to_file(std::ofstream &outfile)
     float x = Body::reverse_float((float) this->position[0]);
     float y = Body::reverse_float((float) this->position[1]);
     float r = Body::reverse_float((float) this->radius);
-    float t = 0;
+    float t = (float) this->get_color();
 
     outfile.write(reinterpret_cast<char*>(& id ), sizeof(float)); // 16 bit?
     outfile.write(reinterpret_cast<char*>(& x ), sizeof(float));
