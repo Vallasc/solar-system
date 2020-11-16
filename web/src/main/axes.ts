@@ -10,7 +10,7 @@ class Axes {
         this.context =  <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
     }
-
+    
     public drawAxes() : void {
         
         let w : number = this.canvas.width;
