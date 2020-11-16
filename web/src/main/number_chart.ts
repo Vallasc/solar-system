@@ -1,12 +1,14 @@
+declare var Chart : any;
+
 class NumberChart {
 
     private canvas : HTMLCanvasElement;
     public container : HTMLElement;
     private div : HTMLElement;
     private context : CanvasRenderingContext2D;
-    private chart : typeof Chart; 
-    private width : number = 280;
-    private height : number = 250;
+    private chart : any; 
+    private width : number = 305;
+    private height : number = 300;
 
     private size : number;
 
@@ -29,11 +31,9 @@ class NumberChart {
             datasets.push({
                 label: titles[i],
                 borderWidth: 1,
-                pointRadius: 2,
-                pointHoverRadius: 8,
-                //backgroundColor: "rgba(255, 0, 0, 0.6)",
+               // backgroundColor: "rgba(255, 0, 0, 0.6)",
                 borderColor: colors[i],
-                filled: true,
+                filled: false,
                 data: []
             });
         }
@@ -43,10 +43,27 @@ class NumberChart {
                 datasets: datasets
             },
             options: {
+                tooltips: {
+                    mode: "index"
+                },
+                elements: {
+                    line: {
+                        tension: 0 // disables bezier curves
+                    },
+                    point: { 
+                        radius: 0,
+                        hitRadius: 10, 
+                        hoverRadius: 3 
+                    } 
+                },
                 maintainAspectRatio: false,
-                responsive: true,
+                responsive: false,
                 legend: {
-                    display: true
+                    display: true,
+                    align: "start",
+                    labels: {
+                        fontSize: 10,
+                    }
                 },
                 scales: {
                     yAxes: [{
@@ -58,17 +75,41 @@ class NumberChart {
                     }],
                     xAxes: [{
                         type: 'linear',
-                        position: 'bottom'
+                        position: 'bottom',
+                        ticks: {
+                            autoSkip: true,
+                            maxRotation: 0,
+                            minRotation: 0,
+                        }
                     }]
                 },
                 animation: {
-                    duration: 200
+                    duration: 0 // general animation time
+                },
+                hover: {
+                    animationDuration: 0 // duration of animations when hovering an item
+                },
+                responsiveAnimationDuration: 0, // animation duration after a resize
+                pan: {
+                    enabled: true,
+                    mode: "x",
+                    speed: 10,
+                    threshold: 5
+                },
+                zoom: {
+                    enabled: true,
+                    //drag: true,
+                    mode: "x",
+                    speed: 0.1,
+                    threshold: 2,
+                    sensitivity: 3
                 }
             }
         });
     }
 
     public updateChart( data : Array<{x : number, y : number}>) : void {
+        /*
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
         if(this.chart.data.datasets[0].data.length % 4 == 0){
@@ -78,10 +119,10 @@ class NumberChart {
         // Scroll to left
         if (isScrolledToLeft) {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
-        }
+        }*/
     
         for(let i=0; i<this.size; i++){
-            this.chart.data.datasets[i].data.push({x: data[i].x, y: data[i].y});
+            this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
         }
         this.chart.update();
     }
