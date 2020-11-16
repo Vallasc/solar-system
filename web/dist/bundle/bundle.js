@@ -364,7 +364,6 @@ class JsonStreamer {
 }
 class Startup {
     static main() {
-        Startup.createGui();
         console.log('Main');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
@@ -375,7 +374,7 @@ class Startup {
         Startup.axes.drawAxes();
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
-        Startup.resize();
+        Startup.createGui(); // And resize
         return 0;
     }
     static createGui() {
@@ -384,12 +383,21 @@ class Startup {
             title: 'Solar system',
             theme: 'light',
             align: 'right',
-            width: 350,
+            width: Startup.canvasMarginRight,
             barMode: 'offset',
             panelMode: 'inner',
             opacity: 0.9,
             root: guiContainer,
-            open: true
+            open: true,
+            onOpen: (value) => {
+                if (value) {
+                    Startup.canvasMarginRight = 350;
+                }
+                else {
+                    Startup.canvasMarginRight = 0;
+                }
+                Startup.resize();
+            }
         });
         Startup.gui.Register({
             type: 'file',
@@ -399,6 +407,24 @@ class Startup {
             })
         });
         Startup.gui.Register([{
+                type: 'button',
+                label: 'Play/Pause',
+                streched: true,
+                action: () => {
+                    Startup.loop.playPause();
+                }
+            }, {
+                type: 'button',
+                label: 'Rewind',
+                streched: true,
+                action: () => {
+                    Startup.loop.reset();
+                }
+            }, {
+                type: 'display',
+                label: 'Energy chart',
+                element: Startup.loop.chart.container,
+            }, {
                 type: 'folder',
                 label: 'Controls',
                 open: true
@@ -410,26 +436,41 @@ class Startup {
                 type: 'folder',
                 label: 'FPS',
                 open: false
+            }, {
+                type: 'button',
+                label: 'Run Main',
+                streched: true,
+                action: () => {
+                    _web_main();
+                    Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer));
+                }
             }]);
+        Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Loader(false);
+        Startup.loop.barContainer = document.getElementById("guify-bar-container");
     }
     static onWindowResized(event) {
         Startup.resize();
     }
     static resize() {
-        Startup.mainCanvas.width = window.innerWidth;
-        Startup.mainCanvas.height = window.innerHeight - 25;
-        Startup.gui.panel.style += "overflow-y: scroll; height: 300px;";
-        Startup.axesCanvas.width = window.innerWidth;
-        Startup.axesCanvas.height = window.innerHeight - 25;
+        Startup.mainCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.mainCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.mainCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.mainCanvas.style.marginTop = Startup.canvasMarginTop + "px";
+        //Startup.gui.panel.style += "overflow-y: scroll; height: 300px;"
+        Startup.axesCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.axesCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.axesCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.axesCanvas.style.marginTop = Startup.canvasMarginTop + "px";
         Startup.axes.drawAxes();
-        Startup.trajectoryCanvas.width = window.innerWidth;
-        Startup.trajectoryCanvas.height = window.innerHeight - 25;
-        //prova traiettoria
-        Startup.trajectoryCanvas.width = window.innerWidth;
-        Startup.trajectoryCanvas.height = window.innerHeight - 25;
+        Startup.trajectoryCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.trajectoryCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.trajectoryCanvas.style.marginTop = Startup.canvasMarginTop + "px";
     }
 }
+Startup.canvasMarginTop = 25;
+Startup.canvasMarginRight = 350;
 Startup.someNumber = 0;
 class MouseInput {
     constructor(loop, axes, trajectory) {
@@ -483,8 +524,15 @@ class MouseInput {
     click(self, x, y) {
         self.loop.setSelected(x, y - 25); // TODO aggiustare 25
     }
+    setOffset(x, y) {
+        this.globalOffsetX = x;
+        this;
+        this.globalOffsetY = y;
+        this.loop.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.axes.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+    }
 }
-// TODO hittest
 class Loop {
     constructor(canvas, gui) {
         this.panningOffsetX = 0;
@@ -500,6 +548,7 @@ class Loop {
         this.selectY = null;
         this.selectedBody = new Body();
         this.numIteration = 0;
+        this.lastTime = 0;
         this.indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
         this.loadingChunck = false;
         this.entries = null;
@@ -514,28 +563,14 @@ class Loop {
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
         this.chart = new NumberChart(["Total energy", "Kinetic energy", "Internal energy", "Potential energy", "Binding energy"], ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]);
-        Startup.gui.Register([
+        let div = document.createElement("div");
+        div.id = "container";
+        this.guiPanel = [
             {
                 type: 'display',
                 label: '',
                 folder: "FPS",
                 element: this.stats.dom,
-            }, {
-                type: 'button',
-                label: 'Play/Pause',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    this.playPause();
-                }
-            }, {
-                type: 'button',
-                label: 'Rewind',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    this.reset();
-                }
             }, {
                 type: 'checkbox',
                 folder: 'Controls',
@@ -590,44 +625,52 @@ class Loop {
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            }, {
-                type: 'display',
-                label: 'Charts',
-                folder: "Selected",
-                element: this.chart.container,
             }
-        ]);
+        ];
         this.barContainer = document.getElementById("guify-bar-container");
+        this.tmpCanvas = document.createElement('canvas');
+        this.tmpCanvas.height = 100;
+        this.tmpCanvas.width = 100;
+        let tmpCtx = this.tmpCanvas.getContext("2d");
+        tmpCtx.fillStyle = "white";
+        tmpCtx.arc(50, 50, 50, 0, 2 * Math.PI);
+        tmpCtx.fill();
     }
-    draw() {
+    draw(time) {
         this.stats.begin();
-        //this.context.setTransform(1, 0, 0, 1, 0, 0);
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.fillStyle = "white";
-        this.context.strokeStyle = "rgba(0,255,0,0.4)";
-        this.context.lineWidth = 2.5;
-        //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
-        //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
-        if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
-            let objects = this.buffer.pop();
-            if (objects != null && !this.isEof) {
-                this.drawStates(objects);
-                this.lastObjects = objects;
-                this.numIteration++;
+        if (time - this.lastTime <= 20) {
+            //this.context.setTransform(1, 0, 0, 1, 0, 0);
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillStyle = "white";
+            this.context.strokeStyle = "rgba(0,255,0,0.4)";
+            this.context.lineWidth = 2.5;
+            //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+            //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
+            if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
+                let objects = this.buffer.pop();
+                if (objects != null && !this.isEof) {
+                    this.drawStates(objects);
+                    this.lastObjects = objects;
+                    this.numIteration++;
+                }
+                else if (!this.loadingChunck) {
+                    this.isEof = true;
+                    this.isPlaying = false;
+                    this.barContainer.innerText = "⏹";
+                } //else if(this.lastObjects != null)
+                // this.drawStates(this.lastObjects);
             }
-            else if (!this.loadingChunck) {
-                this.isEof = true;
-                this.isPlaying = false;
-                this.barContainer.innerText = "⏹";
-            } //else if(this.lastObjects != null)
-            // this.drawStates(this.lastObjects);
+            else if (this.lastObjects != null)
+                this.drawStates(this.lastObjects);
         }
-        else if (this.lastObjects != null)
-            this.drawStates(this.lastObjects);
-        this.reqId = window.requestAnimationFrame(() => this.draw());
+        else {
+            this.buffer.pop(); //TODO Aggiustare cosi non funziona
+        }
+        this.reqId = window.requestAnimationFrame((time) => this.draw(time));
         if (!this.loadAllFile && !this.readEnd && this.buffer.size < 300)
             this.loadFileChunck(this.file, false);
         this.stats.end();
+        this.lastTime = time;
     }
     // per aumentare la velocita di calcolo utilizzo un quadrato circoscritto
     squareHitTest(x, y, r, xp, yp) {
@@ -656,8 +699,9 @@ class Loop {
             let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
             let y = objects[Deserializer.numIterationParam + i * numParams + 2];
             let r = objects[Deserializer.numIterationParam + i * numParams + 3];
+            //this.context.drawImage(this.tmpCanvas, xBase + x, yBase + y, r*2, r*2);
             this.context.moveTo(xBase + x, yBase + y);
-            this.context.arc(xBase + x, yBase + y, Loop.roundTo1(r), 0, 2 * Math.PI);
+            this.context.arc(xBase + x, yBase + y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
             // End draw
             // Se il corpo e' stato selezionato
             if (this.selectedBody.visible && this.selectedBody.id == id) {
@@ -754,8 +798,39 @@ class Loop {
                 console.error(e);
             }
             this.barContainer.innerText = "⏹";
-            this.draw();
+            this.draw(0);
             //this.play();
+        });
+    }
+    resetArray(arrayBuffer) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("reset");
+            this.barContainer.innerText = "";
+            window.cancelAnimationFrame(this.reqId);
+            // Reset variabili
+            this.isEof = false;
+            this.isPlaying = false;
+            this.lastObjects = null;
+            this.numIteration = 0;
+            this.bufferSize = 90;
+            this.selectedBody.visible = false;
+            this.selectX = null;
+            this.selectY = null;
+            if (!this.loadAllFile) {
+                while (this.loadingChunck) { // Aspetto la fine del worker
+                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
+                }
+            }
+            this.buffer.clear();
+            this.chart.deleteData();
+            try {
+                this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
+            }
+            catch (e) {
+                console.error(e);
+            }
+            this.barContainer.innerText = "⏹";
+            this.draw(0);
         });
     }
     loadFile(file) {
@@ -877,8 +952,8 @@ class Loop {
 }
 class NumberChart {
     constructor(titles, colors) {
-        this.width = 280;
-        this.height = 250;
+        this.width = 305;
+        this.height = 300;
         this.size = titles.length;
         this.container = document.createElement("div");
         this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
@@ -895,11 +970,9 @@ class NumberChart {
             datasets.push({
                 label: titles[i],
                 borderWidth: 1,
-                pointRadius: 2,
-                pointHoverRadius: 8,
-                //backgroundColor: "rgba(255, 0, 0, 0.6)",
+                // backgroundColor: "rgba(255, 0, 0, 0.6)",
                 borderColor: colors[i],
-                filled: true,
+                filled: false,
                 data: []
             });
         }
@@ -909,10 +982,27 @@ class NumberChart {
                 datasets: datasets
             },
             options: {
+                tooltips: {
+                    mode: "index"
+                },
+                elements: {
+                    line: {
+                        tension: 0 // disables bezier curves
+                    },
+                    point: {
+                        radius: 0,
+                        hitRadius: 10,
+                        hoverRadius: 3
+                    }
+                },
                 maintainAspectRatio: false,
-                responsive: true,
+                responsive: false,
                 legend: {
-                    display: true
+                    display: true,
+                    align: "start",
+                    labels: {
+                        fontSize: 10,
+                    }
                 },
                 scales: {
                     yAxes: [{
@@ -924,28 +1014,52 @@ class NumberChart {
                         }],
                     xAxes: [{
                             type: 'linear',
-                            position: 'bottom'
+                            position: 'bottom',
+                            ticks: {
+                                autoSkip: true,
+                                maxRotation: 0,
+                                minRotation: 0,
+                            }
                         }]
                 },
                 animation: {
-                    duration: 200
+                    duration: 0 // general animation time
+                },
+                hover: {
+                    animationDuration: 0 // duration of animations when hovering an item
+                },
+                responsiveAnimationDuration: 0,
+                pan: {
+                    enabled: true,
+                    mode: "x",
+                    speed: 10,
+                    threshold: 5
+                },
+                zoom: {
+                    enabled: true,
+                    //drag: true,
+                    mode: "x",
+                    speed: 0.1,
+                    threshold: 2,
+                    sensitivity: 3
                 }
             }
         });
     }
     updateChart(data) {
+        /*
         // allow 1px inaccuracy by adding 1
-        const isScrolledToLeft = this.container.scrollWidth - this.container.clientWidth <= this.container.scrollLeft + 1;
-        if (this.chart.data.datasets[0].data.length % 4 == 0) {
+        const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
+        if(this.chart.data.datasets[0].data.length % 4 == 0){
             this.width += 80;
-            this.div.style.width = this.width + 'px';
+            this.div.style.width = this.width+'px';
         }
         // Scroll to left
         if (isScrolledToLeft) {
-            this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth;
-        }
+            this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
+        }*/
         for (let i = 0; i < this.size; i++) {
-            this.chart.data.datasets[i].data.push({ x: data[i].x, y: data[i].y });
+            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
         }
         this.chart.update();
     }
