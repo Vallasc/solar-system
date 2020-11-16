@@ -8,20 +8,14 @@ body {
 }
 
 #main-canvas {
-  margin-top: 25px;
-  width: 100%;
   position: absolute;
 }
 
 #axes-canvas {
-  margin-top: 25px;
-  width: 100%;
   position: absolute;
 }
 
 #trajectory-canvas {
-  margin-top: 25px;
-  width: 100%;
   position: absolute;  
 }
 
