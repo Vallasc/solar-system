@@ -1,7 +1,10 @@
 declare var guify : any;
-declare var Chart : any;
+declare var _web_main : any; // Entry point wasm
+declare var Module : any; // Entry point wasm
 
 class Startup {
+    static canvasMarginTop : number = 25;
+    static canvasMarginRight : number = 350;
 
     static mainCanvas : HTMLCanvasElement;
     static axesCanvas : HTMLCanvasElement;
@@ -14,7 +17,6 @@ class Startup {
     static someNumber = 0;
 
     public static main(): number {
-        Startup.createGui();
 
         console.log('Main');
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
@@ -27,11 +29,11 @@ class Startup {
         Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
         Startup.axes.drawAxes();
-        
+
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
 
-        Startup.resize();
+        Startup.createGui(); // And resize
         return 0;
     }
 
@@ -41,12 +43,20 @@ class Startup {
             title: 'Solar system',
             theme: 'light', // dark, light, yorha, or theme object
             align: 'right', // left, right
-            width: 350,
+            width: Startup.canvasMarginRight,
             barMode: 'offset', // none, overlay, above, offset
             panelMode: 'inner',
             opacity: 0.9,
             root: guiContainer,
-            open: true
+            open: true,
+            onOpen: (value: boolean)=>{
+                if(value){
+                    Startup.canvasMarginRight = 350;
+                } else {
+                    Startup.canvasMarginRight = 0;
+                }
+                Startup.resize();
+            }
         });
         Startup.gui.Register({
             type: 'file',
@@ -56,6 +66,24 @@ class Startup {
             }
         })
         Startup.gui.Register([{
+            type: 'button',
+            label: 'Play/Pause',
+            streched: true,
+            action: () => {
+                Startup.loop.playPause();
+            }
+        },{
+            type: 'button',
+            label: 'Rewind',
+            streched: true,
+            action: () => {
+                Startup.loop.reset();
+            }
+        },{
+            type: 'display',
+            label: 'Energy chart',
+            element: Startup.loop.chart.container,
+        },{
             type: 'folder',
             label: 'Controls',
             open: true
@@ -67,8 +95,18 @@ class Startup {
             type: 'folder',
             label: 'FPS',
             open: false
+        },{
+            type: 'button',
+            label: 'Run Main',
+            streched: true,
+            action: () => {
+                _web_main();
+                Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
+            }
         }]);
+        Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Loader(false);
+        Startup.loop.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
 
     private static onWindowResized (event:UIEvent):void {
@@ -76,20 +114,22 @@ class Startup {
     }
 
     public static resize ():void {
-        Startup.mainCanvas.width = window.innerWidth;
-        Startup.mainCanvas.height = window.innerHeight - 25;
-        Startup.gui.panel.style += "overflow-y: scroll; height: 300px;"
+        Startup.mainCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.mainCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.mainCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.mainCanvas.style.marginTop = Startup.canvasMarginTop + "px";
+        //Startup.gui.panel.style += "overflow-y: scroll; height: 300px;"
 
-        Startup.axesCanvas.width = window.innerWidth;
-        Startup.axesCanvas.height = window.innerHeight - 25;
+        Startup.axesCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.axesCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.axesCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.axesCanvas.style.marginTop = Startup.canvasMarginTop + "px";
         Startup.axes.drawAxes();
 
-        Startup.trajectoryCanvas.width = window.innerWidth;
-        Startup.trajectoryCanvas.height = window.innerHeight - 25;
-        //prova traiettoria
-        
-        Startup.trajectoryCanvas.width = window.innerWidth;
-        Startup.trajectoryCanvas.height = window.innerHeight - 25;
+        Startup.trajectoryCanvas.width = window.innerWidth - Startup.canvasMarginRight;
+        Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
+        Startup.trajectoryCanvas.style.marginRight = Startup.canvasMarginRight + "px";
+        Startup.trajectoryCanvas.style.marginTop = Startup.canvasMarginTop + "px";
     }
 
 }
@@ -159,5 +199,13 @@ class MouseInput {
 
     private click(self: MouseInput, x: number, y: number){
         self.loop.setSelected(x, y - 25) // TODO aggiustare 25
+    }
+
+    public setOffset(x: number, y: number) {
+        this.globalOffsetX = x;this
+        this.globalOffsetY = y;
+        this.loop.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.axes.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
     }
 }
