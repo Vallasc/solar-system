@@ -12,32 +12,33 @@ class Axes {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
+        this.axesOffsetX = 0;
+        this.axesOffsetY = 0;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
+        this.drawAxes();
     }
-    drawAxes(x, y) {
+    drawAxes() {
         let w = this.canvas.width;
         let h = this.canvas.height;
         let distGrids = 10; //distance between grids
         let bigEvery = 5; // 1 big every 5 small
         let offX = 0;
         let offY = 0;
-        let X = x;
-        let Y = y;
         let margin = 20;
         if (this.panningOffsetX >= (w * 0.5) - margin)
-            offX = (w * 0.5) - margin + X;
+            offX = (w * 0.5) - margin;
         else if (this.panningOffsetX <= margin - (w * 0.5))
-            offX = margin - (w * 0.5) + X;
+            offX = margin - (w * 0.5);
         else
-            offX = this.panningOffsetX + X;
+            offX = this.panningOffsetX + this.axesOffsetX;
         if (this.panningOffsetY >= (h * 0.5) - margin)
-            offY = (h * 0.5) - margin - Y;
+            offY = (h * 0.5) - margin;
         else if (this.panningOffsetY <= margin - (h * 0.5))
-            offY = margin - (h * 0.5) - Y;
+            offY = margin - (h * 0.5);
         else
-            offY = this.panningOffsetY - Y;
+            offY = this.panningOffsetY - this.axesOffsetY;
         this.context.clearRect(0, 0, w, h);
         this.context.strokeStyle = "rgba(255,0,0,0.8)";
         this.context.lineWidth = 2;
@@ -135,7 +136,12 @@ class Axes {
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-        this.drawAxes(0, 0);
+        this.drawAxes();
+    }
+    setAxesOffset(x, y) {
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
+        this.drawAxes();
     }
 }
 class Body {
@@ -373,7 +379,6 @@ class Startup {
         Startup.trajectory = new Trajectory(Startup.trajectoryCanvas);
         Startup.axesCanvas = document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
-        Startup.axes.drawAxes(0, 0);
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
         Startup.createGui(); // And resize
@@ -446,14 +451,6 @@ class Startup {
                     _web_main();
                     Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer));
                 }
-            }, {
-                folder: 'Selected',
-                type: 'button',
-                label: 'Change center axes',
-                streched: true,
-                action: () => {
-                    Startup.loop.changeCenter = true;
-                }
             }]);
         Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Loader(false);
@@ -472,7 +469,7 @@ class Startup {
         Startup.axesCanvas.height = window.innerHeight - Startup.canvasMarginTop;
         Startup.axesCanvas.style.marginRight = Startup.canvasMarginRight + "px";
         Startup.axesCanvas.style.marginTop = Startup.canvasMarginTop + "px";
-        Startup.axes.drawAxes(0, 0);
+        Startup.axes.drawAxes();
         Startup.trajectoryCanvas.width = window.innerWidth - Startup.canvasMarginRight;
         Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
         Startup.trajectoryCanvas.style.marginRight = Startup.canvasMarginRight + "px";
@@ -560,7 +557,6 @@ class Loop {
         this.selectedBody = new Body();
         this.numIteration = 0;
         this.lastTime = 0;
-        this.changeCenter = false;
         this.indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
         this.loadingChunck = false;
         this.entries = null;
@@ -601,6 +597,15 @@ class Loop {
                 action: () => {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
+                }
+            }, {
+                folder: 'Selected',
+                type: 'button',
+                label: 'Change center axes',
+                streched: true,
+                action: () => {
+                    if (this.selectedBody.visible)
+                        Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
                 }
             }, {
                 type: 'display',
@@ -793,20 +798,8 @@ class Loop {
             this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            if (currentId != this.selectedBody.id) {
-                this.changeCenter = false;
-            }
-            if (this.changeCenter == true) {
-                Startup.axes.drawAxes(this.selectedBody.x, this.selectedBody.y);
-            }
-            else {
-                Startup.axes.drawAxes(0, 0);
-            }
             if (this.numIteration % 5 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
-        }
-        else {
-            Startup.axes.drawAxes(0, 0);
         }
         if (this.numIteration % 30 == 0)
             this.chart.updateChart([
