@@ -38,7 +38,7 @@ int N = 300; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
-double mass_i = 50;
+double mass_i = 20;
 double radius_i = 1;
 
 double ang_mom_tot=0, E_tot=0;
@@ -55,8 +55,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=500;
-double v_max=4;
+double rho=300;
+double v_max=2;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
