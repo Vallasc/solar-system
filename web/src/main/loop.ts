@@ -231,8 +231,10 @@ class Loop {
         let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesOffsetY;
 
         this.context.beginPath();
+        //this.context.scale(1, -1);
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
+        //this.context.translate(xBase, yBase);
         this.imatrix = this.context.getTransform().inverse();
         
         const numParams = Deserializer.bodyNumParams;
