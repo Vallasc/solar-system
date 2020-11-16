@@ -11,34 +11,36 @@ class Axes {
         this.context.imageSmoothingEnabled = false;
     }
     
-    public drawAxes() : void {
+    public drawAxes(x : number, y : number) : void {
         
         let w : number = this.canvas.width;
         let h : number = this.canvas.height;
         let distGrids : number = 10; //distance between grids
-        let bigEvery : number = 5; // 1 big every 10 small
+        let bigEvery : number = 5; // 1 big every 5 small
         let offX : number = 0;
         let offY : number = 0;
+        let X : number = x;
+        let Y : number = y;
 
         let margin : number = 20;
 
         if(this.panningOffsetX >= (w*0.5) - margin )
-            offX = (w*0.5) - margin;
+            offX = (w*0.5) - margin + X;
         else if(this.panningOffsetX <=  margin - (w*0.5))
-            offX =  margin - (w*0.5);
+            offX =  margin - (w*0.5) + X;
         else
-            offX = this.panningOffsetX;
+            offX = this.panningOffsetX + X;
 
         if(this.panningOffsetY >= (h*0.5) - margin )
-            offY = (h*0.5) - margin;
+            offY = (h*0.5) - margin - Y;
         else if(this.panningOffsetY <=  margin - (h*0.5))
-            offY =  margin - (h*0.5);
+            offY =  margin - (h*0.5) - Y;
         else
-            offY = this.panningOffsetY;
+            offY = this.panningOffsetY - Y;
             
         this.context.clearRect(0, 0, w, h);
 
-        this.context.strokeStyle = "rgba(128,0,0,1)"; 
+        this.context.strokeStyle = "rgba(255,0,0,0.8)"; 
         this.context.lineWidth = 2;
         // Draw >  
         this.context.beginPath();
@@ -143,7 +145,7 @@ class Axes {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-        this.drawAxes();
+        this.drawAxes(0, 0);
     }
 
 }

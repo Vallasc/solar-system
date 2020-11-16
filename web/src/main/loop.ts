@@ -193,6 +193,8 @@ class Loop {
         else return x;
     }
 
+    public changeCenter : boolean = false; 
+
     private getColorFromInt(x: number) : string {
         let numColors = 10;
         let r = 255 * x / numColors;
@@ -220,6 +222,7 @@ class Loop {
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
         this.imatrix = this.context.getTransform().inverse();
+        let currentId = this.selectedBody.id;
         
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
@@ -286,8 +289,19 @@ class Loop {
             this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
+            if (currentId != this.selectedBody.id) {
+                this.changeCenter = false;
+            }
+            if (this.changeCenter == true) {
+                Startup.axes.drawAxes(this.selectedBody.x, this.selectedBody.y);
+                
+            } else {
+                Startup.axes.drawAxes(0,0);
+            }
             if(this.numIteration % 5 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
+        } else {
+            Startup.axes.drawAxes(0,0);
         }
 
         if(this.numIteration % 30 == 0)
