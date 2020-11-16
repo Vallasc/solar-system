@@ -32,13 +32,13 @@ class Axes {
         else if (this.panningOffsetX <= margin - (w * 0.5))
             offX = margin - (w * 0.5);
         else
-            offX = this.panningOffsetX + this.axesOffsetX;
+            offX = this.panningOffsetX;
         if (this.panningOffsetY >= (h * 0.5) - margin)
             offY = (h * 0.5) - margin;
         else if (this.panningOffsetY <= margin - (h * 0.5))
             offY = margin - (h * 0.5);
         else
-            offY = this.panningOffsetY - this.axesOffsetY;
+            offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
         this.context.strokeStyle = "rgba(255,0,0,0.8)";
         this.context.lineWidth = 2;
@@ -544,6 +544,8 @@ class Loop {
     constructor(canvas, gui) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
+        this.axesOffsetX = 0;
+        this.axesOffsetY = 0;
         this.scale = 1;
         this.loadAllFile = true;
         this.forceLoadAllCheckbox = false;
@@ -604,8 +606,10 @@ class Loop {
                 label: 'Change center axes',
                 streched: true,
                 action: () => {
-                    if (this.selectedBody.visible)
+                    if (this.selectedBody.visible) {
                         Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                        this.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                    }
                 }
             }, {
                 type: 'display',
@@ -733,13 +737,12 @@ class Loop {
     }
     drawStates(objects) {
         let fillColor = -1;
-        let xBase = this.canvas.width / 2 + this.panningOffsetX;
-        let yBase = this.canvas.height / 2 + this.panningOffsetY;
+        let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesOffsetX;
+        let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesOffsetY;
         this.context.beginPath();
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
         this.imatrix = this.context.getTransform().inverse();
-        let currentId = this.selectedBody.id;
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
         //console.log(objects);
@@ -979,6 +982,10 @@ class Loop {
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+    }
+    setAxesOffset(x, y) {
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
     }
     setSelected(x, y) {
         this.selectX = x;
