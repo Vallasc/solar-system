@@ -7,6 +7,7 @@ class Trajectory {
 
     private points : Array<[number, number]> = [];
     private readonly maxSize : number = 1000;
+    private scale : number = 1;
 
     constructor( canvas : HTMLCanvasElement) {
         this.canvas = canvas;
@@ -26,18 +27,22 @@ class Trajectory {
         let yBase = this.canvas.height/2 + this.panningOffsetY;
         this.context.strokeStyle = "rgba(255,255,255,0.4)"; 
         this.context.lineWidth = 0.8;
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.translate(xBase, yBase);
+        this.context.scale(this.scale, -this.scale);
         this.context.beginPath();
         for(let i=1; i<this.points.length; i++){
             if (this.points.length != 1) {
-                this.context.moveTo(this.points[i-1][0] + xBase, yBase - this.points[i-1][1]);
-                this.context.lineTo(this.points[i][0] + xBase, yBase - this.points[i][1]);
+                this.context.moveTo(this.points[i-1][0], this.points[i-1][1]);
+                this.context.lineTo(this.points[i][0], this.points[i][1]);
             }
         }
         this.context.stroke();
     }
 
     public clear() : void {
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.points = [];
     }
@@ -45,6 +50,11 @@ class Trajectory {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+        this.drawTrajectory();
+    }
+
+    public setScale(s: number){
+        this.scale = s;
         this.drawTrajectory();
     }
 }
