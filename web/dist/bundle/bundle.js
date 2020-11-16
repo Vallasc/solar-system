@@ -647,8 +647,6 @@ class Loop {
         this.stats.begin();
         //if(time - this.lastTime <= 20){
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.strokeStyle = "rgba(0,255,0,0.4)";
-        this.context.lineWidth = 2.5;
         if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
             // Ho dei frame da visualizzare
@@ -751,7 +749,9 @@ class Loop {
         }
         if (this.selectedBody.visible) { // Body selezionato
             this.context.beginPath();
-            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.strokeStyle = "rgba(0,255,0,0.3)";
+            this.context.lineWidth = 2;
+            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
             if (this.numIteration % 10 == 0)
@@ -1108,13 +1108,13 @@ class Trajectory {
         let xBase = this.canvas.width / 2 + this.panningOffsetX;
         let yBase = this.canvas.height / 2 + this.panningOffsetY;
         this.context.strokeStyle = "rgba(255,255,255,0.4)";
-        this.context.lineWidth = 0.7;
+        this.context.lineWidth = 0.8;
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.beginPath();
         for (let i = 1; i < this.points.length; i++) {
             if (this.points.length != 1) {
-                this.context.moveTo(this.points[i - 1][0] + xBase, this.points[i - 1][1] - yBase);
-                this.context.lineTo(this.points[i][0] + xBase, this.points[i][1] - yBase);
+                this.context.moveTo(this.points[i - 1][0] + xBase, yBase - this.points[i - 1][1]);
+                this.context.lineTo(this.points[i][0] + xBase, yBase - this.points[i][1]);
             }
         }
         this.context.stroke();
