@@ -20,49 +20,49 @@ class Axes {
         let w = this.canvas.width;
         let h = this.canvas.height;
         let distGrids = 10; //distance between grids
-        let bigEvery = 5; // 1 big every 10 small
+        let bigEvery = 5; // 1 big every 5 small
         let offX = 0;
         let offY = 0;
         let X = x;
         let Y = y;
         let margin = 20;
         if (this.panningOffsetX >= (w * 0.5) - margin)
-            offX = (w * 0.5) - margin;
+            offX = (w * 0.5) - margin + X;
         else if (this.panningOffsetX <= margin - (w * 0.5))
-            offX = margin - (w * 0.5);
+            offX = margin - (w * 0.5) + X;
         else
-            offX = this.panningOffsetX;
+            offX = this.panningOffsetX + X;
         if (this.panningOffsetY >= (h * 0.5) - margin)
-            offY = (h * 0.5) - margin;
+            offY = (h * 0.5) - margin - Y;
         else if (this.panningOffsetY <= margin - (h * 0.5))
-            offY = margin - (h * 0.5);
+            offY = margin - (h * 0.5) - Y;
         else
-            offY = this.panningOffsetY;
+            offY = this.panningOffsetY - Y;
         this.context.clearRect(0, 0, w, h);
         this.context.strokeStyle = "rgba(255,0,0,0.8)";
         this.context.lineWidth = 2;
         // Draw >  
         this.context.beginPath();
-        this.context.moveTo(w - 15, offY + h * 0.5 - 10 + Y);
-        this.context.lineTo(w, offY + h * 0.5 + Y);
-        this.context.lineTo(w - 15, offY + h * 0.5 + 10 + Y);
+        this.context.moveTo(w - 15, offY + h * 0.5 - 10);
+        this.context.lineTo(w, offY + h * 0.5);
+        this.context.lineTo(w - 15, offY + h * 0.5 + 10);
         this.context.stroke();
         // Draw ^ 
         this.context.beginPath();
-        this.context.moveTo(offX + w * 0.5 - 10 + X, 15);
-        this.context.lineTo(offX + w * 0.5 + X, 0);
-        this.context.lineTo(offX + w * 0.5 + 10 + X, 15);
+        this.context.moveTo(offX + w * 0.5 - 10, 15);
+        this.context.lineTo(offX + w * 0.5, 0);
+        this.context.lineTo(offX + w * 0.5 + 10, 15);
         this.context.stroke();
         // Draw X-axis
         this.context.lineWidth = 1.5;
         this.context.beginPath();
-        this.context.moveTo(0, offY + h * 0.5 + Y);
-        this.context.lineTo(w, offY + h * 0.5 + Y);
+        this.context.moveTo(0, offY + h * 0.5);
+        this.context.lineTo(w, offY + h * 0.5);
         this.context.stroke();
         // Draw Y-axis
         this.context.beginPath();
-        this.context.moveTo(offX + w * 0.5 + X, 0);
-        this.context.lineTo(offX + w * 0.5 + X, h);
+        this.context.moveTo(offX + w * 0.5, 0);
+        this.context.lineTo(offX + w * 0.5, h);
         this.context.stroke();
         this.context.lineWidth = 1;
         let bigTick = 6;
@@ -75,12 +75,12 @@ class Axes {
             let mod = (this.panningOffsetX + i * distGrids) % (newW);
             mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
             if (i % bigEvery == 0) {
-                this.context.moveTo(w / 2 + mod, offY + h / 2 - bigTick + Y);
-                this.context.lineTo(w / 2 + mod, offY + h / 2 + bigTick + Y);
+                this.context.moveTo(w / 2 + mod, offY + h / 2 - bigTick);
+                this.context.lineTo(w / 2 + mod, offY + h / 2 + bigTick);
             }
             else {
-                this.context.moveTo(w / 2 + mod, offY + h / 2 - smallTick + Y);
-                this.context.lineTo(w / 2 + mod, offY + h / 2 + smallTick + Y);
+                this.context.moveTo(w / 2 + mod, offY + h / 2 - smallTick);
+                this.context.lineTo(w / 2 + mod, offY + h / 2 + smallTick);
             }
             this.context.stroke();
         }
@@ -90,12 +90,12 @@ class Axes {
             let mod = (i * distGrids - this.panningOffsetX) % (newW);
             mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
             if ((i) % bigEvery == 0) {
-                this.context.moveTo(w / 2 - mod, offY + h / 2 - bigTick + Y);
-                this.context.lineTo(w / 2 - mod, offY + h / 2 + bigTick + Y);
+                this.context.moveTo(w / 2 - mod, offY + h / 2 - bigTick);
+                this.context.lineTo(w / 2 - mod, offY + h / 2 + bigTick);
             }
             else {
-                this.context.moveTo(w / 2 - mod, offY + h / 2 - smallTick + Y);
-                this.context.lineTo(w / 2 - mod, offY + h / 2 + smallTick + Y);
+                this.context.moveTo(w / 2 - mod, offY + h / 2 - smallTick);
+                this.context.lineTo(w / 2 - mod, offY + h / 2 + smallTick);
             }
             this.context.stroke();
         }
@@ -107,12 +107,12 @@ class Axes {
             let mod = (this.panningOffsetY + i * distGrids) % (newH);
             mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
             if (i % bigEvery == 0) {
-                this.context.moveTo(offX + w / 2 - bigTick + X, h / 2 + mod);
-                this.context.lineTo(offX + w / 2 + bigTick + X, h / 2 + mod);
+                this.context.moveTo(offX + w / 2 - bigTick, h / 2 + mod);
+                this.context.lineTo(offX + w / 2 + bigTick, h / 2 + mod);
             }
             else {
-                this.context.moveTo(offX + w / 2 - smallTick + X, h / 2 + mod);
-                this.context.lineTo(offX + w / 2 + smallTick + X, h / 2 + mod);
+                this.context.moveTo(offX + w / 2 - smallTick, h / 2 + mod);
+                this.context.lineTo(offX + w / 2 + smallTick, h / 2 + mod);
             }
             this.context.stroke();
         }
@@ -122,12 +122,12 @@ class Axes {
             let mod = (i * distGrids - this.panningOffsetY) % (newH);
             mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
             if (i % bigEvery == 0) {
-                this.context.moveTo(offX + w / 2 - bigTick + X, h / 2 - mod);
-                this.context.lineTo(offX + w / 2 + bigTick + X, h / 2 - mod);
+                this.context.moveTo(offX + w / 2 - bigTick, h / 2 - mod);
+                this.context.lineTo(offX + w / 2 + bigTick, h / 2 - mod);
             }
             else {
-                this.context.moveTo(offX + w / 2 - smallTick + X, h / 2 - mod);
-                this.context.lineTo(offX + w / 2 + smallTick + X, h / 2 - mod);
+                this.context.moveTo(offX + w / 2 - smallTick, h / 2 - mod);
+                this.context.lineTo(offX + w / 2 + smallTick, h / 2 - mod);
             }
             this.context.stroke();
         }
@@ -649,34 +649,27 @@ class Loop {
     }
     draw(time) {
         this.stats.begin();
-        if (time - this.lastTime <= 20) {
-            //this.context.setTransform(1, 0, 0, 1, 0, 0);
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.context.fillStyle = "white";
-            this.context.strokeStyle = "rgba(0,255,0,0.4)";
-            this.context.lineWidth = 2.5;
-            //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
-            //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
-            if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
-                let objects = this.buffer.pop();
-                if (objects != null && !this.isEof) {
-                    this.drawStates(objects);
-                    this.lastObjects = objects;
-                    this.numIteration++;
-                }
-                else if (!this.loadingChunck) {
-                    this.isEof = true;
-                    this.isPlaying = false;
-                    this.barContainer.innerText = "⏹";
-                } //else if(this.lastObjects != null)
-                // this.drawStates(this.lastObjects);
+        //if(time - this.lastTime <= 20){
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
+            let objects = this.buffer.pop();
+            // Ho dei frame da visualizzare
+            if (objects != null && !this.isEof) {
+                this.drawStates(objects);
+                this.lastObjects = objects;
+                this.numIteration++;
             }
-            else if (this.lastObjects != null)
-                this.drawStates(this.lastObjects);
+            else if (!this.loadingChunck) { // Non ne sto caricando delgli altri
+                this.isEof = true;
+                this.isPlaying = false;
+                this.barContainer.innerText = "⏹";
+            }
         }
-        else {
-            this.buffer.pop(); //TODO Aggiustare cosi non funziona
-        }
+        else if (this.lastObjects != null)
+            this.drawStates(this.lastObjects);
+        //} else {
+        //    this.buffer.pop(); //TODO Aggiustare cosi non funziona
+        //}
         this.reqId = window.requestAnimationFrame((time) => this.draw(time));
         if (!this.loadAllFile && !this.readEnd && this.buffer.size < 300)
             this.loadFileChunck(this.file, false);
@@ -697,7 +690,14 @@ class Loop {
         else
             return x;
     }
+    getColorFromInt(x) {
+        let numColors = 10;
+        let r = 255 * x / numColors;
+        let b = 255 - r;
+        return "rgb(" + r + ",0," + b + ")";
+    }
     drawStates(objects) {
+        let fillColor = -1;
         let xBase = this.canvas.width / 2 + this.panningOffsetX;
         let yBase = this.canvas.height / 2 + this.panningOffsetY;
         let currentId = this.selectedBody.id;
@@ -711,9 +711,16 @@ class Loop {
             let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
             let y = objects[Deserializer.numIterationParam + i * numParams + 2];
             let r = objects[Deserializer.numIterationParam + i * numParams + 3];
-            //this.context.drawImage(this.tmpCanvas, xBase + x, yBase + y, r*2, r*2);
-            this.context.moveTo(xBase + x, yBase + y);
-            this.context.arc(xBase + x, yBase + y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
+            let t = objects[Deserializer.numIterationParam + i * numParams + 4];
+            if (fillColor != t) { // Cambio colore pennello
+                this.context.closePath();
+                this.context.fill();
+                this.context.beginPath();
+                fillColor = t;
+                this.context.fillStyle = this.getColorFromInt(fillColor);
+            }
+            this.context.moveTo(xBase + x, yBase - y);
+            this.context.arc(xBase + x, yBase - y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
             // End draw
             // Se il corpo e' stato selezionato
             if (this.selectedBody.visible && this.selectedBody.id == id) {
@@ -723,7 +730,7 @@ class Loop {
                 bodyIsMerged = false;
             }
             if (this.selectX != null && this.selectY != null) {
-                if (this.squareHitTest(xBase + x, yBase + y, r, this.selectX, this.selectY)) {
+                if (this.squareHitTest(xBase + x, yBase - y, r, this.selectX, this.selectY)) {
                     this.selectedBody.id = id;
                     this.selectedBody.x = x;
                     this.selectedBody.y = y;
@@ -747,7 +754,9 @@ class Loop {
         }
         if (this.selectedBody.visible) { // Body selezionato
             this.context.beginPath();
-            this.context.arc(xBase + this.selectedBody.x, yBase + this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.strokeStyle = "rgba(0,255,0,0.3)";
+            this.context.lineWidth = 2;
+            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
             if (currentId != this.selectedBody.id) {
@@ -1116,13 +1125,13 @@ class Trajectory {
         let xBase = this.canvas.width / 2 + this.panningOffsetX;
         let yBase = this.canvas.height / 2 + this.panningOffsetY;
         this.context.strokeStyle = "rgba(255,255,255,0.4)";
-        this.context.lineWidth = 0.7;
+        this.context.lineWidth = 0.8;
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.beginPath();
         for (let i = 1; i < this.points.length; i++) {
             if (this.points.length != 1) {
-                this.context.moveTo(this.points[i - 1][0] + xBase, this.points[i - 1][1] + yBase);
-                this.context.lineTo(this.points[i][0] + xBase, this.points[i][1] + yBase);
+                this.context.moveTo(this.points[i - 1][0] + xBase, yBase - this.points[i - 1][1]);
+                this.context.lineTo(this.points[i][0] + xBase, yBase - this.points[i][1]);
             }
         }
         this.context.stroke();
