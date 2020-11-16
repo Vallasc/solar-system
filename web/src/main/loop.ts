@@ -133,9 +133,6 @@ class Loop {
 
         //if(time - this.lastTime <= 20){
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.context.strokeStyle = "rgba(0,255,0,0.4)"; 
-        this.context.lineWidth = 2.5;
 
         if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
@@ -249,7 +246,9 @@ class Loop {
         }
         if( this.selectedBody.visible){ // Body selezionato
             this.context.beginPath();
-            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 5, 0, 2 * Math.PI);
+            this.context.strokeStyle = "rgba(0,255,0,0.3)"; 
+            this.context.lineWidth = 2;
+            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
             if(this.numIteration % 10 == 0)
