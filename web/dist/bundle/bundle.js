@@ -444,6 +444,13 @@ class Startup {
                     _web_main();
                     Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer));
                 }
+            }, {
+                folder: 'Selected',
+                type: 'button',
+                label: 'Change center axes',
+                streched: true,
+                action: () => {
+                }
             }]);
         Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Loader(false);
