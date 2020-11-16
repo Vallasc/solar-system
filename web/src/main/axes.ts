@@ -30,14 +30,14 @@ class Axes {
         else if(this.panningOffsetX <=  margin - (w*0.5))
             offX =  margin - (w*0.5);
         else
-            offX = this.panningOffsetX + this.axesOffsetX;
+            offX = this.panningOffsetX;
 
         if(this.panningOffsetY >= (h*0.5) - margin )
             offY = (h*0.5) - margin;
         else if(this.panningOffsetY <=  margin - (h*0.5))
             offY =  margin - (h*0.5);
         else
-            offY = this.panningOffsetY - this.axesOffsetY;
+            offY = this.panningOffsetY;
             
         this.context.clearRect(0, 0, w, h);
 
