@@ -1,7 +1,8 @@
 declare var Stats : any;
-// TODO hittest
+
 class Loop {
     private stats; // 0 stop, 1 play, 2 pause
+    public guiPanel: any
 
     public canvas : HTMLCanvasElement;
     private context : CanvasRenderingContext2D;
@@ -21,9 +22,11 @@ class Loop {
     private lastObjects : Float32Array | null;
 
     private reqId : number = -1;
-    private barContainer : HTMLElement;
+    public barContainer : HTMLElement;
 
-    private chart : NumberChart;
+    public chart : NumberChart;
+
+    private tmpCanvas : HTMLCanvasElement;
 
     constructor( canvas: HTMLCanvasElement, gui: any) {
 
@@ -43,28 +46,14 @@ class Loop {
         this.chart = new NumberChart(
             ["Total energy","Kinetic energy", "Internal energy", "Potential energy", "Binding energy"],
             ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]);
-        Startup.gui.Register([
+        let div = document.createElement("div");
+        div.id = "container";
+        this.guiPanel = [
             {
                 type: 'display',
                 label: '',
                 folder: "FPS",
                 element: this.stats.dom,
-            },{
-                type: 'button',
-                label: 'Play/Pause',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    this.playPause();
-                }
-            },{
-                type: 'button',
-                label: 'Rewind',
-                folder: 'Controls',
-                streched: true,
-                action: () => {
-                    this.reset();
-                }
             },{
                 type: 'checkbox',
                 folder: 'Controls',
@@ -119,14 +108,18 @@ class Loop {
                 label: 'Radius',
                 object: this.selectedBody,
                 property: 'radius',
-            },{
-                type: 'display',
-                label: 'Charts',
-                folder: "Selected",
-                element: this.chart.container,
             }
-        ]);
+        ];
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
+
+        this.tmpCanvas = document.createElement('canvas');
+        this.tmpCanvas.height = 100;
+        this.tmpCanvas.width = 100;
+        let tmpCtx = <CanvasRenderingContext2D> this.tmpCanvas.getContext("2d");
+        tmpCtx.fillStyle = "white"; 
+        tmpCtx.arc(50, 50, 50, 0, 2 * Math.PI);
+        tmpCtx.fill();
+
     }
 
     public selectX : number | null = null;
@@ -134,38 +127,45 @@ class Loop {
     public selectedBody : Body = new Body();
 
     private numIteration : number = 0;
-    private draw() : void {
+    private lastTime : number = 0;
+    private draw(time: number) : void {
         this.stats.begin();
 
-        //this.context.setTransform(1, 0, 0, 1, 0, 0);
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.context.fillStyle = "white"; 
-        this.context.strokeStyle = "rgba(0,255,0,0.4)"; 
-        this.context.lineWidth = 2.5;
-        //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
-        //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
+        if(time - this.lastTime <= 20){
 
-        if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
-            let objects = this.buffer.pop();
-            if(objects != null && !this.isEof){
-                this.drawStates(objects);
-                this.lastObjects = objects;
-                this.numIteration++;
-            } else if(!this.loadingChunck) {
-                this.isEof = true;
-                this.isPlaying = false
-                this.barContainer.innerText = "⏹";
-            } //else if(this.lastObjects != null)
-                   // this.drawStates(this.lastObjects);
-        } else if(this.lastObjects != null)
-            this.drawStates(this.lastObjects);
+            //this.context.setTransform(1, 0, 0, 1, 0, 0);
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            this.context.fillStyle = "white"; 
+            this.context.strokeStyle = "rgba(0,255,0,0.4)"; 
+            this.context.lineWidth = 2.5;
+            //this.context.setTransform(xAx, xAy, -xAy, -xAx, x, y);
+            //this.setMatrix(this.canvas.width/2 + this.panningOffsetX, this.canvas.height/2 + this.panningOffsetY, 1, 0);
+
+            if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
+                let objects = this.buffer.pop();
+                if(objects != null && !this.isEof){
+                    this.drawStates(objects);
+                    this.lastObjects = objects;
+                    this.numIteration++;
+                } else if(!this.loadingChunck) {
+                    this.isEof = true;
+                    this.isPlaying = false
+                    this.barContainer.innerText = "⏹";
+                } //else if(this.lastObjects != null)
+                    // this.drawStates(this.lastObjects);
+            } else if(this.lastObjects != null)
+                this.drawStates(this.lastObjects);
+        } else {
+            this.buffer.pop(); //TODO Aggiustare cosi non funziona
+        }
   
-        this.reqId = window.requestAnimationFrame(() => this.draw());
+        this.reqId = window.requestAnimationFrame((time) => this.draw(time));
 
         if(!this.loadAllFile && !this.readEnd && this.buffer.size < 300) 
             this.loadFileChunck(this.file, false);
         this.stats.end();
+        this.lastTime = time;
     }
 
 
@@ -190,6 +190,7 @@ class Loop {
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
         //console.log(objects);
+
         this.context.beginPath();
         let bodyIsMerged = true;
 
@@ -198,9 +199,9 @@ class Loop {
             let x = objects[Deserializer.numIterationParam  + i * numParams + 1]; // posizione 1 dell'array
             let y = objects[Deserializer.numIterationParam  + i * numParams + 2];
             let r = objects[Deserializer.numIterationParam  + i * numParams + 3];
-
+            //this.context.drawImage(this.tmpCanvas, xBase + x, yBase + y, r*2, r*2);
             this.context.moveTo(xBase + x, yBase + y);
-            this.context.arc(xBase + x, yBase + y, Loop.roundTo1(r), 0, 2 * Math.PI);
+            this.context.arc(xBase + x, yBase + y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
 
             // End draw
 
@@ -306,8 +307,42 @@ class Loop {
         }
 
         this.barContainer.innerText = "⏹";
-        this.draw();
+        this.draw(0);
         //this.play();
+    }
+
+    public async resetArray(arrayBuffer: Float32Array) {
+        console.log("reset");
+        this.barContainer.innerText = "";
+        window.cancelAnimationFrame(this.reqId);
+
+        // Reset variabili
+        this.isEof = false;
+        this.isPlaying = false;
+        this.lastObjects = null;
+        this.numIteration = 0;
+        this.bufferSize = 90;
+
+        this.selectedBody.visible = false;
+        this.selectX = null;
+        this.selectY = null;
+
+        if(!this.loadAllFile) {
+            while(this.loadingChunck){ // Aspetto la fine del worker
+                await new Promise((resolve)=>{setTimeout(()=>{resolve()}, 100)});
+            }
+        }
+        this.buffer.clear();
+        this.chart.deleteData();
+
+        try {
+            this.buffer.pushFifo( Deserializer.parseBinaryFloat32Array(arrayBuffer) );
+        } catch (e) {
+            console.error(e);
+        }
+
+        this.barContainer.innerText = "⏹";
+        this.draw(0);
     }
 
     private async loadFile(file: File) : Promise<void> {
