@@ -740,8 +740,10 @@ class Loop {
         let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesOffsetX;
         let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesOffsetY;
         this.context.beginPath();
+        //this.context.scale(1, -1);
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
+        //this.context.translate(xBase, yBase);
         this.imatrix = this.context.getTransform().inverse();
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
