@@ -8,9 +8,11 @@ class Loop {
     private context : CanvasRenderingContext2D;
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
+    private scale: number = 1;
+    private imatrix: DOMMatrix;
+
 
     private buffer : Fifo<Float32Array>;
-    private bufferSize :number = 90;
     private file : File;
 
     private loadAllFile : boolean = true;
@@ -18,6 +20,7 @@ class Loop {
     private isPlaying : boolean = false
     private isEof : boolean = false;
     private readEnd : boolean = false;
+    private bufferSize: number = 90;
 
     private lastObjects : Float32Array | null;
 
@@ -26,13 +29,12 @@ class Loop {
 
     public chart : NumberChart;
 
-    private tmpCanvas : HTMLCanvasElement;
-
     constructor( canvas: HTMLCanvasElement, gui: any) {
 
         this.canvas = canvas;
         this.context = <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
+        this.imatrix = this.context.getTransform().inverse();
 
         this.file = new File([],"");
 
@@ -54,6 +56,30 @@ class Loop {
                 label: '',
                 folder: "FPS",
                 element: this.stats.dom,
+            },{
+                type: 'button',
+                label: 'Zoom -',
+                folder: 'Controls',
+                streched: false,
+                action: () => {
+                    this.scale -= 0.2;
+                    Startup.trajectory.setScale(this.scale);
+                }
+            },{
+                type: 'button',
+                label: 'Zoom +',
+                folder: 'Controls',
+                streched: false,
+                action: () => {
+                    this.scale += 0.2;
+                    Startup.trajectory.setScale(this.scale);
+                }
+            },{
+                type: 'display',
+                folder: 'Controls',
+                label: 'Scale',
+                object: this,
+                property: 'scale',
             },{
                 type: 'checkbox',
                 folder: 'Controls',
@@ -111,15 +137,6 @@ class Loop {
             }
         ];
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
-
-        this.tmpCanvas = document.createElement('canvas');
-        this.tmpCanvas.height = 100;
-        this.tmpCanvas.width = 100;
-        let tmpCtx = <CanvasRenderingContext2D> this.tmpCanvas.getContext("2d");
-        tmpCtx.fillStyle = "white"; 
-        tmpCtx.arc(50, 50, 50, 0, 2 * Math.PI);
-        tmpCtx.fill();
-
     }
 
     public selectX : number | null = null;
@@ -132,6 +149,7 @@ class Loop {
         this.stats.begin();
 
         //if(time - this.lastTime <= 20){
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
@@ -154,7 +172,7 @@ class Loop {
   
         this.reqId = window.requestAnimationFrame((time) => this.draw(time));
 
-        if(!this.loadAllFile && !this.readEnd && this.buffer.size < 300) 
+        if(!this.loadAllFile && !this.readEnd && this.buffer.size < this.bufferSize) 
             this.loadFileChunck(this.file, false);
         this.stats.end();
         this.lastTime = time;
@@ -181,16 +199,32 @@ class Loop {
         let b = 255 - r;
         return "rgb("+r+",0,"+b+")";
     }
+
+    /*private getCanvasCoords(screenX : number, screenY: number) {
+        let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
+        let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
+        return {x: x, y: y};
+    }*/
+    private VtoW(screenX : number, screenY: number) {
+        let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
+        let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
+        return {x: x, y: y};
+    }
+
     private drawStates( objects : Float32Array) {
         let fillColor = -1;
         let xBase = this.canvas.width/2 + this.panningOffsetX;
         let yBase = this.canvas.height/2 + this.panningOffsetY;
+
+        this.context.beginPath();
+        this.context.translate(xBase, yBase);
+        this.context.scale(this.scale, -this.scale);
+        this.imatrix = this.context.getTransform().inverse();
         
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
         //console.log(objects);
 
-        this.context.beginPath();
         let bodyIsMerged = true;
 
         for(let i=0; i<objects[Deserializer.numIterationParam -1]; i++){
@@ -208,8 +242,8 @@ class Loop {
                 this.context.fillStyle = this.getColorFromInt(fillColor); 
             }
 
-            this.context.moveTo(xBase + x, yBase - y);
-            this.context.arc(xBase + x, yBase - y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
+            this.context.moveTo(x, y);
+            this.context.arc(x, y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
 
             // End draw
 
@@ -221,7 +255,8 @@ class Loop {
                 bodyIsMerged = false;
             } 
             if( this.selectX != null && this.selectY != null){
-                if(this.squareHitTest(xBase + x, yBase - y, r, this.selectX, this.selectY)){
+                let cords = this.VtoW(this.selectX, this.selectY);
+                if(this.squareHitTest(x, y, Loop.roundTo1(r), cords.x, cords.y)){
                     this.selectedBody.id = id;
                     this.selectedBody.x = x;
                     this.selectedBody.y = y;
@@ -248,10 +283,10 @@ class Loop {
             this.context.beginPath();
             this.context.strokeStyle = "rgba(0,255,0,0.3)"; 
             this.context.lineWidth = 2;
-            this.context.arc(xBase + this.selectedBody.x, yBase - this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
+            this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            if(this.numIteration % 10 == 0)
+            if(this.numIteration % 5 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
         }
 
