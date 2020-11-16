@@ -33,16 +33,18 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
-double t_f = 100; // final time
+double t_f = 200; // final time
 double mass_i = 50;
 double radius_i = 1;
 
 double ang_mom_tot=0, E_tot=0;
 double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
 double momentum_tot[]{0,0};
+
+bool override_input = false;
 
 #ifdef CARTESIAN
 //cartesian coordinates
@@ -63,7 +65,7 @@ double rho=300;
 double theta=0, R_module=0;
 #endif
 
-string filename = "prova2"; // Do not specify the extension
+string filename = "sim"; // Do not specify the extension
 
 double uniform_generator(double x_min_, double x_max_)
 {
@@ -260,7 +262,6 @@ void loading_bar(double step)
 
    }
 
-//------------------------------------- main -----------------------------------
 int main(){
 
     //------------------------------------- start line ----------------------------------
@@ -303,18 +304,18 @@ int main(){
         cout<<"WARNING: the energy of the system is positive!"<<endl;
     }
 
-    int response = 0; 
-    while(1)
+    int response = 1; 
+    while(1 && !override_input)
     {
         if(feedback(response))
             break;
     }
+    if(!response){
+        cout<<"Next time will be better :)"<<endl;
+        return 0;
+    }
 
-
-    if(response)
-    {
-
-    Serializer serializer(filename); //writing data on .json file
+    Serializer serializer(filename); //writing data on file
 
     //------------------------------------ evolution -------------------------------
     //
@@ -420,18 +421,11 @@ int main(){
     cout<<"Total energy: " << E_tot<<endl;
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
-
-    }
-    else
-    {
-        cout<<"Next time will be better :)"<<endl;
-    }
-    
-
-
-
-
 }
 
-
-
+extern "C"{
+    int web_main(){
+        override_input = true;
+        return main();
+    }
+}

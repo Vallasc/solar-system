@@ -1,11 +1,11 @@
-#include <fstream>
-#include <iostream>
-#include <iomanip>
 #include <algorithm>
 #include <functional>
 
 #include "serializer.h"
+
+#ifndef __EMSCRIPTEN__
 #include "miniz.h"
+#endif
 
 using namespace std;
 // TODO mettere il deltaT di ogni iterazione
@@ -54,9 +54,11 @@ void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_t
 }
 
 void Serializer::split_file() {
-    outfile.close();
-    this->byte_written = 0;
-    this->open_file();
+    #ifndef __EMSCRIPTEN__
+        outfile.close();
+        this->byte_written = 0;
+        this->open_file();
+    #endif
 }
 
 void Serializer::open_file() {
@@ -65,21 +67,23 @@ void Serializer::open_file() {
 }
 
 void Serializer::compress_files() {
-    cout << "Compressing" << endl;
-    // ===== Prepare an archive file;
-    mz_zip_archive archive = mz_zip_archive();
-    mz_zip_writer_init_file(&archive, (this->file_name + ".zip").c_str(), 0);
+    #ifndef __EMSCRIPTEN__
+        cout << "Compressing" << endl;
+        // ===== Prepare an archive file;
+        mz_zip_archive archive = mz_zip_archive();
+        mz_zip_writer_init_file(&archive, (this->file_name + ".zip").c_str(), 0);
 
-    for(int i=0; i<name_index; i++) {
-        string f_name = this->file_name + std::to_string(i) + ".bin";
-        mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
-        remove(f_name.c_str());
-    }
+        for(int i=0; i<name_index; i++) {
+            string f_name = this->file_name + std::to_string(i) + ".bin";
+            mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
+            remove(f_name.c_str());
+        }
 
-    // ===== Finalize and close the temporary archive
-    mz_zip_writer_finalize_archive(&archive);
-    mz_zip_writer_end(&archive);
-    cout << "Done" << endl;
+        // ===== Finalize and close the temporary archive
+        mz_zip_writer_finalize_archive(&archive);
+        mz_zip_writer_end(&archive);
+        cout << "Done" << endl;
+    #endif
 }
 
 /*
