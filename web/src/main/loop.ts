@@ -8,6 +8,9 @@ class Loop {
     private context : CanvasRenderingContext2D;
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
+    private axesOffsetX: number = 0;
+    private axesOffsetY: number = 0;
+
     private scale: number = 1;
     private imatrix: DOMMatrix;
 
@@ -80,8 +83,10 @@ class Loop {
                 label: 'Change center axes',
                 streched: true,
                 action: () => {
-                    if(this.selectedBody.visible)
+                    if(this.selectedBody.visible){
                         Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                        this.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                    }
                 }
             },{
                 type: 'display',
@@ -222,14 +227,13 @@ class Loop {
 
     private drawStates( objects : Float32Array) {
         let fillColor = -1;
-        let xBase = this.canvas.width/2 + this.panningOffsetX;
-        let yBase = this.canvas.height/2 + this.panningOffsetY;
+        let xBase = this.canvas.width/2 + this.panningOffsetX - this.axesOffsetX;
+        let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesOffsetY;
 
         this.context.beginPath();
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
         this.imatrix = this.context.getTransform().inverse();
-        let currentId = this.selectedBody.id;
         
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
@@ -486,6 +490,11 @@ class Loop {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+    }
+
+    public setAxesOffset(x: number, y: number){
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
     }
 
     public setSelected(x: number, y: number){
