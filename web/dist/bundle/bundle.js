@@ -734,6 +734,7 @@ class Loop {
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
         this.imatrix = this.context.getTransform().inverse();
+        let currentId = this.selectedBody.id;
         const numParams = Deserializer.bodyNumParams;
         //console.log(this.buffer.size);
         //console.log(objects);
