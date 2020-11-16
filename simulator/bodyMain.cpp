@@ -32,8 +32,6 @@ extern long double E;
 extern long double P;
 extern long double M_A;
 
-
-
 //------------------------------- global parameters ----------------------------
 
 int N = 300; // number of bodies
@@ -187,29 +185,53 @@ void collision(vector<Body> &bodies)
 
 }
 
+void euler_dynamic(vector<Body> &bodies)
+{
+    //reset potential energy
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    {
+        (*j).potential_energy = 0;
+    }
+
+    //compute force and potential energy
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+    {   
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
+            Body::force_and_potential(*j, *k);
+        }
+    }
+    
+    // evolving the position and the velocity of each particle in dt
+    for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) 
+    {
+        (*i).update_pos_vel(dt); 
+    }
+}
+
 void simpletic_dynamic(vector<Body> &bodies)
 {
-            for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-        {
-            (*j).update_position(dt/2);
-            (*j).potential_energy = 0;
-            (*j).acceleration[0] = 0;
-            (*j).acceleration[1] = 0;
-        }
+        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
+    {
+        (*j).update_position(dt/2);
+        (*j).potential_energy = 0;
+        (*j).acceleration[0] = 0;
+        (*j).acceleration[1] = 0;
+    }
         
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
+    {
+        if(j != bodies.end()-1)
         {
-            if(j != bodies.end()-1)
+            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
             {
-                for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
-                {
-                    Body::force_and_potential(*j, *k);
-                }
+                Body::force_and_potential(*j, *k);
             }
-            (*j).update_velocity(dt);
-            (*j).update_position(dt/2);
-            
         }
+
+        (*j).update_velocity(dt);
+        (*j).update_position(dt/2);
+            
+    }
 
 }
 
@@ -374,26 +396,7 @@ int main(){
 
     #ifdef EULER
     //-------------------------------------- Euler dynamic ----------------------------------------
-
-        //reset potential energy
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-        {
-            (*j).potential_energy = 0;
-        }
-
-        //compute force and potential energy
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-        {   
-            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
-                Body::force_and_potential(*j, *k);
-            }
-        }
-    
-        // evolving the position and the velocity of each particle in dt
-        for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) 
-        {
-            (*i).update_pos_vel(dt); 
-        }
+    euler_dynamic(bodies);
     //----------------------------------------------------------------------------------------------
     #endif
 
