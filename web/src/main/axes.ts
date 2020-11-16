@@ -38,7 +38,7 @@ class Axes {
             
         this.context.clearRect(0, 0, w, h);
 
-        this.context.strokeStyle = "rgba(255,0,0,0.8)"; 
+        this.context.strokeStyle = "rgba(128,0,0,1)"; 
         this.context.lineWidth = 2;
         // Draw >  
         this.context.beginPath();
