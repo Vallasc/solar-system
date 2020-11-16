@@ -4,14 +4,17 @@ class Axes {
 
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
+    private axesOffsetX: number = 0;
+    private axesOffsetY: number = 0;
 
     constructor( canvas : HTMLCanvasElement) {
         this.canvas = canvas;
         this.context =  <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
+        this.drawAxes();
     }
     
-    public drawAxes(x : number, y : number) : void {
+    public drawAxes() : void {
         
         let w : number = this.canvas.width;
         let h : number = this.canvas.height;
@@ -19,24 +22,22 @@ class Axes {
         let bigEvery : number = 5; // 1 big every 5 small
         let offX : number = 0;
         let offY : number = 0;
-        let X : number = x;
-        let Y : number = y;
 
         let margin : number = 20;
 
         if(this.panningOffsetX >= (w*0.5) - margin )
-            offX = (w*0.5) - margin + X;
+            offX = (w*0.5) - margin;
         else if(this.panningOffsetX <=  margin - (w*0.5))
-            offX =  margin - (w*0.5) + X;
+            offX =  margin - (w*0.5);
         else
-            offX = this.panningOffsetX + X;
+            offX = this.panningOffsetX + this.axesOffsetX;
 
         if(this.panningOffsetY >= (h*0.5) - margin )
-            offY = (h*0.5) - margin - Y;
+            offY = (h*0.5) - margin;
         else if(this.panningOffsetY <=  margin - (h*0.5))
-            offY =  margin - (h*0.5) - Y;
+            offY =  margin - (h*0.5);
         else
-            offY = this.panningOffsetY - Y;
+            offY = this.panningOffsetY - this.axesOffsetY;
             
         this.context.clearRect(0, 0, w, h);
 
@@ -145,7 +146,13 @@ class Axes {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-        this.drawAxes(0, 0);
+        this.drawAxes();
+    }
+
+    public setAxesOffset(x: number, y: number){
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
+        this.drawAxes();
     }
 
 }
