@@ -11,7 +11,7 @@ class Axes {
         this.context.imageSmoothingEnabled = false;
     }
     
-    public drawAxes() : void {
+    public drawAxes(x : number, y : number) : void {
         
         let w : number = this.canvas.width;
         let h : number = this.canvas.height;
@@ -19,6 +19,8 @@ class Axes {
         let bigEvery : number = 5; // 1 big every 10 small
         let offX : number = 0;
         let offY : number = 0;
+        let X : number = x;
+        let Y : number = y;
 
         let margin : number = 20;
 
@@ -43,29 +45,29 @@ class Axes {
         // Draw >  
         this.context.beginPath();
     
-        this.context.moveTo( w - 15, offY + h*0.5 - 10);
-        this.context.lineTo( w, offY + h*0.5);
-        this.context.lineTo( w - 15, offY + h*0.5 + 10);
+        this.context.moveTo( w - 15, offY + h*0.5 - 10 + Y);
+        this.context.lineTo( w, offY + h*0.5 + Y);
+        this.context.lineTo( w - 15, offY + h*0.5 + 10 + Y);
         this.context.stroke();
 
         // Draw ^ 
         this.context.beginPath();
-        this.context.moveTo(offX + w*0.5 - 10, 15);
-        this.context.lineTo(offX + w*0.5, 0);
-        this.context.lineTo(offX + w*0.5 + 10, 15);
+        this.context.moveTo(offX + w*0.5 - 10 + X, 15);
+        this.context.lineTo(offX + w*0.5 + X, 0);
+        this.context.lineTo(offX + w*0.5 + 10 + X, 15);
         this.context.stroke();
 
         // Draw X-axis
         this.context.lineWidth = 1.5;
         this.context.beginPath();
-        this.context.moveTo(0, offY + h*0.5);
-        this.context.lineTo(w, offY + h*0.5);
+        this.context.moveTo(0, offY + h*0.5 + Y);
+        this.context.lineTo(w, offY + h*0.5 + Y);
         this.context.stroke();
 
         // Draw Y-axis
         this.context.beginPath();
-        this.context.moveTo(offX + w*0.5, 0);
-        this.context.lineTo(offX + w*0.5, h);
+        this.context.moveTo(offX + w*0.5 + X, 0);
+        this.context.lineTo(offX + w*0.5 + X, h);
         this.context.stroke();
         
         this.context.lineWidth = 1;
@@ -82,11 +84,11 @@ class Axes {
             let mod = (this.panningOffsetX + i*distGrids) % (newW);
             mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
             if(i % bigEvery == 0){
-                this.context.moveTo(w/2 + mod, offY + h/2 - bigTick);
-                this.context.lineTo(w/2 + mod, offY + h/2 + bigTick);
+                this.context.moveTo(w/2 + mod, offY + h/2 - bigTick + Y);
+                this.context.lineTo(w/2 + mod, offY + h/2 + bigTick + Y);
             } else {
-                this.context.moveTo(w/2 + mod, offY + h/2 - smallTick);
-                this.context.lineTo(w/2 + mod, offY + h/2 + smallTick);
+                this.context.moveTo(w/2 + mod, offY + h/2 - smallTick + Y);
+                this.context.lineTo(w/2 + mod, offY + h/2 + smallTick + Y);
             }
             this.context.stroke();
         }
@@ -97,11 +99,11 @@ class Axes {
             let mod = (i*distGrids - this.panningOffsetX) % (newW);
             mod = mod < 0 ? (newW + mod) : mod; // Riporto il modulo positivo
             if((i) % bigEvery == 0){
-                this.context.moveTo(w/2 - mod, offY + h/2 - bigTick);
-                this.context.lineTo(w/2 - mod, offY + h/2 + bigTick);
+                this.context.moveTo(w/2 - mod, offY + h/2 - bigTick + Y);
+                this.context.lineTo(w/2 - mod, offY + h/2 + bigTick + Y);
             } else {
-                this.context.moveTo(w/2 - mod, offY + h/2 - smallTick);
-                this.context.lineTo(w/2 - mod, offY + h/2 + smallTick);
+                this.context.moveTo(w/2 - mod, offY + h/2 - smallTick + Y);
+                this.context.lineTo(w/2 - mod, offY + h/2 + smallTick + Y);
             }
             this.context.stroke();
         }
@@ -115,11 +117,11 @@ class Axes {
             let mod = (this.panningOffsetY + i*distGrids) % (newH);
             mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
             if(i % bigEvery == 0){
-                this.context.moveTo(offX + w/2 - bigTick, h/2 + mod);
-                this.context.lineTo(offX + w/2 + bigTick, h/2 + mod);
+                this.context.moveTo(offX + w/2 - bigTick + X, h/2 + mod);
+                this.context.lineTo(offX + w/2 + bigTick + X, h/2 + mod);
             } else {
-                this.context.moveTo(offX + w/2 - smallTick, h/2 + mod);
-                this.context.lineTo(offX + w/2 + smallTick, h/2 + mod);
+                this.context.moveTo(offX + w/2 - smallTick + X, h/2 + mod);
+                this.context.lineTo(offX + w/2 + smallTick + X, h/2 + mod);
             }
             this.context.stroke();
         }
@@ -130,11 +132,11 @@ class Axes {
             let mod = (i*distGrids - this.panningOffsetY) % (newH);
             mod = mod < 0 ? (newH + mod) : mod; // Riporto il modulo positivo
             if(i % bigEvery == 0){
-                this.context.moveTo(offX + w/2 - bigTick, h/2 - mod);
-                this.context.lineTo(offX + w/2 + bigTick, h/2 - mod);
+                this.context.moveTo(offX + w/2 - bigTick + X, h/2 - mod);
+                this.context.lineTo(offX + w/2 + bigTick + X, h/2 - mod);
             } else {
-                this.context.moveTo(offX + w/2 - smallTick, h/2 - mod);
-                this.context.lineTo(offX + w/2 + smallTick, h/2 - mod);
+                this.context.moveTo(offX + w/2 - smallTick + X, h/2 - mod);
+                this.context.lineTo(offX + w/2 + smallTick + X, h/2 - mod);
             }
             this.context.stroke();
         }
@@ -143,7 +145,7 @@ class Axes {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-        this.drawAxes();
+        this.drawAxes(0, 0);
     }
 
 }
