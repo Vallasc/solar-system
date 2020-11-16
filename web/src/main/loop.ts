@@ -75,6 +75,15 @@ class Loop {
                     Startup.trajectory.setScale(this.scale);
                 }
             },{
+                folder: 'Selected',
+                type: 'button',
+                label: 'Change center axes',
+                streched: true,
+                action: () => {
+                    if(this.selectedBody.visible)
+                        Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                }
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Scale',
@@ -193,8 +202,6 @@ class Loop {
         else return x;
     }
 
-    public changeCenter : boolean = false; 
-
     private getColorFromInt(x: number) : string {
         let numColors = 10;
         let r = 255 * x / numColors;
@@ -289,19 +296,8 @@ class Loop {
             this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
-            if (currentId != this.selectedBody.id) {
-                this.changeCenter = false;
-            }
-            if (this.changeCenter == true) {
-                Startup.axes.drawAxes(this.selectedBody.x, this.selectedBody.y);
-                
-            } else {
-                Startup.axes.drawAxes(0,0);
-            }
             if(this.numIteration % 5 == 0)
                 Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
-        } else {
-            Startup.axes.drawAxes(0,0);
         }
 
         if(this.numIteration % 30 == 0)
