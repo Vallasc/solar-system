@@ -12,8 +12,8 @@ class Axes {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
-        this.axesOffsetX = 0;
-        this.axesOffsetY = 0;
+        //private axesOffsetX: number = 0;
+        //private axesOffsetY: number = 0;
         this.scale = 1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
@@ -140,10 +140,10 @@ class Axes {
         this.panningOffsetY = y;
         this.drawAxes();
     }
-    setAxesOffset(x, y) {
+    /*public setAxesOffset(x: number, y: number){
         this.axesOffsetX = x;
         this.axesOffsetY = y;
-    }
+    }*/
     setScale(s) {
         this.scale = s;
     }
@@ -558,8 +558,6 @@ class Loop {
     constructor(canvas, gui) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
-        this.axesOffsetX = 0;
-        this.axesOffsetY = 0;
         this.selectX = null;
         this.selectY = null;
         this.selectedBody = new Body();
@@ -572,6 +570,12 @@ class Loop {
         this.readEnd = false;
         this.bufferSize = 90;
         this.reqId = -1;
+        //private setAxesOffset(selectedBody : Body){
+        //Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+        //Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+        //    this.axesOffsetX = selectedBody.x*this.scale;
+        //    this.axesOffsetY = selectedBody.y*this.scale;
+        //}
         this.numIteration = 0;
         this.lastTime = 0;
         this.indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
@@ -606,8 +610,7 @@ class Loop {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory();
+                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             }, {
@@ -619,8 +622,7 @@ class Loop {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory();
+                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             }, {
@@ -631,9 +633,8 @@ class Loop {
                 action: () => {
                     if (this.selectedBody.visible) {
                         this.axesBodyOffset.clone(this.selectedBody);
-                        this.setAxesOffset(this.axesBodyOffset);
-                        Startup.trajectory.drawTrajectory();
-                        Startup.axes.drawAxes();
+                        //this.setAxesOffset(this.axesBodyOffset);
+                        //Startup.trajectory.drawTrajectory()
                         this.selectedBody.setVisible(false);
                     }
                 }
@@ -644,9 +645,8 @@ class Loop {
                 streched: true,
                 action: () => {
                     this.axesBodyOffset.reset();
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory();
-                    Startup.axes.drawAxes();
+                    //this.setAxesOffset(this.axesBodyOffset);
+                    //Startup.trajectory.drawTrajectory()
                     this.selectedBody.setVisible(false);
                 }
             }, {
@@ -713,17 +713,9 @@ class Loop {
         ];
         this.barContainer = document.getElementById("guify-bar-container");
     }
-    setAxesOffset(selectedBody) {
-        //Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
-        Startup.axes.setAxesOffset(selectedBody.x * this.scale, selectedBody.y * this.scale);
-        this.axesOffsetX = selectedBody.x * this.scale;
-        this.axesOffsetY = selectedBody.y * this.scale;
-    }
     draw(time) {
         this.stats.begin();
         //if(time - this.lastTime <= 20){
-        this.context.setTransform(1, 0, 0, 1, 0, 0);
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
             // Ho dei frame da visualizzare
@@ -775,36 +767,40 @@ class Loop {
         return { x: x, y: y };
     }
     drawStates(objects) {
-        let fillColor = -1;
-        let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesOffsetX;
-        let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesOffsetY;
-        this.context.beginPath();
-        //this.context.scale(1, -1);
+        const numParams = Deserializer.bodyNumParams;
+        // Controllo se devo cmabiare il centro degli assi
+        if (this.axesBodyOffset.id != -1) {
+            for (let i = 0; i < objects[Deserializer.numIterationParam - 1]; i++) {
+                // Prelevo gli attributi del body
+                let id = objects[Deserializer.numIterationParam + i * numParams + 0];
+                let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
+                let y = objects[Deserializer.numIterationParam + i * numParams + 2];
+                // Mette l'offset dell'iterazione precednte
+                if (this.axesBodyOffset.id == id) {
+                    this.axesBodyOffset.x = x;
+                    this.axesBodyOffset.y = y;
+                    break;
+                }
+            }
+        }
+        let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesBodyOffset.x * this.scale;
+        let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesBodyOffset.y * this.scale;
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
-        //this.context.translate(xBase, yBase);
         this.imatrix = this.context.getTransform().inverse();
-        const numParams = Deserializer.bodyNumParams;
-        //console.log(this.buffer.size);
-        //console.log(objects);
+        this.context.beginPath();
         // Controllo che ci sia un'occorrenza del body selezionato
         let bodyIsIn = false;
+        let fillColor = -1;
         for (let i = 0; i < objects[Deserializer.numIterationParam - 1]; i++) {
+            // Prelevo gli attributi del body
             let id = objects[Deserializer.numIterationParam + i * numParams + 0];
             let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
             let y = objects[Deserializer.numIterationParam + i * numParams + 2];
             let r = objects[Deserializer.numIterationParam + i * numParams + 3];
             let t = objects[Deserializer.numIterationParam + i * numParams + 4];
-            if (fillColor != t) { // Cambio colore pennello
-                this.context.closePath();
-                this.context.fill();
-                this.context.beginPath();
-                fillColor = t;
-                this.context.fillStyle = this.getColorFromInt(fillColor);
-            }
-            this.context.moveTo(x, y);
-            this.context.arc(x, y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
-            // End draw
             // Se il corpo e' stato selezionato
             if (this.selectedBody.id == id && this.selectedBody.visible) {
                 this.selectedBody.x = x;
@@ -830,13 +826,17 @@ class Loop {
                     bodyIsIn = false;
                 }
             }
-            // Mette l'offset dell'iterazione precednte
-            if (this.axesBodyOffset.id == id) {
-                this.axesBodyOffset.x = x;
-                this.axesBodyOffset.y = y;
-                this.setAxesOffset(this.axesBodyOffset);
-                Startup.axes.drawAxes();
+            // Draw            
+            if (fillColor != t) { // Cambio colore pennello
+                this.context.closePath();
+                this.context.fill();
+                this.context.beginPath();
+                fillColor = t;
+                this.context.fillStyle = this.getColorFromInt(fillColor);
             }
+            this.context.moveTo(x, y);
+            this.context.arc(x, y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
+            // End draw
         }
         this.context.closePath();
         this.context.fill();
