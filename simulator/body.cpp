@@ -21,7 +21,7 @@ long double E = F*L;
 long double P = M*V;
 long double M_A = P*L;
 
-long double Temp_max = 1000;
+extern double Temp_max;
 
 
 
