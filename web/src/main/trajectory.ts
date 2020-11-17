@@ -29,7 +29,7 @@ class Trajectory {
         let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesOffsetY;
 
         this.context.strokeStyle = "rgba(0,0,0,0.6)"; 
-        this.context.lineWidth = 0.8;
+        this.context.lineWidth = 0.6;
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -60,11 +60,9 @@ class Trajectory {
     public setAxesOffset(x: number, y: number){
         this.axesOffsetX = x;
         this.axesOffsetY = y;
-        this.drawTrajectory();
     }
 
     public setScale(s: number){
         this.scale = s;
-        this.drawTrajectory();
     }
 }
