@@ -43,7 +43,7 @@ class Axes {
             offY = this.panningOffsetY;
             
         this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgb(120,0,0)"; 
+        this.context.strokeStyle = "rgb(60,0,0)"; 
         this.context.lineWidth = 1;
         // Draw >  
         this.context.beginPath();
@@ -154,12 +154,10 @@ class Axes {
     public setAxesOffset(x: number, y: number){
         this.axesOffsetX = x;
         this.axesOffsetY = y;
-        this.drawAxes();
     }
 
     public setScale(s: number){
         this.scale = s;
-        this.drawAxes();
     }
 
 }
