@@ -4,6 +4,8 @@ class Trajectory {
 
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
+    private axesOffsetX: number = 0;
+    private axesOffsetY: number = 0;
 
     private points : Array<[number, number]> = [];
     private readonly maxSize : number = 1000;
@@ -23,12 +25,14 @@ class Trajectory {
     }
 
     public drawTrajectory() : void {
-        let xBase = this.canvas.width/2 + this.panningOffsetX;
-        let yBase = this.canvas.height/2 + this.panningOffsetY;
-        this.context.strokeStyle = "rgba(255,255,255,0.4)"; 
+        let xBase = this.canvas.width/2 + this.panningOffsetX - this.axesOffsetX;
+        let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesOffsetY;
+
+        this.context.strokeStyle = "rgba(0,0,0,0.6)"; 
         this.context.lineWidth = 0.8;
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
         this.context.beginPath();
@@ -50,6 +54,12 @@ class Trajectory {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+        this.drawTrajectory();
+    }
+
+    public setAxesOffset(x: number, y: number){
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
         this.drawTrajectory();
     }
 
