@@ -6,12 +6,15 @@ class Loop {
 
     public canvas : HTMLCanvasElement;
     private context : CanvasRenderingContext2D;
-    private panningOffsetX: number = 0;
-    private panningOffsetY: number = 0;
-    private axesOffsetX: number = 0;
-    private axesOffsetY: number = 0;
-    private currentX : number = 0;
-    private currentY : number = 0;
+    private panningOffsetX : number = 0;
+    private panningOffsetY : number = 0;
+    private axesOffsetX : number = 0;
+    private axesOffsetY : number = 0;
+
+    public selectX : number | null = null;
+    public selectY : number | null = null;
+    public selectedBody : Body = new Body();
+    private axesBodyOffset : Body = new Body();
 
     private scale: number = 1;
     private imatrix: DOMMatrix;
@@ -67,11 +70,12 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale -= 0.2;
+
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
-                    Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
-                    this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
+                    this.setAxesOffset(this.axesBodyOffset);
+                    Startup.trajectory.drawTrajectory()
+                    Startup.axes.drawAxes();
                 }
             },{
                 type: 'button',
@@ -80,11 +84,12 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale += 0.2;
+
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
-                    Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
-                    this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
+                    this.setAxesOffset(this.axesBodyOffset);
+                    Startup.trajectory.drawTrajectory()
+                    Startup.axes.drawAxes();
                 }
             },{
                 folder: 'Selected',
@@ -93,11 +98,12 @@ class Loop {
                 streched: true,
                 action: () => {
                     if(this.selectedBody.visible){
-                        this.currentX = this.selectedBody.x;
-                        this.currentY = this.selectedBody.y;
-                        Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
-                        Startup.axes.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
-                        this.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
+                        this.axesBodyOffset.clone(this.selectedBody);
+                        Startup.trajectory.setScale(this.scale);
+                        Startup.axes.setScale(this.scale);
+                        this.setAxesOffset(this.axesBodyOffset);
+                        Startup.trajectory.drawTrajectory()
+                        Startup.axes.drawAxes();
                     }
                 }
             },{
@@ -107,11 +113,10 @@ class Loop {
                 streched: true,
                 action: () => {
                     if(this.selectedBody.visible){
-                        this.currentX = 0;
-                        this.currentY = 0;
-                        Startup.trajectory.setAxesOffset(0, 0);
-                        Startup.axes.setAxesOffset(0, 0);
-                        this.setAxesOffset(0, 0);
+                        this.selectedBody.reset();
+                        this.setAxesOffset(this.selectedBody);
+                        Startup.trajectory.drawTrajectory()
+                        Startup.axes.drawAxes();
                     }
                 }
             },{
@@ -179,9 +184,12 @@ class Loop {
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
 
-    public selectX : number | null = null;
-    public selectY : number | null = null;
-    public selectedBody : Body = new Body();
+    private setAxesOffset(selectedBody : Body){
+        Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+        Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+        this.axesOffsetX = selectedBody.x*this.scale;
+        this.axesOffsetY = selectedBody.y*this.scale;
+    }
 
     private numIteration : number = 0;
     private lastTime : number = 0;
@@ -240,11 +248,6 @@ class Loop {
         return "rgb("+r+",0,"+b+")";
     }
 
-    /*private getCanvasCoords(screenX : number, screenY: number) {
-        let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
-        let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
-        return {x: x, y: y};
-    }*/
     private VtoW(screenX : number, screenY: number) {
         let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
         let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
@@ -295,6 +298,13 @@ class Loop {
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
                 bodyIsMerged = false;
+            } 
+            if( this.axesBodyOffset.id == id){
+                this.axesBodyOffset.x = x;
+                this.axesBodyOffset.y = y;
+                this.setAxesOffset(this.axesBodyOffset);
+                Startup.trajectory.drawTrajectory()
+                Startup.axes.drawAxes();
             } 
             if( this.selectX != null && this.selectY != null){
                 let cords = this.VtoW(this.selectX, this.selectY);
@@ -373,7 +383,8 @@ class Loop {
         this.numIteration = 0;
         this.bufferSize = 90;
 
-        this.selectedBody.visible = false;
+        this.selectedBody.reset();
+        this.axesBodyOffset.reset();
         this.selectX = null;
         this.selectY = null;
 
@@ -410,7 +421,8 @@ class Loop {
         this.numIteration = 0;
         this.bufferSize = 90;
 
-        this.selectedBody.visible = false;
+        this.selectedBody.reset();
+        this.axesBodyOffset.reset();
         this.selectX = null;
         this.selectY = null;
 
@@ -518,11 +530,6 @@ class Loop {
     public setPanningOffset(x: number, y: number){
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-    }
-
-    public setAxesOffset(x: number, y: number){
-        this.axesOffsetX = x;
-        this.axesOffsetY = y;
     }
 
     public setSelected(x: number, y: number){
