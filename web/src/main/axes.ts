@@ -4,8 +4,6 @@ class Axes {
 
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
-    private axesOffsetX: number = 0;
-    private axesOffsetY: number = 0;
     private scale : number = 1;
 
     constructor( canvas : HTMLCanvasElement) {
@@ -149,11 +147,6 @@ class Axes {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
         this.drawAxes();
-    }
-
-    public setAxesOffset(x: number, y: number){
-        this.axesOffsetX = x;
-        this.axesOffsetY = y;
     }
 
     public setScale(s: number){
