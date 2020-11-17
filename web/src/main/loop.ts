@@ -98,6 +98,19 @@ class Loop {
                     }
                 }
             },{
+                folder: 'Selected',
+                type: 'button',
+                label: 'Reset center axes',
+                streched: true,
+                action: () => {
+                    if(this.selectedBody.visible){
+                        this.currentX = 0;
+                        this.currentY = 0;
+                        Startup.axes.setAxesOffset(0, 0);
+                        this.setAxesOffset(0, 0);
+                    }
+                }
+            },{
                 type: 'display',
                 folder: 'Controls',
                 label: 'Scale',
