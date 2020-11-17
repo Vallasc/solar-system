@@ -99,11 +99,10 @@ class Loop {
                 action: () => {
                     if(this.selectedBody.visible){
                         this.axesBodyOffset.clone(this.selectedBody);
-                        Startup.trajectory.setScale(this.scale);
-                        Startup.axes.setScale(this.scale);
                         this.setAxesOffset(this.axesBodyOffset);
                         Startup.trajectory.drawTrajectory()
                         Startup.axes.drawAxes();
+                        this.selectedBody.setVisible(false);
                     }
                 }
             },{
@@ -112,12 +111,11 @@ class Loop {
                 label: 'Reset center axes',
                 streched: true,
                 action: () => {
-                    if(this.selectedBody.visible){
-                        this.selectedBody.reset();
-                        this.setAxesOffset(this.selectedBody);
-                        Startup.trajectory.drawTrajectory()
-                        Startup.axes.drawAxes();
-                    }
+                    this.axesBodyOffset.reset();
+                    this.setAxesOffset(this.axesBodyOffset);
+                    Startup.trajectory.drawTrajectory()
+                    Startup.axes.drawAxes();
+                    this.selectedBody.setVisible(false);
                 }
             },{
                 type: 'display',
@@ -185,7 +183,7 @@ class Loop {
     }
 
     private setAxesOffset(selectedBody : Body){
-        Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+        //Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
         Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
         this.axesOffsetX = selectedBody.x*this.scale;
         this.axesOffsetY = selectedBody.y*this.scale;
@@ -270,7 +268,9 @@ class Loop {
         //console.log(this.buffer.size);
         //console.log(objects);
 
-        let bodyIsMerged = true;
+
+        // Controllo che ci sia un'occorrenza del body selezionato
+        let bodyIsIn = false;
 
         for(let i=0; i<objects[Deserializer.numIterationParam -1]; i++){
             let id = objects[Deserializer.numIterationParam + i * numParams + 0];
@@ -293,19 +293,13 @@ class Loop {
             // End draw
 
             // Se il corpo e' stato selezionato
-            if( this.selectedBody.visible && this.selectedBody.id == id){
+            if( this.selectedBody.id == id && this.selectedBody.visible){
                 this.selectedBody.x = x;
                 this.selectedBody.y = y;
                 this.selectedBody.radius = r;
-                bodyIsMerged = false;
+                bodyIsIn = true;
             } 
-            if( this.axesBodyOffset.id == id){
-                this.axesBodyOffset.x = x;
-                this.axesBodyOffset.y = y;
-                this.setAxesOffset(this.axesBodyOffset);
-                Startup.trajectory.drawTrajectory()
-                Startup.axes.drawAxes();
-            } 
+            // E' stato premuto sullo schermo
             if( this.selectX != null && this.selectY != null){
                 let cords = this.VtoW(this.selectX, this.selectY);
                 if(this.squareHitTest(x, y, Loop.roundTo1(r), cords.x, cords.y)){
@@ -318,38 +312,46 @@ class Loop {
                     this.selectX = null;
                     this.selectY = null;
                     Startup.trajectory.clear();
-
-                    bodyIsMerged = false;
+                    bodyIsIn = true;
                 } else {
-                    bodyIsMerged = true;
+                    bodyIsIn = false;
                 }
             }
+            // Mette l'offset dell'iterazione precednte
+            if( this.axesBodyOffset.id == id){
+                this.axesBodyOffset.x = x;
+                this.axesBodyOffset.y = y;
+                this.setAxesOffset(this.axesBodyOffset);
+                Startup.axes.drawAxes();
+            } 
         }
         this.context.closePath();
         this.context.fill();
-        if(bodyIsMerged){ // Il body ha fatto il merge
+
+
+        if( this.selectedBody.visible && bodyIsIn){ // Body selezionato
+                this.context.beginPath();
+                this.context.strokeStyle = "rgba(0,255,0,0.7)"; 
+                this.context.lineWidth = 1.5;
+                this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
+                this.context.closePath();
+                this.context.stroke();
+                if(this.numIteration % 5 == 0)
+                    Startup.trajectory.addCords(this.selectedBody.x-this.axesBodyOffset.x, this.selectedBody.y-this.axesBodyOffset.y);
+        } else {
             this.selectedBody.setVisible(false);
             Startup.trajectory.clear();
         }
-        if( this.selectedBody.visible){ // Body selezionato
-            this.context.beginPath();
-            this.context.strokeStyle = "rgba(0,255,0,0.7)"; 
-            this.context.lineWidth = 1.5;
-            this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
-            this.context.closePath();
-            this.context.stroke();
-            if(this.numIteration % 5 == 0)
-                Startup.trajectory.addCords(this.selectedBody.x, this.selectedBody.y);
-        }
 
-        if(this.numIteration % 30 == 0)
-                this.chart.updateChart([
-                    {x: this.numIteration, y:objects[0]},
-                    {x: this.numIteration, y:objects[1]},
-                    {x: this.numIteration, y:objects[2]},
-                    {x: this.numIteration, y:objects[3]},
-                    {x: this.numIteration, y:objects[4]}
-                ]);
+        if(this.numIteration % 30 == 0){
+            this.chart.updateChart([
+                {x: this.numIteration, y:objects[0]},
+                {x: this.numIteration, y:objects[1]},
+                {x: this.numIteration, y:objects[2]},
+                {x: this.numIteration, y:objects[3]},
+                {x: this.numIteration, y:objects[4]}
+            ]);
+        }
     }
 
     public play() {
