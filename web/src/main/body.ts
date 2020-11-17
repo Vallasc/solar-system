@@ -30,12 +30,24 @@ class Body {
 
     public setVisible(value: boolean) {
         this.visible = value;
-        if(!value){
-            this.id = -1;
-            this.x = 0;
-            this.y = 0;
-            this.radius = 0;
-        }
+        if(!value)
+            this.reset();
+    }
+    
+    public reset() {
+        this.id = -1;
+        this.x = 0;
+        this.y = 0;
+        this.radius = 0;
+        this.visible = false;
+    }
+
+    public clone(src: Body){
+        this.id = src.id;
+        this.x = src.x;
+        this.y = src.y;
+        this.radius = src.radius;
+        this.visible = src.visible;
     }
 
 }

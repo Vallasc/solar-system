@@ -14,6 +14,7 @@ class Axes {
         this.panningOffsetY = 0;
         this.axesOffsetX = 0;
         this.axesOffsetY = 0;
+        this.scale = 1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
@@ -27,6 +28,7 @@ class Axes {
         let offX = 0;
         let offY = 0;
         let margin = 20;
+        distGrids *= this.scale;
         if (this.panningOffsetX >= (w * 0.5) - margin)
             offX = (w * 0.5) - margin;
         else if (this.panningOffsetX <= margin - (w * 0.5))
@@ -40,8 +42,8 @@ class Axes {
         else
             offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgba(255,0,0,0.8)";
-        this.context.lineWidth = 2;
+        this.context.strokeStyle = "rgb(60,0,0)";
+        this.context.lineWidth = 1;
         // Draw >  
         this.context.beginPath();
         this.context.moveTo(w - 15, offY + h * 0.5 - 10);
@@ -141,7 +143,9 @@ class Axes {
     setAxesOffset(x, y) {
         this.axesOffsetX = x;
         this.axesOffsetY = y;
-        this.drawAxes();
+    }
+    setScale(s) {
+        this.scale = s;
     }
 }
 class Body {
@@ -169,12 +173,22 @@ class Body {
     }
     setVisible(value) {
         this.visible = value;
-        if (!value) {
-            this.id = -1;
-            this.x = 0;
-            this.y = 0;
-            this.radius = 0;
-        }
+        if (!value)
+            this.reset();
+    }
+    reset() {
+        this.id = -1;
+        this.x = 0;
+        this.y = 0;
+        this.radius = 0;
+        this.visible = false;
+    }
+    clone(src) {
+        this.id = src.id;
+        this.x = src.x;
+        this.y = src.y;
+        this.radius = src.radius;
+        this.visible = src.visible;
     }
 }
 zip.workerScriptsPath = "./dist/lib/zipjs/";
@@ -388,7 +402,7 @@ class Startup {
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
-            theme: 'light',
+            theme: 'dark',
             align: 'right',
             width: Startup.canvasMarginRight,
             barMode: 'offset',
@@ -433,11 +447,11 @@ class Startup {
                 element: Startup.loop.chart.container,
             }, {
                 type: 'folder',
-                label: 'Controls',
+                label: 'Selected',
                 open: true
             }, {
                 type: 'folder',
-                label: 'Selected',
+                label: 'Controls',
                 open: true
             }, {
                 type: 'folder',
@@ -546,6 +560,10 @@ class Loop {
         this.panningOffsetY = 0;
         this.axesOffsetX = 0;
         this.axesOffsetY = 0;
+        this.selectX = null;
+        this.selectY = null;
+        this.selectedBody = new Body();
+        this.axesBodyOffset = new Body();
         this.scale = 1;
         this.loadAllFile = true;
         this.forceLoadAllCheckbox = false;
@@ -554,9 +572,6 @@ class Loop {
         this.readEnd = false;
         this.bufferSize = 90;
         this.reqId = -1;
-        this.selectX = null;
-        this.selectY = null;
-        this.selectedBody = new Body();
         this.numIteration = 0;
         this.lastTime = 0;
         this.indexChunck = 1; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
@@ -590,6 +605,10 @@ class Loop {
                 action: () => {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    this.setAxesOffset(this.axesBodyOffset);
+                    Startup.trajectory.drawTrajectory();
+                    Startup.axes.drawAxes();
                 }
             }, {
                 type: 'button',
@@ -599,6 +618,10 @@ class Loop {
                 action: () => {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    this.setAxesOffset(this.axesBodyOffset);
+                    Startup.trajectory.drawTrajectory();
+                    Startup.axes.drawAxes();
                 }
             }, {
                 folder: 'Selected',
@@ -607,8 +630,25 @@ class Loop {
                 streched: true,
                 action: () => {
                     if (this.selectedBody.visible) {
-                        Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
-                        this.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                        this.axesBodyOffset.clone(this.selectedBody);
+                        Startup.trajectory.setScale(this.scale);
+                        Startup.axes.setScale(this.scale);
+                        this.setAxesOffset(this.axesBodyOffset);
+                        Startup.trajectory.drawTrajectory();
+                        Startup.axes.drawAxes();
+                    }
+                }
+            }, {
+                folder: 'Selected',
+                type: 'button',
+                label: 'Reset center axes',
+                streched: true,
+                action: () => {
+                    if (this.selectedBody.visible) {
+                        this.selectedBody.reset();
+                        this.setAxesOffset(this.selectedBody);
+                        Startup.trajectory.drawTrajectory();
+                        Startup.axes.drawAxes();
                     }
                 }
             }, {
@@ -675,6 +715,12 @@ class Loop {
         ];
         this.barContainer = document.getElementById("guify-bar-container");
     }
+    setAxesOffset(selectedBody) {
+        Startup.trajectory.setAxesOffset(selectedBody.x * this.scale, selectedBody.y * this.scale);
+        Startup.axes.setAxesOffset(selectedBody.x * this.scale, selectedBody.y * this.scale);
+        this.axesOffsetX = selectedBody.x * this.scale;
+        this.axesOffsetY = selectedBody.y * this.scale;
+    }
     draw(time) {
         this.stats.begin();
         //if(time - this.lastTime <= 20){
@@ -725,11 +771,6 @@ class Loop {
         let b = 255 - r;
         return "rgb(" + r + ",0," + b + ")";
     }
-    /*private getCanvasCoords(screenX : number, screenY: number) {
-        let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
-        let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
-        return {x: x, y: y};
-    }*/
     VtoW(screenX, screenY) {
         let x = screenX * this.imatrix.a + screenY * this.imatrix.c + this.imatrix.e;
         let y = screenX * this.imatrix.b + screenY * this.imatrix.d + this.imatrix.f;
@@ -772,6 +813,13 @@ class Loop {
                 this.selectedBody.radius = r;
                 bodyIsMerged = false;
             }
+            if (this.axesBodyOffset.id == id) {
+                this.axesBodyOffset.x = x;
+                this.axesBodyOffset.y = y;
+                this.setAxesOffset(this.axesBodyOffset);
+                Startup.trajectory.drawTrajectory();
+                Startup.axes.drawAxes();
+            }
             if (this.selectX != null && this.selectY != null) {
                 let cords = this.VtoW(this.selectX, this.selectY);
                 if (this.squareHitTest(x, y, Loop.roundTo1(r), cords.x, cords.y)) {
@@ -798,8 +846,8 @@ class Loop {
         }
         if (this.selectedBody.visible) { // Body selezionato
             this.context.beginPath();
-            this.context.strokeStyle = "rgba(0,255,0,0.3)";
-            this.context.lineWidth = 2;
+            this.context.strokeStyle = "rgba(0,255,0,0.7)";
+            this.context.lineWidth = 1.5;
             this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
@@ -844,7 +892,8 @@ class Loop {
             this.lastObjects = null;
             this.numIteration = 0;
             this.bufferSize = 90;
-            this.selectedBody.visible = false;
+            this.selectedBody.reset();
+            this.axesBodyOffset.reset();
             this.selectX = null;
             this.selectY = null;
             if (!this.loadAllFile) {
@@ -878,7 +927,8 @@ class Loop {
             this.lastObjects = null;
             this.numIteration = 0;
             this.bufferSize = 90;
-            this.selectedBody.visible = false;
+            this.selectedBody.reset();
+            this.axesBodyOffset.reset();
             this.selectX = null;
             this.selectY = null;
             if (!this.loadAllFile) {
@@ -984,10 +1034,6 @@ class Loop {
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
-    }
-    setAxesOffset(x, y) {
-        this.axesOffsetX = x;
-        this.axesOffsetY = y;
     }
     setSelected(x, y) {
         this.selectX = x;
@@ -1145,6 +1191,8 @@ class Trajectory {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
+        this.axesOffsetX = 0;
+        this.axesOffsetY = 0;
         this.points = [];
         this.maxSize = 1000;
         this.scale = 1;
@@ -1159,10 +1207,10 @@ class Trajectory {
         this.drawTrajectory();
     }
     drawTrajectory() {
-        let xBase = this.canvas.width / 2 + this.panningOffsetX;
-        let yBase = this.canvas.height / 2 + this.panningOffsetY;
-        this.context.strokeStyle = "rgba(255,255,255,0.4)";
-        this.context.lineWidth = 0.8;
+        let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesOffsetX;
+        let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesOffsetY;
+        this.context.strokeStyle = "rgba(0,0,0,0.6)";
+        this.context.lineWidth = 0.6;
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.translate(xBase, yBase);
@@ -1186,9 +1234,12 @@ class Trajectory {
         this.panningOffsetY = y;
         this.drawTrajectory();
     }
+    setAxesOffset(x, y) {
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
+    }
     setScale(s) {
         this.scale = s;
-        this.drawTrajectory();
     }
 }
 //# sourceMappingURL=bundle.js.map
