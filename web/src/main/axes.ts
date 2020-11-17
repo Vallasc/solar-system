@@ -43,8 +43,8 @@ class Axes {
             offY = this.panningOffsetY;
             
         this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgba(255,0,0,0.8)"; 
-        this.context.lineWidth = 2;
+        this.context.strokeStyle = "rgb(120,0,0)"; 
+        this.context.lineWidth = 1;
         // Draw >  
         this.context.beginPath();
     
