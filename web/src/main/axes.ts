@@ -6,6 +6,7 @@ class Axes {
     private panningOffsetY: number = 0;
     private axesOffsetX: number = 0;
     private axesOffsetY: number = 0;
+    private scale : number = 1;
 
     constructor( canvas : HTMLCanvasElement) {
         this.canvas = canvas;
@@ -25,6 +26,8 @@ class Axes {
 
         let margin : number = 20;
 
+        distGrids *= this.scale;
+
         if(this.panningOffsetX >= (w*0.5) - margin )
             offX = (w*0.5) - margin;
         else if(this.panningOffsetX <=  margin - (w*0.5))
@@ -40,7 +43,6 @@ class Axes {
             offY = this.panningOffsetY;
             
         this.context.clearRect(0, 0, w, h);
-
         this.context.strokeStyle = "rgba(255,0,0,0.8)"; 
         this.context.lineWidth = 2;
         // Draw >  
@@ -152,6 +154,11 @@ class Axes {
     public setAxesOffset(x: number, y: number){
         this.axesOffsetX = x;
         this.axesOffsetY = y;
+        this.drawAxes();
+    }
+
+    public setScale(s: number){
+        this.scale = s;
         this.drawAxes();
     }
 

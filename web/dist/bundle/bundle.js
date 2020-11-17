@@ -14,6 +14,7 @@ class Axes {
         this.panningOffsetY = 0;
         this.axesOffsetX = 0;
         this.axesOffsetY = 0;
+        this.scale = 1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
@@ -27,6 +28,7 @@ class Axes {
         let offX = 0;
         let offY = 0;
         let margin = 20;
+        distGrids *= this.scale;
         if (this.panningOffsetX >= (w * 0.5) - margin)
             offX = (w * 0.5) - margin;
         else if (this.panningOffsetX <= margin - (w * 0.5))
@@ -141,6 +143,10 @@ class Axes {
     setAxesOffset(x, y) {
         this.axesOffsetX = x;
         this.axesOffsetY = y;
+        this.drawAxes();
+    }
+    setScale(s) {
+        this.scale = s;
         this.drawAxes();
     }
 }
@@ -553,6 +559,8 @@ class Loop {
         this.isEof = false;
         this.readEnd = false;
         this.bufferSize = 90;
+        this.currentX = 0;
+        this.currentY = 0;
         this.reqId = -1;
         this.selectX = null;
         this.selectY = null;
@@ -590,6 +598,9 @@ class Loop {
                 action: () => {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
+                    this.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                 }
             }, {
                 type: 'button',
@@ -599,6 +610,9 @@ class Loop {
                 action: () => {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
+                    this.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                 }
             }, {
                 folder: 'Selected',
@@ -607,8 +621,10 @@ class Loop {
                 streched: true,
                 action: () => {
                     if (this.selectedBody.visible) {
-                        Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
-                        this.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                        this.currentX = this.selectedBody.x;
+                        this.currentY = this.selectedBody.y;
+                        Startup.axes.setAxesOffset(this.selectedBody.x * this.scale, this.selectedBody.y * this.scale);
+                        this.setAxesOffset(this.selectedBody.x * this.scale, this.selectedBody.y * this.scale);
                     }
                 }
             }, {

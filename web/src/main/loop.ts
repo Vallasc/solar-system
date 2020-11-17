@@ -14,7 +14,6 @@ class Loop {
     private scale: number = 1;
     private imatrix: DOMMatrix;
 
-
     private buffer : Fifo<Float32Array>;
     private file : File;
 
@@ -24,6 +23,8 @@ class Loop {
     private isEof : boolean = false;
     private readEnd : boolean = false;
     private bufferSize: number = 90;
+    private currentX : number = 0;
+    private currentY : number = 0;
 
     private lastObjects : Float32Array | null;
 
@@ -67,6 +68,9 @@ class Loop {
                 action: () => {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
+                    this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                 }
             },{
                 type: 'button',
@@ -76,6 +80,9 @@ class Loop {
                 action: () => {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
+                    this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                 }
             },{
                 folder: 'Selected',
@@ -84,8 +91,10 @@ class Loop {
                 streched: true,
                 action: () => {
                     if(this.selectedBody.visible){
-                        Startup.axes.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
-                        this.setAxesOffset(this.selectedBody.x, this.selectedBody.y);
+                        this.currentX = this.selectedBody.x;
+                        this.currentY = this.selectedBody.y;
+                        Startup.axes.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
+                        this.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
                     }
                 }
             },{
