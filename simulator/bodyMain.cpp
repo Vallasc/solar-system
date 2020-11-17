@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <vector>
+#include <iomanip>
 
 #include "serializer.h"
 #include "body.h"
@@ -337,7 +338,7 @@ int i, j;
         j+=500;
         i = i/delta;
         j = j/delta;
-        ++grid[i][j];        
+        if(i<x_index && j<y_index) grid[i][j] += (*k).mass/mass_i;        
     }
 }
 
@@ -378,13 +379,13 @@ int main(){
     create_pointers();
 
     //make grid
-    make_grid(bodies);
+    //make_grid(bodies);
 
     //initial potential
     //for(int k=0; k<1000; ++k) next(potential, grid);
 
-    
-    ofstream of("grid.txt");
+    /*
+    ofstream of("grid_inizio.txt");
     for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
     {
         if(j!=0 || i!=0){
@@ -394,15 +395,20 @@ int main(){
         of << grid[i][j] << ' ';
     }
     
-    /*
+    of.close()
+    
+    of.open("potential_inizio.txt");
     for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
     {
-        if(i%10 == 0)
-        cout << endl;
+        if(j!=0 || i!=0){
+        if(j % 201 == 0)
+        of << endl;}
         
-        cout << grid[i][j];
+        of << potential[i][j] << '?';
     }
+    of.close()
     */
+
 
     //initial conservatives parameters
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -525,14 +531,39 @@ int main(){
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
+
+    //make grid
+    make_grid(bodies);
+
+    //initial potential
+    for(int k=0; k<1000; ++k) next(potential, grid);
+        
     /*
+    ofstream of("potential_fine.txt");
+    of << setprecision(8);
     for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
     {
-        if(i%10 == 0)
-        cout << endl;
+        if(j!=0 || i!=0){
+        if(j % 201 == 0)
+        of << endl;}
         
-        cout << grid[i][j];
+        of << potential[i][j] << '?';
     }
+
+    of.close();
+    
+
+    of.open("grid_fine.txt");
+    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
+    {
+        if(j!=0 || i!=0){
+        if(j % 201 == 0)
+        of << endl;}
+        
+        of << grid[i][j] << ' ';
+    }
+    
+    of.close();
     */
 
 }
