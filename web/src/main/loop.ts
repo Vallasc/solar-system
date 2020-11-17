@@ -8,8 +8,6 @@ class Loop {
     private context : CanvasRenderingContext2D;
     private panningOffsetX : number = 0;
     private panningOffsetY : number = 0;
-    private axesOffsetX : number = 0;
-    private axesOffsetY : number = 0;
 
     public selectX : number | null = null;
     public selectY : number | null = null;
@@ -73,8 +71,7 @@ class Loop {
 
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory()
+                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             },{
@@ -87,8 +84,7 @@ class Loop {
 
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory()
+                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             },{
@@ -99,9 +95,8 @@ class Loop {
                 action: () => {
                     if(this.selectedBody.visible){
                         this.axesBodyOffset.clone(this.selectedBody);
-                        this.setAxesOffset(this.axesBodyOffset);
-                        Startup.trajectory.drawTrajectory()
-                        Startup.axes.drawAxes();
+                        //this.setAxesOffset(this.axesBodyOffset);
+                        //Startup.trajectory.drawTrajectory()
                         this.selectedBody.setVisible(false);
                     }
                 }
@@ -112,9 +107,8 @@ class Loop {
                 streched: true,
                 action: () => {
                     this.axesBodyOffset.reset();
-                    this.setAxesOffset(this.axesBodyOffset);
-                    Startup.trajectory.drawTrajectory()
-                    Startup.axes.drawAxes();
+                    //this.setAxesOffset(this.axesBodyOffset);
+                    //Startup.trajectory.drawTrajectory()
                     this.selectedBody.setVisible(false);
                 }
             },{
@@ -182,12 +176,12 @@ class Loop {
         this.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
 
-    private setAxesOffset(selectedBody : Body){
+    //private setAxesOffset(selectedBody : Body){
         //Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
-        Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
-        this.axesOffsetX = selectedBody.x*this.scale;
-        this.axesOffsetY = selectedBody.y*this.scale;
-    }
+        //Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
+    //    this.axesOffsetX = selectedBody.x*this.scale;
+    //    this.axesOffsetY = selectedBody.y*this.scale;
+    //}
 
     private numIteration : number = 0;
     private lastTime : number = 0;
@@ -195,8 +189,6 @@ class Loop {
         this.stats.begin();
 
         //if(time - this.lastTime <= 20){
-        this.context.setTransform(1, 0, 0, 1, 0, 0);
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         if(this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
             let objects = this.buffer.pop();
@@ -253,44 +245,42 @@ class Loop {
     }
 
     private drawStates( objects : Float32Array) {
-        let fillColor = -1;
-        let xBase = this.canvas.width/2 + this.panningOffsetX - this.axesOffsetX;
-        let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesOffsetY;
+        const numParams = Deserializer.bodyNumParams;
 
-        this.context.beginPath();
-        //this.context.scale(1, -1);
+        // Controllo se devo cmabiare il centro degli assi
+        if(this.axesBodyOffset.id != -1){
+            for(let i=0; i<objects[Deserializer.numIterationParam -1]; i++){
+                // Prelevo gli attributi del body
+                let id = objects[Deserializer.numIterationParam + i * numParams + 0];
+                let x = objects[Deserializer.numIterationParam  + i * numParams + 1]; // posizione 1 dell'array
+                let y = objects[Deserializer.numIterationParam  + i * numParams + 2];
+                // Mette l'offset dell'iterazione precednte
+                if( this.axesBodyOffset.id == id){
+                    this.axesBodyOffset.x = x;
+                    this.axesBodyOffset.y = y;
+                    break;
+                } 
+            }
+        }
+        let xBase = this.canvas.width/2 + this.panningOffsetX - this.axesBodyOffset.x*this.scale;
+        let yBase = this.canvas.height/2 + this.panningOffsetY + this.axesBodyOffset.y*this.scale;
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.translate(xBase, yBase);
         this.context.scale(this.scale, -this.scale);
-        //this.context.translate(xBase, yBase);
         this.imatrix = this.context.getTransform().inverse();
-        
-        const numParams = Deserializer.bodyNumParams;
-        //console.log(this.buffer.size);
-        //console.log(objects);
-
+        this.context.beginPath();
 
         // Controllo che ci sia un'occorrenza del body selezionato
         let bodyIsIn = false;
-
+        let fillColor = -1;
         for(let i=0; i<objects[Deserializer.numIterationParam -1]; i++){
+            // Prelevo gli attributi del body
             let id = objects[Deserializer.numIterationParam + i * numParams + 0];
             let x = objects[Deserializer.numIterationParam  + i * numParams + 1]; // posizione 1 dell'array
             let y = objects[Deserializer.numIterationParam  + i * numParams + 2];
             let r = objects[Deserializer.numIterationParam  + i * numParams + 3];
             let t = objects[Deserializer.numIterationParam  + i * numParams + 4];
-
-            if(fillColor != t){ // Cambio colore pennello
-                this.context.closePath();
-                this.context.fill();
-                this.context.beginPath();
-                fillColor = t;
-                this.context.fillStyle = this.getColorFromInt(fillColor); 
-            }
-
-            this.context.moveTo(x, y);
-            this.context.arc(x, y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
-
-            // End draw
 
             // Se il corpo e' stato selezionato
             if( this.selectedBody.id == id && this.selectedBody.visible){
@@ -317,13 +307,20 @@ class Loop {
                     bodyIsIn = false;
                 }
             }
-            // Mette l'offset dell'iterazione precednte
-            if( this.axesBodyOffset.id == id){
-                this.axesBodyOffset.x = x;
-                this.axesBodyOffset.y = y;
-                this.setAxesOffset(this.axesBodyOffset);
-                Startup.axes.drawAxes();
-            } 
+
+
+            // Draw            
+            if(fillColor != t){ // Cambio colore pennello
+                this.context.closePath();
+                this.context.fill();
+                this.context.beginPath();
+                fillColor = t;
+                this.context.fillStyle = this.getColorFromInt(fillColor); 
+            }
+
+            this.context.moveTo(x, y);
+            this.context.arc(x, y, Math.floor(Loop.roundTo1(r)), 0, 2 * Math.PI);
+            // End draw
         }
         this.context.closePath();
         this.context.fill();
