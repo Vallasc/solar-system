@@ -12,8 +12,6 @@ class Axes {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
-        //private axesOffsetX: number = 0;
-        //private axesOffsetY: number = 0;
         this.scale = 1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
@@ -140,10 +138,6 @@ class Axes {
         this.panningOffsetY = y;
         this.drawAxes();
     }
-    /*public setAxesOffset(x: number, y: number){
-        this.axesOffsetX = x;
-        this.axesOffsetY = y;
-    }*/
     setScale(s) {
         this.scale = s;
     }
