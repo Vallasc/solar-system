@@ -40,7 +40,7 @@ class Startup {
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
-            theme: 'light', // dark, light, yorha, or theme object
+            theme: 'dark', // dark, light, yorha, or theme object
             align: 'right', // left, right
             width: Startup.canvasMarginRight,
             barMode: 'offset', // none, overlay, above, offset
