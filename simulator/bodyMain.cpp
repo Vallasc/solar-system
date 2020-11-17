@@ -72,7 +72,7 @@ double rho=300;
 double theta=0, R_module=0;
 #endif
 
-string filename = "prova2"; // Do not specify the extension
+string filename = "sim"; // Do not specify the extension
 
 double uniform_generator(double x_min_, double x_max_)
 {
