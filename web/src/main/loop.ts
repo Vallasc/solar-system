@@ -319,8 +319,8 @@ class Loop {
         }
         if( this.selectedBody.visible){ // Body selezionato
             this.context.beginPath();
-            this.context.strokeStyle = "rgba(0,255,0,0.3)"; 
-            this.context.lineWidth = 2;
+            this.context.strokeStyle = "rgba(0,255,0,0.7)"; 
+            this.context.lineWidth = 1.5;
             this.context.arc(this.selectedBody.x, this.selectedBody.y, this.selectedBody.radius + 4, 0, 2 * Math.PI);
             this.context.closePath();
             this.context.stroke();
