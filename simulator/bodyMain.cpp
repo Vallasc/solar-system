@@ -42,6 +42,10 @@ double t_f = 200; // final time
 double mass_i = 20;
 double radius_i = 1;
 
+//----------------------------------------------
+double Temp_max=0.75*(0.0288*N+13)*mass_i;
+//-------------------------------------------
+
 double ang_mom_tot=0, E_tot=0;
 double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
 double momentum_tot[]{0,0};
@@ -67,7 +71,7 @@ double rho=300;
 double theta=0, R_module=0;
 #endif
 
-string filename = "sim"; // Do not specify the extension
+string filename = "prova2"; // Do not specify the extension
 
 double uniform_generator(double x_min_, double x_max_)
 {
