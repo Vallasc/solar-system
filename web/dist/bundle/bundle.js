@@ -42,8 +42,8 @@ class Axes {
         else
             offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
-        this.context.strokeStyle = "rgba(255,0,0,0.8)";
-        this.context.lineWidth = 2;
+        this.context.strokeStyle = "rgb(120,0,0)";
+        this.context.lineWidth = 1;
         // Draw >  
         this.context.beginPath();
         this.context.moveTo(w - 15, offY + h * 0.5 - 10);
@@ -552,6 +552,8 @@ class Loop {
         this.panningOffsetY = 0;
         this.axesOffsetX = 0;
         this.axesOffsetY = 0;
+        this.currentX = 0;
+        this.currentY = 0;
         this.scale = 1;
         this.loadAllFile = true;
         this.forceLoadAllCheckbox = false;
@@ -559,8 +561,6 @@ class Loop {
         this.isEof = false;
         this.readEnd = false;
         this.bufferSize = 90;
-        this.currentX = 0;
-        this.currentY = 0;
         this.reqId = -1;
         this.selectX = null;
         this.selectY = null;
@@ -599,6 +599,7 @@ class Loop {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
+                    Startup.trajectory.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                     Startup.axes.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                     this.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                 }
@@ -611,6 +612,7 @@ class Loop {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
+                    Startup.trajectory.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                     Startup.axes.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                     this.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                 }
@@ -623,6 +625,7 @@ class Loop {
                     if (this.selectedBody.visible) {
                         this.currentX = this.selectedBody.x;
                         this.currentY = this.selectedBody.y;
+                        Startup.trajectory.setAxesOffset(this.currentX * this.scale, this.currentY * this.scale);
                         Startup.axes.setAxesOffset(this.selectedBody.x * this.scale, this.selectedBody.y * this.scale);
                         this.setAxesOffset(this.selectedBody.x * this.scale, this.selectedBody.y * this.scale);
                     }
@@ -636,6 +639,7 @@ class Loop {
                     if (this.selectedBody.visible) {
                         this.currentX = 0;
                         this.currentY = 0;
+                        Startup.trajectory.setAxesOffset(0, 0);
                         Startup.axes.setAxesOffset(0, 0);
                         this.setAxesOffset(0, 0);
                     }
@@ -1174,6 +1178,8 @@ class Trajectory {
     constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
+        this.axesOffsetX = 0;
+        this.axesOffsetY = 0;
         this.points = [];
         this.maxSize = 1000;
         this.scale = 1;
@@ -1188,9 +1194,9 @@ class Trajectory {
         this.drawTrajectory();
     }
     drawTrajectory() {
-        let xBase = this.canvas.width / 2 + this.panningOffsetX;
-        let yBase = this.canvas.height / 2 + this.panningOffsetY;
-        this.context.strokeStyle = "rgba(255,255,255,0.4)";
+        let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesOffsetX;
+        let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesOffsetY;
+        this.context.strokeStyle = "rgba(0,0,0,0.6)";
         this.context.lineWidth = 0.8;
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -1213,6 +1219,11 @@ class Trajectory {
     setPanningOffset(x, y) {
         this.panningOffsetX = x;
         this.panningOffsetY = y;
+        this.drawTrajectory();
+    }
+    setAxesOffset(x, y) {
+        this.axesOffsetX = x;
+        this.axesOffsetY = y;
         this.drawTrajectory();
     }
     setScale(s) {
