@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -34,11 +35,11 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 1000; // number of bodies
+int N = 500; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
-double mass_i = 50;
+double mass_i = 20;
 double radius_i = 1;
 
 //----------------------------------------------
@@ -59,8 +60,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=500;
-double v_max=4;
+double rho=300;
+double v_max=2;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
@@ -243,8 +244,8 @@ int feedback(int &response)
 {
     string answer;
 
-    cout<<"Do you want to start the computation? (\"YES\", \"NO\")"<<endl;
-    cout<<"Answer: ";
+    std::cout << "Do you want to start the computation? (\"YES\", \"NO\")"<<endl;
+    std::cout<<"Answer: ";
     cin>>answer;
     if(answer == "YES" || answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
     {
@@ -258,7 +259,7 @@ int feedback(int &response)
     }
     else
     {
-        cout<<"\nINPUT ERROR. RETRY PLEASE.\n";
+        std::cout<<"\nINPUT ERROR. RETRY PLEASE.\n";
         return 0;
     }
     
@@ -279,17 +280,75 @@ total_energies[0] += (total_energies[1] + total_energies[2] + total_energies[3] 
 void loading_bar(double step)
 {
     int n = int(step/10);
-    cout << "\r" << "??" << ' ' <<flush;
+    std::cout << "\r" << "??" << ' ' <<flush;
     for(int i=0; i<n; ++i)
-    cout <<  '|' << ' ' << flush; 
+    std::cout <<  '|' << ' ' << flush; 
     for(int i=0; i<10-n; ++i)
     {
-        if(i==0) cout << ' ' << flush;
-        cout << ' ' << ' ' << flush;
+        if(i==0) std::cout << ' ' << flush;
+        std::cout << ' ' << ' ' << flush;
     }
-    cout << "??" << ' ' << flush;
+    std::cout << "??" << ' ' << flush;
 
    }
+
+
+int x_max = 500; 
+int y_max = 500;
+int delta = 5;
+int x_index = 2*x_max/delta + 1;
+int y_index = 2*y_max/delta + 1;
+double alpha = 1.2;
+
+double** grid;
+double** potential;
+double** error;
+
+void create_pointers()
+{
+    grid = new double*[x_index];
+    potential = new double*[x_index];
+    error = new double*[x_index];
+
+     for(int i=0; i<x_index; ++i) 
+    {
+        grid[i] = new double[y_index]; 
+        potential[i] = new double[y_index];
+        error[i] = new double[y_index];
+    }
+
+    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
+    {grid[i][j]=0; potential[i][j]=0;}
+
+}
+
+void make_grid(vector<Body> &bodies)
+{
+
+int i, j;
+
+    for(vector<Body>::iterator k=bodies.begin(); k<bodies.end(); ++k)
+    {
+        //modf((*k).position[0], &i);
+        //modf((*k).position[1], &j);
+        i = int((*k).position[0]);
+        j = int((*k).position[1]);
+        i+=500;
+        j+=500;
+        i = i/delta;
+        j = j/delta;
+        ++grid[i][j];        
+    }
+}
+
+double next(double** &potential, double** &grid)
+{
+    for(int i=1; i<x_index-1; ++i ) for(int j=1; j<y_index-1; ++j)
+    {
+    error[i][j] = potential[i][j]-(potential[i+1][j] + potential[i-1][j] + potential[i][j+1] + potential[i][j-1] - grid[i][j]*delta*delta)/4;
+    potential[i][j] = potential[i][j] - alpha*error[i][j];
+    }
+}
 
 int main(){
 
@@ -308,6 +367,42 @@ int main(){
 
     //compute position and velocity of the center of mass and lock the reference
     compute_CM(bodies);
+
+    /*
+    for(vector<Body>::iterator k=bodies.begin(); k<bodies.end(); ++k)
+    {cout << "x: " << (*k).position[0] << '\n' << flush
+         << "y: " << (*k).position[1] << endl;}
+    */
+
+    //create pointers
+    create_pointers();
+
+    //make grid
+    make_grid(bodies);
+
+    //initial potential
+    //for(int k=0; k<1000; ++k) next(potential, grid);
+
+    
+    ofstream of("grid.txt");
+    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
+    {
+        if(j!=0 || i!=0){
+        if(j % 201 == 0)
+        of << endl;}
+        
+        of << grid[i][j] << ' ';
+    }
+    
+    /*
+    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
+    {
+        if(i%10 == 0)
+        cout << endl;
+        
+        cout << grid[i][j];
+    }
+    */
 
     //initial conservatives parameters
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -423,12 +518,23 @@ int main(){
         check_up((*j));
     }
 
-    cout<< ' ' << endl << "COMPLETED                          "<<endl<<endl;
-    cout<<"Final state of the system: "<<endl;
-    cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
+    cout << ' ' << endl << "COMPLETED                          "<<endl<<endl;
+    cout << "Final state of the system: "<<endl;
+    cout << "Total angular momentum: "<<ang_mom_tot<<endl;
     cout<<"Total energy: " << E_tot <<endl;
     cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+
+    /*
+    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
+    {
+        if(i%10 == 0)
+        cout << endl;
+        
+        cout << grid[i][j];
+    }
+    */
+
 }
 
 extern "C"{
