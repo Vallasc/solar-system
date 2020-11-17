@@ -84,11 +84,11 @@ class Startup {
             element: Startup.loop.chart.container,
         },{
             type: 'folder',
-            label: 'Controls',
+            label: 'Selected',
             open: true
         },{
             type: 'folder',
-            label: 'Selected',
+            label: 'Controls',
             open: true
         },{
             type: 'folder',
