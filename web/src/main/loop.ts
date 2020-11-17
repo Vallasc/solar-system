@@ -10,6 +10,8 @@ class Loop {
     private panningOffsetY: number = 0;
     private axesOffsetX: number = 0;
     private axesOffsetY: number = 0;
+    private currentX : number = 0;
+    private currentY : number = 0;
 
     private scale: number = 1;
     private imatrix: DOMMatrix;
@@ -23,8 +25,6 @@ class Loop {
     private isEof : boolean = false;
     private readEnd : boolean = false;
     private bufferSize: number = 90;
-    private currentX : number = 0;
-    private currentY : number = 0;
 
     private lastObjects : Float32Array | null;
 
@@ -69,6 +69,7 @@ class Loop {
                     this.scale -= 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
+                    Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                     Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                     this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                 }
@@ -81,6 +82,7 @@ class Loop {
                     this.scale += 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
+                    Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                     Startup.axes.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                     this.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                 }
@@ -93,6 +95,7 @@ class Loop {
                     if(this.selectedBody.visible){
                         this.currentX = this.selectedBody.x;
                         this.currentY = this.selectedBody.y;
+                        Startup.trajectory.setAxesOffset(this.currentX*this.scale, this.currentY*this.scale);
                         Startup.axes.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
                         this.setAxesOffset(this.selectedBody.x*this.scale, this.selectedBody.y*this.scale);
                     }
@@ -106,6 +109,7 @@ class Loop {
                     if(this.selectedBody.visible){
                         this.currentX = 0;
                         this.currentY = 0;
+                        Startup.trajectory.setAxesOffset(0, 0);
                         Startup.axes.setAxesOffset(0, 0);
                         this.setAxesOffset(0, 0);
                     }
