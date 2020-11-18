@@ -44,3 +44,4 @@ simulator/out
 *.old
 simulator/close_orbital.zip
 simulator/prova2.zip
+simulator/stimaT.cpp

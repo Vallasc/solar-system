@@ -40,7 +40,7 @@ int N = 500; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
-double mass_i = 20;
+double mass_i = 100;
 double radius_i = 1;
 
 //----------------------------------------------
@@ -260,7 +260,7 @@ int feedback(int &response)
     }
     else
     {
-        std::cout<<"\nINPUT ERROR. RETRY PLEASE.\n";
+        std::cout<<"\nINPUT ERROR. PLEASE RETRY.\n";
         return 0;
     }
     
@@ -342,7 +342,7 @@ int i, j;
     }
 }
 
-double next(double** &potential, double** &grid)
+void next(double** &potential, double** &grid)
 {
     for(int i=1; i<x_index-1; ++i ) for(int j=1; j<y_index-1; ++j)
     {
