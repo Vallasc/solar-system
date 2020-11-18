@@ -313,3 +313,10 @@ int main(){
 
 }
 
+extern "C"{	
+    int web_main(){	
+        override_input = true;	
+        return main();	
+    }	
+}
+
