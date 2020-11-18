@@ -8,6 +8,7 @@
 
 #include "serializer.h"
 #include "body.h"
+#include "functions.h"
 
 #define POLAR               // coordinates
 //#define CARTESIAN
@@ -21,38 +22,7 @@
 
 using namespace std;
 
-//--------------------------- scaling magnitudes ----------------------------
-extern long long int L; // Earth-Sun distance
-extern long double G; // gravitational constant
-extern long double M; // Earth's mass
-
-extern long double T; 
-extern long double F; 
-extern long double V; 
-extern long double A;
-extern long double E;
-extern long double P;
-extern long double M_A;
-
-//------------------------------- global parameters ----------------------------
-
-int N = 500; // number of bodies
-double t = 0; // time
-double dt = 0.01; // time interval
-double t_f = 200; // final time
-double mass_i = 100;
-double radius_i = 1;
-
-//----------------------------------------------
-double Temp_max=0.75*(0.0288*N+13)*mass_i;
-//-------------------------------------------
-
-double ang_mom_tot=0, E_tot=0;
-double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
-double momentum_tot[]{0,0};
-
-bool override_input = false;
-
+//----------------------------defining coordinates---------------------------------------
 #ifdef CARTESIAN
 //cartesian coordinates
 double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
@@ -71,285 +41,55 @@ double theta=0, phi=0, R_module=0, V_module=0;
 double rho=300;
 double theta=0, R_module=0;
 #endif
+//-----------------------------------------------------------------
 
-string filename = "sim"; // Do not specify the extension
+//--------------------------- scaling magnitudes ----------------------------
+extern long long int L; // Earth-Sun distance
+extern long double G; // gravitational constant
+extern long double M; // Earth's mass
 
-double uniform_generator(double x_min_, double x_max_)
-{
-    double r = ((double)(rand())) / RAND_MAX;
-    return x_min_ + r * (x_max_ - x_min_);
-}
+extern long double T; 
+extern long double F; 
+extern long double V; 
+extern long double A;
+extern long double E;
+extern long double P;
+extern long double M_A;
 
-double uniform_generator_polar(double x_min_, double x_max_)
-{
-    double r = ((double)(rand())) / RAND_MAX;
-    return x_min_ + pow(r,0.5) * (x_max_ - x_min_);
-}
+//------------------------------- global parameters ----------------------------
 
-void compute_CM(vector<Body> &bodies)
-{
-    double position_CM[]{0,0}; //position center of mass
-    double velocity_CM[]{0,0}; //velocity center of mass
-    double total_mass=0; //total mass of the system
+int N = 100; // number of bodies
+double t = 0; // time
+double dt = 0.01; // time interval
+double t_f = 200; // final time
+double mass_i = 100;
+double radius_i = 1;
 
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {    
-        total_mass += (*j).mass;
-        position_CM[0] += (*j).mass * ((*j).position[0]);
-        position_CM[1] += (*j).mass * ((*j).position[1]);
-        velocity_CM[0] += (*j).mass * ((*j).velocity[0]);
-        velocity_CM[1] += (*j).mass * ((*j).velocity[1]);
-         
-    }
-    position_CM[0] = position_CM[0]/total_mass;
-    position_CM[1] = position_CM[1]/total_mass;
-    velocity_CM[0] = velocity_CM[0]/total_mass;
-    velocity_CM[1] = velocity_CM[1]/total_mass;
+//------------------Temperature estimation----------------------------
+double Temp_max=0.75*(0.0288*N+13)*mass_i;
+//-------------------------------------------
 
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {    
-        (*j).position[0] -= position_CM[0];
-        (*j).position[1] -= position_CM[1];
-        (*j).velocity[0] -= velocity_CM[0];
-        (*j).velocity[1] -= velocity_CM[1];
-         
-    }
-}
+//--------------------conservation parameters--------------------
+double ang_mom_tot=0, E_tot=0;
+double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
+double momentum_tot[]{0,0};
+//--------------------------------------------------------------
 
-void initial_condition(vector<Body> &bodies, double* position_i, double* velocity_i)
-{
-    for(int j=0; j<N; j++)
-    { 
-        #ifdef CARTESIAN
-        position_i[0] = uniform_generator(x_min, x_max);
-        position_i[1] = uniform_generator(x_min, x_max);
-        velocity_i[0] = uniform_generator(v_min, v_max);
-        velocity_i[1] = uniform_generator(v_min, v_max);
-        #endif
+//--------------------grid variables---------------------------
+int x_grid_max = 500; 
+int y_grid_max = 500;
+int delta = 5;//discretization parameter
+int x_index = 2*x_grid_max/delta + 1;
+int y_index = 2*y_grid_max/delta + 1;
+double alpha = 1.2; //convergence parameter
+//-----------------------------------------------------------
 
-        #ifdef POLAR
-        theta = uniform_generator(0, 2*M_PI);
-        phi = uniform_generator(0, 2*M_PI);
-        R_module = uniform_generator_polar(0,rho);
-        V_module = uniform_generator_polar(0, v_max);
-        position_i[0] = R_module*cos(theta);
-        position_i[1] = R_module*sin(theta);
-        velocity_i[0] = V_module*cos(phi);
-        velocity_i[1] = V_module*sin(phi);
-        #endif
-       
-        #ifdef POLAR_VORTEX
-        theta = uniform_generator(0, 2*M_PI);
-        R_module = uniform_generator_polar(0, rho);
-        position_i[0] = R_module*cos(theta);
-        position_i[1] = R_module*sin(theta);
-        velocity_i[0] = -(1/10)*(300-R_module)*sin(theta);
-        velocity_i[1] = (1/10)*(300-R_module)*cos(theta);
-        #endif
+//file name
+string filename = "prova2"; // Do not specify the extension
 
-        bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
-    }
+//web app
+bool override_input = false;
 
-
-}
-
-void check_up(Body &j)
-{
-    ang_mom_tot += j.get_orbital_momentum() + j.spin;
-    momentum_tot[0] += j.get_x_momentum();
-    momentum_tot[1] += j.get_y_momentum();
-    E_tot += (j.get_kinetic_energy() + j.internal_energy + 0.5*j.potential_energy + j.binding_energy);
-
-}
-
-void collision(vector<Body> &bodies)
-{
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-    {
-        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
-        {             
-            // computing the distance of each couple of bodies: if this distance is minor than the sum of 
-            // their radius, we merge them
-            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
-            {
-                if((*j).radius > (*k).radius)
-                {
-                   (*j).merge(*k);
-                    bodies.erase(k); 
-                }
-                else
-                {
-                    (*k).merge(*j);
-                    bodies.erase(j);
-                }
-                
-            }
-        }
-    }
-
-    bodies.shrink_to_fit();
-
-}
-
-void euler_dynamic(vector<Body> &bodies)
-{
-    //reset potential energy
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
-        (*j).potential_energy = 0;
-    }
-
-    //compute force and potential energy
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-    {   
-        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k){
-            Body::force_and_potential(*j, *k);
-        }
-    }
-    
-    // evolving the position and the velocity of each particle in dt
-    for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i) 
-    {
-        (*i).update_pos_vel(dt); 
-    }
-}
-
-void simpletic_dynamic(vector<Body> &bodies)
-{
-        for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j) 
-    {
-        (*j).update_position(dt/2);
-        (*j).potential_energy = 0;
-        (*j).acceleration[0] = 0;
-        (*j).acceleration[1] = 0;
-    }
-        
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
-        if(j != bodies.end()-1)
-        {
-            for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
-            {
-                Body::force_and_potential(*j, *k);
-            }
-        }
-
-        (*j).update_velocity(dt);
-        (*j).update_position(dt/2);
-            
-    }
-
-}
-
-int feedback(int &response)
-{
-    string answer;
-
-    std::cout << "Do you want to start the computation? (\"YES\", \"NO\")"<<endl;
-    std::cout<<"Answer: ";
-    cin>>answer;
-    if(answer == "YES" || answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-    {
-        response = 1;
-        return 1;
-    }
-    else if(answer == "NO" || answer =="no" || answer == "No" || answer == "n" || answer == "N")
-    {
-        response = 0;
-        return 1;
-    }
-    else
-    {
-        std::cout<<"\nINPUT ERROR. PLEASE RETRY.\n";
-        return 0;
-    }
-    
-}
-
-void get_total_energies(vector<Body> &bodies)
-{
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
-        total_energies[1] += (*j).get_kinetic_energy();
-        total_energies[2] += (*j).internal_energy;
-        total_energies[3] += 0.5*(*j).potential_energy;
-        total_energies[4] += (*j).binding_energy;
-    }
-total_energies[0] += (total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4]);
-}
- 
-void loading_bar(double step)
-{
-    int n = int(step/10);
-    std::cout << "\r" << "??" << ' ' <<flush;
-    for(int i=0; i<n; ++i)
-    std::cout <<  '|' << ' ' << flush; 
-    for(int i=0; i<10-n; ++i)
-    {
-        if(i==0) std::cout << ' ' << flush;
-        std::cout << ' ' << ' ' << flush;
-    }
-    std::cout << "??" << ' ' << flush;
-
-   }
-
-
-int x_max = 500; 
-int y_max = 500;
-int delta = 5;
-int x_index = 2*x_max/delta + 1;
-int y_index = 2*y_max/delta + 1;
-double alpha = 1.2;
-
-double** grid;
-double** potential;
-double** error;
-
-void create_pointers()
-{
-    grid = new double*[x_index];
-    potential = new double*[x_index];
-    error = new double*[x_index];
-
-     for(int i=0; i<x_index; ++i) 
-    {
-        grid[i] = new double[y_index]; 
-        potential[i] = new double[y_index];
-        error[i] = new double[y_index];
-    }
-
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {grid[i][j]=0; potential[i][j]=0;}
-
-}
-
-void make_grid(vector<Body> &bodies)
-{
-
-int i, j;
-
-    for(vector<Body>::iterator k=bodies.begin(); k<bodies.end(); ++k)
-    {
-        //modf((*k).position[0], &i);
-        //modf((*k).position[1], &j);
-        i = int((*k).position[0]);
-        j = int((*k).position[1]);
-        i+=500;
-        j+=500;
-        i = i/delta;
-        j = j/delta;
-        if(i<x_index && j<y_index) grid[i][j] += (*k).mass/mass_i;        
-    }
-}
-
-void next(double** &potential, double** &grid)
-{
-    for(int i=1; i<x_index-1; ++i ) for(int j=1; j<y_index-1; ++j)
-    {
-    error[i][j] = potential[i][j]-(potential[i+1][j] + potential[i-1][j] + potential[i][j+1] + potential[i][j-1] - grid[i][j]*delta*delta)/4;
-    potential[i][j] = potential[i][j] - alpha*error[i][j];
-    }
-}
 
 int main(){
 
@@ -359,6 +99,11 @@ int main(){
     double velocity_i[2];
     double step = 0;
     int n_iteration = 0;
+
+    //grid
+    double** grid;
+    double** potential;
+    double** error;
 
     //random seed
     srand(time(NULL)); 
@@ -376,13 +121,13 @@ int main(){
     */
 
     //create pointers
-    create_pointers();
+    create_pointers(grid, potential, error);
 
     //make grid
-    //make_grid(bodies);
+    make_grid(bodies, grid);
 
     //initial potential
-    //for(int k=0; k<1000; ++k) next(potential, grid);
+    for(int k=0; k<1000; ++k) next(potential, grid, error);
 
     /*
     ofstream of("grid_inizio.txt");
@@ -533,10 +278,10 @@ int main(){
 
 
     //make grid
-    make_grid(bodies);
+    //make_grid(bodies);
 
     //initial potential
-    for(int k=0; k<1000; ++k) next(potential, grid);
+    //for(int k=0; k<1000; ++k) next(potential, grid);
         
     /*
     ofstream of("potential_fine.txt");
@@ -568,9 +313,3 @@ int main(){
 
 }
 
-extern "C"{
-    int web_main(){
-        override_input = true;
-        return main();
-    }
-}
