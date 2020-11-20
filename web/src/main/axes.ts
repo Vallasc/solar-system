@@ -22,7 +22,7 @@ class Axes {
         let offX : number = 0;
         let offY : number = 0;
 
-        let margin : number = 20;
+        let margin : number = 30;
 
         distGrids *= this.scale;
 
@@ -144,26 +144,8 @@ class Axes {
         
         this.context.fillStyle = "rgb(60,0,0)";
         this.context.font = "15px Arial"
-        if((offY < margin - (h*0.5) + 15) && (offX > (w*0.5) - margin - 40)) {
-            this.context.fillText('Y',w/2-20 + offX, 70);
-            this.context.fillText('X',w/2-40 + offX, 40);
-        } else if((offY < margin - (h*0.5) + 15) && (offX <= (w*0.5) - margin - 40)) {
-            this.context.fillText('Y',w/2+20 + offX, 50);
-            this.context.fillText('X',w-30, h/2 + 30 + offY);
-        } else if((offY > (h*0.5) - margin - 30) && (offX > (w*0.5) - margin - 40)) {
-            this.context.fillText('Y',w/2-30 + offX, 30);
-            this.context.fillText('X',w/2-20 + offX, h/2 - 30 + offY);
-        } else if((offX > (w*0.5) - margin - 40)){
-            this.context.fillText('X',w/2-20 + offX, h/2 + 30 + offY);
-            this.context.fillText('Y',w/2-30 + offX, 30);
-        } else if((offY > (h*0.5) - margin - 30) && (offX <= (w*0.5) - margin - 40)) {
-            this.context.fillText('Y',w/2+20 + offX, 30);
-            this.context.fillText('X',w-30, h/2 - 30 + offY);
-        } 
-        else {
-            this.context.fillText('Y',w/2+20 + offX, 30);
-            this.context.fillText('X',w-30, h/2 + 30 + offY);
-        }
+        this.context.fillText('Y',w/2-20 + offX, 40);
+        this.context.fillText('X',w-40, h/2+20 + offY);
         
     }
 
