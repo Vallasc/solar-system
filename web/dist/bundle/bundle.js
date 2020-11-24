@@ -25,7 +25,7 @@ class Axes {
         let bigEvery = 5; // 1 big every 5 small
         let offX = 0;
         let offY = 0;
-        let margin = 20;
+        let margin = 50;
         distGrids *= this.scale;
         if (this.panningOffsetX >= (w * 0.5) - margin)
             offX = (w * 0.5) - margin;
@@ -134,41 +134,27 @@ class Axes {
         }
         this.context.fillStyle = "rgb(60,0,0)";
         this.context.font = "15px Arial";
-        /* if((offY < margin - (h*0.5) + 15) && (offX > (w*0.5) - margin - 40)) {
-             this.context.fillText('Y',w/2-20 + offX, 70);
-             this.context.fillText('X',w/2-40 + offX, 40);
-         } else if((offY < margin - (h*0.5) + 15) && (offX <= (w*0.5) - margin - 40)) {
-             this.context.fillText('Y',w/2+20 + offX, 50);
-             this.context.fillText('X',w-30, h/2 + 30 + offY);
-         } else if((offY > (h*0.5) - margin - 30) && (offX > (w*0.5) - margin - 40)) {
-             this.context.fillText('Y',w/2-30 + offX, 30);
-             this.context.fillText('X',w/2-20 + offX, h/2 - 30 + offY);
-         } else if((offX > (w*0.5) - margin - 40)){
-             this.context.fillText('X',w/2-20 + offX, h/2 + 30 + offY);
-             this.context.fillText('Y',w/2-30 + offX, 30);
-         } else if((offY > (h*0.5) - margin - 30) && (offX <= (w*0.5) - margin - 40)) {
-             this.context.fillText('Y',w/2+20 + offX, 30);
-             this.context.fillText('X',w-30, h/2 - 30 + offY);
-         }
-         else { */
         this.context.fillText('Y', w / 2 + 20 + offX, 30);
         this.context.fillText('X', w - 30, h / 2 + 30 + offY);
-        // }
-        this.context.fillText(': 1 astronomic unit', w - 180, h - 70);
+        this.context.fillText(': 1 astronomic unit', w - 170, h - 70);
         let scaleString = 'scale: ';
         let roundScale = Math.round(this.scale * 10) / 10;
         let str = scaleString.concat(roundScale.toString());
-        this.context.fillText(str, w - 180, h - 40);
+        this.context.fillText(str, w - 150, h - 40);
         this.context.strokeStyle = "rgb(60,0,0)";
         this.context.lineWidth = 1;
-        this.context.moveTo(w - 200, h - 60);
-        this.context.lineTo(w - 50, h - 60);
-        this.context.moveTo(w - 195, h - 78);
-        this.context.lineTo(w - 195, h - 70);
-        this.context.moveTo(w - 185, h - 78);
-        this.context.lineTo(w - 185, h - 70);
-        this.context.moveTo(w - 195, h - 74);
-        this.context.lineTo(w - 185, h - 74);
+        //long line
+        this.context.moveTo(w - 180 - distGrids, h - 60);
+        this.context.lineTo(w - 40, h - 60);
+        // first |
+        this.context.moveTo(w - 175 - distGrids, h - 78);
+        this.context.lineTo(w - 175 - distGrids, h - 70);
+        // second |
+        this.context.moveTo(w - 175, h - 78);
+        this.context.lineTo(w - 175, h - 70);
+        // central -
+        this.context.moveTo(w - 175 - distGrids, h - 74);
+        this.context.lineTo(w - 175, h - 74);
         this.context.stroke();
     }
     setPanningOffset(x, y) {
