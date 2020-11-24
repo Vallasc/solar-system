@@ -136,7 +136,7 @@ class Axes {
         this.context.font = "15px Arial";
         this.context.fillText('Y', w / 2 + 20 + offX, 30);
         this.context.fillText('X', w - 30, h / 2 + 30 + offY);
-        this.context.fillText(': 1 astronomic unit', w - 170, h - 70);
+        this.context.fillText(': 1 astronomical unit', w - 170, h - 70);
         let scaleString = 'scale: ';
         let roundScale = Math.round(this.scale * 10) / 10;
         let str = scaleString.concat(roundScale.toString());
@@ -145,7 +145,7 @@ class Axes {
         this.context.lineWidth = 1;
         //long line
         this.context.moveTo(w - 180 - distGrids, h - 60);
-        this.context.lineTo(w - 40, h - 60);
+        this.context.lineTo(w - 30, h - 60);
         // first |
         this.context.moveTo(w - 175 - distGrids, h - 78);
         this.context.lineTo(w - 175 - distGrids, h - 70);
