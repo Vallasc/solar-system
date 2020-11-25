@@ -58,7 +58,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
@@ -66,7 +66,7 @@ double mass_i = 100;
 double radius_i = 1;
 
 //------------------Temperature estimation----------------------------
-double Temp_max=0.75*(0.0288*N+13)*mass_i;
+double Temp_max=5*(0.0288*N+13)*mass_i;
 //-------------------------------------------
 
 //--------------------conservation parameters--------------------

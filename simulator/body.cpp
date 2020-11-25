@@ -77,15 +77,17 @@ int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
-    if(temperature < Temp_max/10) color = 1;
-    else if(temperature < 2*Temp_max/10) color = 2;
-    else if(temperature < 3*Temp_max/10) color = 3;
-    else if(temperature < 4*Temp_max/10) color = 4;
-    else if(temperature < 5*Temp_max/10) color = 5;
-    else if(temperature < 6*Temp_max/10) color = 6;
-    else if(temperature < 7*Temp_max/10) color = 7;
-    else if(temperature < 8*Temp_max/10) color = 8;
-    else if(temperature < 9*Temp_max/10) color = 9;
+    double log_temperature = log(temperature);
+    double log_Temp_max_resc = log(Temp_max)/10;
+    if(log_temperature < log_Temp_max_resc) color = 1;
+    else if(log_temperature < 2*log_Temp_max_resc) color = 2;
+    else if(log_temperature < 3*log_Temp_max_resc) color = 3;
+    else if(log_temperature < 4*log_Temp_max_resc) color = 4;
+    else if(log_temperature < 5*log_Temp_max_resc) color = 5;
+    else if(log_temperature < 6*log_Temp_max_resc) color = 6;
+    else if(log_temperature < 7*log_Temp_max_resc) color = 7;
+    else if(log_temperature < 8*log_Temp_max_resc) color = 8;
+    else if(log_temperature < 9*log_Temp_max_resc) color = 9;
     else color = 10;
     
     return color;
