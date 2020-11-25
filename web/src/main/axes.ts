@@ -22,7 +22,7 @@ class Axes {
         let offX : number = 0;
         let offY : number = 0;
 
-        let margin : number = 30;
+        let margin : number = 50;
 
         distGrids *= this.scale;
 
@@ -144,8 +144,29 @@ class Axes {
         
         this.context.fillStyle = "rgb(60,0,0)";
         this.context.font = "15px Arial"
-        this.context.fillText('Y',w/2-20 + offX, 40);
-        this.context.fillText('X',w-40, h/2+20 + offY);
+        this.context.fillText('Y',w/2+20 + offX, 30);
+        this.context.fillText('X',w-30, h/2 + 30 + offY);
+
+        this.context.fillText(': 1 astronomical unit',w-170, h-70);
+        let scaleString : string = 'scale: ';
+        let roundScale : number = Math.round(this.scale * 10) / 10
+        let str : string = scaleString.concat(roundScale.toString());
+        this.context.fillText(str,w-150, h-40);
+        this.context.strokeStyle = "rgb(60,0,0)"; 
+        this.context.lineWidth = 1;
+        //long line
+        this.context.moveTo(w-180 - distGrids, h-60);
+        this.context.lineTo(w-30, h-60);
+        // first |
+        this.context.moveTo(w-175 - distGrids, h-78);
+        this.context.lineTo(w-175 - distGrids, h-70);
+        // second |
+        this.context.moveTo(w-175, h-78);
+        this.context.lineTo(w-175, h-70);
+        // central -
+        this.context.moveTo(w-175 - distGrids, h-74);
+        this.context.lineTo(w-175, h-74);
+        this.context.stroke();
         
     }
 
