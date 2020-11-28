@@ -83,6 +83,13 @@ class Startup {
             label: 'Energy chart',
             element: Startup.loop.chart.container,
         },{
+            type: 'button',
+            label: 'Show charts',
+            streched: true,
+            action: () => {
+                window.open("charts.html");
+            }
+        },{
             type: 'folder',
             label: 'Selected',
             open: true
