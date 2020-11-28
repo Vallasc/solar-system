@@ -8,21 +8,8 @@
 #include <vector>
 
  
-//--------------------------- scaling magnitudes ----------------------------
-long long int L = 149597870700; // Earth-Sun distance
-long double G = 6.67408e-11; // gravitational constant
-long double M = 5.972e24; // Earth's mass
-
-long double T = sqrt(pow(L, 3)/(G*M)); 
-long double F = (G*pow(M, 2)/pow(L, 2)); 
-long double V = L/T; 
-long double A = L/pow(T,2);
-long double E = F*L;
-long double P = M*V;
-long double M_A = P*L;
 
 extern double Temp_max;
-
 
 
 //-------------------class constructors and operators-----------------------
@@ -77,17 +64,15 @@ int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
-    double log_temperature = log(temperature);
-    double log_Temp_max_resc = log(Temp_max)/10;
-    if(log_temperature < log_Temp_max_resc) color = 1;
-    else if(log_temperature < 2*log_Temp_max_resc) color = 2;
-    else if(log_temperature < 3*log_Temp_max_resc) color = 3;
-    else if(log_temperature < 4*log_Temp_max_resc) color = 4;
-    else if(log_temperature < 5*log_Temp_max_resc) color = 5;
-    else if(log_temperature < 6*log_Temp_max_resc) color = 6;
-    else if(log_temperature < 7*log_Temp_max_resc) color = 7;
-    else if(log_temperature < 8*log_Temp_max_resc) color = 8;
-    else if(log_temperature < 9*log_Temp_max_resc) color = 9;
+    if(temperature < Temp_max/10) color = 1;
+    else if(temperature < 2*Temp_max/10) color = 2;
+    else if(temperature < 3*Temp_max/10) color = 3;
+    else if(temperature < 4*Temp_max/10) color = 4;
+    else if(temperature < 5*Temp_max/10) color = 5;
+    else if(temperature < 6*Temp_max/10) color = 6;
+    else if(temperature < 7*Temp_max/10) color = 7;
+    else if(temperature < 8*Temp_max/10) color = 8;
+    else if(temperature < 9*Temp_max/10) color = 9;
     else color = 10;
     
     return color;
@@ -95,12 +80,23 @@ int Body::get_color()
 
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
-void Body::merge(Body& a)
-    {
+double* Body::merge(Body& a)
+    {    
+        //dummy array
+        double* old_parameters = new double[8];
+        old_parameters[0] = this->position[0];
+        old_parameters[1] = this->position[1];
+        old_parameters[2] = a.position[0];
+        old_parameters[3] = a.position[1];
+        old_parameters[4] = this->mass;
+        old_parameters[5] = a.mass;
+        old_parameters[6] = this->potential_energy;
+        old_parameters[7] = a.potential_energy;
+
         //dummy variables
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
         double orbital_initial = a.get_orbital_momentum() + this->get_orbital_momentum();
-        double delta_potential = -(this->mass*a.mass)/distance(*this,a);
+        double delta_potential = (-(this->mass*a.mass)/distance(*this,a));
 
         //center of mass position
         this->position[0] = (a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);
@@ -120,29 +116,31 @@ void Body::merge(Body& a)
         this->internal_energy += (a.internal_energy + (kinetic_initial - this->get_kinetic_energy()));
 
         //update the binding energy.
-        this->binding_energy += delta_potential + a.binding_energy;
+        this->binding_energy += a.binding_energy;
         
-        this->potential_energy -= delta_potential;
-        
+        //this->potential_energy -= delta_potential;
+        this->potential_energy=0;
+
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
 
+        return old_parameters;
     }
 
 //b.print(); show all attributes of b.
 void Body::print()
 {
-    std::cout<<"position: "<<this->position[0]*L<<", "<<this->position[1]*L<<std::endl;
-    std::cout<<"velocity: "<<this->velocity[0]*V<<", "<<this->velocity[1]*V<<std::endl;
-    std::cout<<"acceleration: "<<this->acceleration[0]*A<<", "<<this->acceleration[1]*A<<std::endl;
-    std::cout<<"radius: "<<this->radius*L<<std::endl;
-    std::cout<<"mass: "<<this->mass*M<<std::endl;
-    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()*E<<std::endl;
-    std::cout<<"internal energy: "<<this->internal_energy*E<<std::endl;
-    std::cout<<"binding energy: "<<this->binding_energy*E<<std::endl;
-    std::cout<<"potential energy: "<<this->potential_energy*E<<std::endl;
-    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()*M_A<<std::endl;
-    std::cout<<"spin: "<<this->spin*M_A<<"\n\n";
+    std::cout<<"position: "<<this->position[0]<<", "<<this->position[1]<<std::endl;
+    std::cout<<"velocity: "<<this->velocity[0]<<", "<<this->velocity[1]<<std::endl;
+    std::cout<<"acceleration: "<<this->acceleration[0]<<", "<<this->acceleration[1]<<std::endl;
+    std::cout<<"radius: "<<this->radius<<std::endl;
+    std::cout<<"mass: "<<this->mass<<std::endl;
+    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
+    std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
+    std::cout<<"binding energy: "<<this->binding_energy<<std::endl;
+    std::cout<<"potential energy: "<<this->potential_energy<<std::endl;
+    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()<<std::endl;
+    std::cout<<"spin: "<<this->spin<<"\n\n";
 
 }
 
@@ -202,7 +200,7 @@ int Body::write_to_file(std::ofstream &outfile)
 //distance(a,b); return the distance between a and b.
 double Body::distance(const Body &a, const Body &b)
 {
-     return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
+    return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
 }
 
 //force_and_potential(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
