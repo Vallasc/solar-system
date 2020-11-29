@@ -8,22 +8,9 @@
 #include <vector>
 
  
-//--------------------------- scaling magnitudes ----------------------------
-long long int L = 149597870700; // Earth-Sun distance
-long double G = 6.67408e-11; // gravitational constant
-long double M = 5.972e24; // Earth's mass
-
-long double T = sqrt(pow(L, 3)/(G*M)); 
-long double F = (G*pow(M, 2)/pow(L, 2)); 
-long double V = L/T; 
-long double A = L/pow(T,2);
-long double E = F*L;
-long double P = M*V;
-long double M_A = P*L;
 
 extern double Temp_max;
 double* old_parameters = new double[8];
-
 
 //-------------------class constructors and operators-----------------------
 //parametric costructor
@@ -96,6 +83,7 @@ int Body::get_color()
 double* Body::merge(Body& a)
     {    
         //dummy array
+        double* old_parameters = new double[8];
         old_parameters[0] = this->position[0];
         old_parameters[1] = this->position[1];
         old_parameters[2] = a.position[0];
@@ -142,17 +130,17 @@ double* Body::merge(Body& a)
 //b.print(); show all attributes of b.
 void Body::print()
 {
-    std::cout<<"position: "<<this->position[0]*L<<", "<<this->position[1]*L<<std::endl;
-    std::cout<<"velocity: "<<this->velocity[0]*V<<", "<<this->velocity[1]*V<<std::endl;
-    std::cout<<"acceleration: "<<this->acceleration[0]*A<<", "<<this->acceleration[1]*A<<std::endl;
-    std::cout<<"radius: "<<this->radius*L<<std::endl;
-    std::cout<<"mass: "<<this->mass*M<<std::endl;
-    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()*E<<std::endl;
-    std::cout<<"internal energy: "<<this->internal_energy*E<<std::endl;
-    std::cout<<"binding energy: "<<this->binding_energy*E<<std::endl;
-    std::cout<<"potential energy: "<<this->potential_energy*E<<std::endl;
-    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()*M_A<<std::endl;
-    std::cout<<"spin: "<<this->spin*M_A<<"\n\n";
+    std::cout<<"position: "<<this->position[0]<<", "<<this->position[1]<<std::endl;
+    std::cout<<"velocity: "<<this->velocity[0]<<", "<<this->velocity[1]<<std::endl;
+    std::cout<<"acceleration: "<<this->acceleration[0]<<", "<<this->acceleration[1]<<std::endl;
+    std::cout<<"radius: "<<this->radius<<std::endl;
+    std::cout<<"mass: "<<this->mass<<std::endl;
+    std::cout<<"kinetic energy: "<<this->get_kinetic_energy()<<std::endl;
+    std::cout<<"internal energy: "<<this->internal_energy<<std::endl;
+    std::cout<<"binding energy: "<<this->binding_energy<<std::endl;
+    std::cout<<"potential energy: "<<this->potential_energy<<std::endl;
+    std::cout<<"orbital momentum: "<<this->get_orbital_momentum()<<std::endl;
+    std::cout<<"spin: "<<this->spin<<"\n\n";
 
 }
 

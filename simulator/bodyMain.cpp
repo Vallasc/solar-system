@@ -34,8 +34,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=300;
-double v_max=1;
+double rho=100;
+double v_max=0;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
@@ -46,27 +46,14 @@ double theta=0, R_module=0;
 #endif
 //-----------------------------------------------------------------
 
-//--------------------------- scaling magnitudes ----------------------------
-extern long long int L; // Earth-Sun distance
-extern long double G; // gravitational constant
-extern long double M; // Earth's mass
-
-extern long double T; 
-extern long double F; 
-extern long double V; 
-extern long double A;
-extern long double E;
-extern long double P;
-extern long double M_A;
-
 //------------------------------- global parameters ----------------------------
 
-int N = 200; // number of bodies
+int N = 10; // number of bodies
 double t = 0; // time
-double dt = 0.01; // time interval
+double dt = 0.0001; // time interval
 double t_f = 100; // final time
 double mass_i = 100;
-double radius_i = 1;
+double radius_i = 10;
 
 //------------------Temperature estimation----------------------------
 double Temp_max=0.75*(0.0288*N+13)*mass_i;
@@ -74,7 +61,7 @@ double Temp_max=0.75*(0.0288*N+13)*mass_i;
 
 //--------------------conservation parameters--------------------
 double ang_mom_tot=0, E_tot=0;
-double total_energies[]{0, 0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
+double total_energies[]{0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
 double momentum_tot[]{0,0};
 //--------------------------------------------------------------
 
@@ -122,16 +109,16 @@ int main(){
     compute_CM(bodies);
 
     //create pointers
-    create_pointers(grid, potential, error);
+    //create_pointers(grid, potential, error);
 
     //make grid
-    make_grid(bodies, grid, potential, error);
+    //make_grid(bodies, grid, potential, error);
 
     //iterate potential
-    for(int k=0; k<1000; ++k) next(potential, grid, error);
+    //for(int k=0; k<1000; ++k) next(potential, grid, error);
 
     //writing files
-    ofstream of(grid_file+n_file+".txt");
+    /*ofstream of(grid_file+n_file+".txt");
     for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
     {
         if(j!=0 || i!=0){
@@ -153,13 +140,13 @@ int main(){
         of << potential[i][j] << '?';
     }
     of.close();
-    
+    */
 
 
     //initial conservatives parameters
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
-        if(j != bodies.end()-1)
+        if(j != (bodies.end()-1))
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
             {
@@ -194,6 +181,8 @@ int main(){
 
     Serializer serializer(filename); //writing data on file
 
+    ofstream off("test.txt");
+
     //------------------------------------ evolution ------------------------------
     
     while(1)
@@ -214,9 +203,10 @@ int main(){
             loading_bar(step);
         }
         #endif 
-
+        
         collision(bodies);
 
+        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
         
         if(n_iteration % 200 == 0)
         {
@@ -224,12 +214,11 @@ int main(){
         }
         
 
-        if(n_iteration % 30 == 0) //tanto prendiamo l'enrgia ogni 30 frames
-        {
-        for(int i=0; i<5; ++i)
+       
+        for(int i=0; i<6; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
-        }
+
 
         
         serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
@@ -307,12 +296,12 @@ int main(){
         check_up((*j));
     }
 
-    cout << ' ' << endl << "COMPLETED                          "<<endl<<endl;
-    cout << "Final state of the system: "<<endl;
-    cout << "Total angular momentum: "<<ang_mom_tot<<endl;
-    cout<<"Total energy: " << E_tot <<endl;
-    cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
-    cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+    std::cout << ' ' << endl << "COMPLETED                          "<<endl<<endl;
+    std::cout << "Final state of the system: "<<endl;
+    std::cout << "Total angular momentum: "<<ang_mom_tot<<endl;
+    std::cout<<"Total energy: " << E_tot <<endl;
+    std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
+    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
 
     //make grid
