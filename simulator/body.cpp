@@ -22,7 +22,7 @@ long double P = M*V;
 long double M_A = P*L;
 
 extern double Temp_max;
-
+double* old_parameters = new double[8];
 
 
 //-------------------class constructors and operators-----------------------
@@ -93,12 +93,22 @@ int Body::get_color()
 
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
-void Body::merge(Body& a)
-    {
+double* Body::merge(Body& a)
+    {    
+        //dummy array
+        old_parameters[0] = this->position[0];
+        old_parameters[1] = this->position[1];
+        old_parameters[2] = a.position[0];
+        old_parameters[3] = a.position[1];
+        old_parameters[4] = this->mass;
+        old_parameters[5] = a.mass;
+        old_parameters[6] = this->potential_energy;
+        old_parameters[7] = a.potential_energy;
+
         //dummy variables
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
         double orbital_initial = a.get_orbital_momentum() + this->get_orbital_momentum();
-        double delta_potential = -(this->mass*a.mass)/distance(*this,a);
+        double delta_potential = (-(this->mass*a.mass)/distance(*this,a));
 
         //center of mass position
         this->position[0] = (a.mass*a.position[0] + this->mass*this->position[0])/(this->mass + a.mass);
@@ -118,13 +128,15 @@ void Body::merge(Body& a)
         this->internal_energy += (a.internal_energy + (kinetic_initial - this->get_kinetic_energy()));
 
         //update the binding energy.
-        this->binding_energy += delta_potential + a.binding_energy;
+        this->binding_energy += a.binding_energy;
         
-        this->potential_energy -= delta_potential;
-        
+        //this->potential_energy -= delta_potential;
+        this->potential_energy=0;
+
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
 
+        return old_parameters;
     }
 
 //b.print(); show all attributes of b.
@@ -200,8 +212,18 @@ int Body::write_to_file(std::ofstream &outfile)
 //distance(a,b); return the distance between a and b.
 double Body::distance(const Body &a, const Body &b)
 {
-     return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
+    return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
 }
+
+double Body::distance_(const Body &a, double* p)
+{
+    return sqrt(pow(a.position[0]-p[0],2) + pow(a.position[1]-p[1],2));
+};
+
+double Body::distancep(double* q, double* p)
+{
+    return sqrt(pow(q[0]-p[0],2) + pow(q[1]-p[1],2));
+};
 
 //force_and_potential(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void Body::force_and_potential(Body &a, Body &b)

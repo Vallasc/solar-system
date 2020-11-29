@@ -36,7 +36,13 @@ extern double mass_i, radius_i, dt;
 extern double ang_mom_tot, E_tot, total_energies[6], momentum_tot[2];
 extern int x_grid_max, y_grid_max, delta, x_index, y_index;
 extern double alpha; 
-
+double initial_total_potential_energy;
+double final_total_potential_energy;
+double* p = new double[8];
+double p1[2];
+double p2[2];
+double m1, m2, pot1, pot2;
+int l=0; 
 extern string filename ; // Do not specify the extension
 
 //---------------------------------------------------------------------------------
@@ -131,8 +137,10 @@ void check_up(Body &j)
 
 }
 
+
+
 void collision(vector<Body> &bodies)
-{
+{   vector<Body>::iterator grande, piccolo;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
     {
         for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
@@ -141,17 +149,41 @@ void collision(vector<Body> &bodies)
             // their radius, we merge them
             if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
             {
-                if((*j).radius > (*k).radius)
-                {
-                   (*j).merge(*k);
-                    bodies.erase(k); 
-                }
-                else
-                {
-                    (*k).merge(*j);
-                    bodies.erase(j);
-                }
                 
+                
+                if((*j).radius < (*k).radius)
+                {      
+                    piccolo=j;       
+                    grande=k; 
+                    /*if (l==0){cout << pot1+pot2 << ' ' << ((*j).potential_energy) << '\n'
+                              << p1[0] << ' ' << p1[1] << ' ' << p2[0] << ' ' << p2[1] << ' ' <<
+                              (*j).position[0] << ' ' << (*j).position[1] <<   endl; ++l;}*/
+                } 
+                
+                else{piccolo=k; grande=j;}
+                p=(*grande).merge(*piccolo);
+                //bodies.erase(k);
+                p1[0] = p[0];
+                p1[1] = p[1];
+                p2[0] = p[2];
+                p2[1] = p[3];
+                m1 = p[4];
+                m2 = p[5]; 
+                pot1 = p[6]; 
+                pot2 = p[7];
+
+                for(vector<Body>::iterator i=bodies.begin(); i<bodies.end() && i!=grande && i!=piccolo; ++i)
+                {
+                    double delta = ((*i).mass*m1/(Body::distance_(*i, p1))+(*i).mass*m2/(Body::distance_(*i, p2))-(*i).mass*(*grande).mass/(Body::distance(*i, *grande)));
+                    (*i).potential_energy += delta; 
+                    (*grande).binding_energy -= 0.5*delta; 
+                    (*grande).potential_energy -= (*i).mass*(*grande).mass/(Body::distance(*i, *grande)); 
+                }
+                bodies.erase(piccolo);
+                double delta_ = 0.5*(pot1+pot2-(*grande).potential_energy);
+                (*grande).binding_energy += delta; 
+
+
             }
         }
     }
@@ -275,31 +307,34 @@ void create_pointers(double** &grid, double** &potential, double** &error)
         error[i] = new double[y_index];
     }
 
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {grid[i][j]=0; potential[i][j]=0;}
-
 }
 
-void make_grid(vector<Body> &bodies, double** &grid)
+void make_grid(vector<Body> &bodies, double** &grid, double** &potential, double** &error)
 {
+for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) {grid[i][j]=0; potential[i][j]=0; error[i][j]=0;}
 
 int i, j;
 
     for(vector<Body>::iterator k=bodies.begin(); k<bodies.end(); ++k)
     {
-        //modf((*k).position[0], &i);
-        //modf((*k).position[1], &j);
         i = int((*k).position[0]);
         j = int((*k).position[1]);
         i+=500;
         j+=500;
         i = i/delta;
         j = j/delta;
-        if(i<x_index && j<y_index) grid[i][j] += (*k).mass/mass_i;        
+        if(i<x_index && j<y_index) 
+        {
+            grid[i][j] += ((*k).mass/mass_i);
+            //grid[i+1][j] += (3/17)*((*k).mass/mass_i);
+            //grid[i][j+1] += (3/17)*((*k).mass/mass_i);
+            //grid[i-1][j] += (3/17)*((*k).mass/mass_i);
+            //grid[i][j-1] += (3/17)*((*k).mass/mass_i);
+        }        
     }
 }
 
-void next(double** &potential, double** &grid, double** &error)
+void next( double** &grid, double** &potential, double** &error)
 {
     for(int i=1; i<x_index-1; ++i ) for(int j=1; j<y_index-1; ++j)
     {
