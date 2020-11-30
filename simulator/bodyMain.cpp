@@ -58,7 +58,7 @@ extern long double M_A;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 1000; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 200; // final time
@@ -85,7 +85,7 @@ double alpha = 1.2; //convergence parameter
 //-----------------------------------------------------------
 
 //file name
-string filename = "prova2"; // Do not specify the extension
+string filename = "generated/sim"; // Do not specify the extension
 
 //web app
 bool override_input = false;
@@ -232,7 +232,8 @@ int main(){
         
         //get_total_energies(bodies);
 
-        serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
+        serializer.write_bodies(n_iteration, bodies);
+        serializer.write_energies(n_iteration, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
 
         //for(int i=0; i<5; ++i)
         //total_energies[i] = 0;

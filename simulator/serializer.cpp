@@ -14,28 +14,60 @@ Serializer::Serializer(string file_name) {
     this->name_index = 0;
     this->num_iteration = 0;
     this->file_name = file_name;
-    this->open_file();
-    cout << "File opened" << endl;
 
-    this->split_file(); // temporaneo per creare il file iniziale degli input
+    // Apro file binario dei corpi
+    this->open_file();
+    // Apro il file info
+    outfile_info.open("info.json", std::ios::out);
+    // Apro il file delle energie
+    outfile_energies.open("energies.bin", std::ios::out);
+    
+    cout << "File opened" << endl;
 }
 
 Serializer::~Serializer() {
     outfile.close();
+    outfile_info.close();
+    outfile_energies.close();
+
     cout << "File closed" << endl;
+
     this->compress_files();
-    cout << "Iterations: " << this->num_iteration << endl;
+    cout << "Iterations: " << this->num_iteration << endl; // TODO Mettere questi dati in info
     cout << "Minutes of simulation: " << this->num_iteration/60/60 << endl;
 }
 
-void Serializer::write(float time, vector<Body> &state, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot) {
-    outfile.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
-    outfile.write(reinterpret_cast<char*>(& e_k_tot), sizeof(float));
-    outfile.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
-    outfile.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
-    outfile.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
-    
-    
+void Serializer::write_init(float e_tot, float e_k_tot, float momentum_tot_x, float momentum_tot_y) {
+
+}
+
+void Serializer::write_end(float e_tot, float e_k_tot, float momentum_tot_x, float momentum_tot_y) {
+
+}
+
+void Serializer::write_potential(int iteration, double** potential) {
+
+}
+
+void Serializer::write_energies(int iteration, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot) {
+    //outfile_energies << iteration << ';';
+    //outfile_energies << e_tot << ';';
+    //outfile_energies << e_k_tot << ';';
+    //outfile_energies << e_i_tot << ';';
+    //outfile_energies << e_p_tot << ';';
+    //outfile_energies << e_b_tot << endl;
+    //float it = (float)iteration;
+    //outfile_energies.write(reinterpret_cast<char*>(& it), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& e_k_tot), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
+}
+
+void Serializer::write_bodies(int iteration, vector<Body> &state) {
+    outfile.write(reinterpret_cast<char*>(& iteration), sizeof(int));
+
     //sorting by temperature's color
     std::sort(state.begin(), state.end(), [](Body& lhs, Body& rhs) {
         return lhs.get_color() < rhs.get_color();
@@ -64,7 +96,8 @@ void Serializer::split_file() {
 }
 
 void Serializer::open_file() {
-    string f_name = this->file_name + std::to_string(this->name_index++) + ".bin";
+    // Apro il file binario dei corpi
+    string f_name = "sim" + std::to_string(this->name_index++) + ".bin";
     outfile.open(f_name, std::ios::binary);
 }
 
@@ -75,8 +108,19 @@ void Serializer::compress_files() {
         mz_zip_archive archive = mz_zip_archive();
         mz_zip_writer_init_file(&archive, (this->file_name + ".zip").c_str(), 0);
 
+        //Compress info file
+        string json_name = "info.json";
+        mz_zip_writer_add_file(&archive, Serializer::get_base_name(json_name).c_str(), json_name.c_str(), 0, 0, this->file_compression);
+        remove(json_name.c_str());
+
+        //Compress energies file
+        string energies_name = "energies.bin";
+        mz_zip_writer_add_file(&archive, Serializer::get_base_name(energies_name).c_str(), energies_name.c_str(), 0, 0, this->file_compression);
+        remove(energies_name.c_str());
+
+        // Compress binary files
         for(int i=0; i<name_index; i++) {
-            string f_name = this->file_name + std::to_string(i) + ".bin";
+            string f_name = "sim"+ std::to_string(i) + ".bin";
             mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
             remove(f_name.c_str());
         }

@@ -13,6 +13,8 @@ using namespace std;
 class Serializer {
     private:
         ofstream outfile;
+        ofstream outfile_energies;
+        ofstream outfile_info;
         string file_name;
         int byte_written;
         int name_index;
@@ -31,8 +33,11 @@ class Serializer {
     public:
         Serializer(string file_name);
         ~Serializer();
-        void write(float time, vector<Body> &state, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot);
-
+        void write_bodies(int iteration, vector<Body> &state);
+        void write_energies(int iteration, float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot);
+        void write_potential(int iteration, double** potential);
+        void write_init(float e_tot, float e_k_tot, float momentum_tot_x, float momentum_tot_y);
+        void write_end(float e_tot, float e_k_tot, float momentum_tot_x, float momentum_tot_y);
 };
 
 #endif
