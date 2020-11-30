@@ -33,11 +33,11 @@ extern double rho, theta, R_module;
 
 extern int N; 
 extern double mass_i, radius_i, dt;
-extern double ang_mom_tot, E_tot, total_energies[6], momentum_tot[2];
+extern double ang_mom_tot, E_tot, total_energies[5], momentum_tot[2];
 extern int x_grid_max, y_grid_max, delta, x_index, y_index;
 extern double alpha; 
 
-extern string filename ; // Do not specify the extension
+extern string filename ; // Do not specify the extension 
 
 //---------------------------------------------------------------------------------
 
@@ -131,8 +131,21 @@ void check_up(Body &j)
 
 }
 
-void collision(vector<Body> &bodies)
+double distance_position(double* p1, double* p2)
 {
+    return sqrt(pow(p1[0]-p2[0],2) + pow(p1[1]-p2[1],2));
+}
+
+void collision(vector<Body> &bodies)
+{   
+    vector<Body>::iterator small, big;
+    double* p = new double[8];
+    double old_position_small[2];
+    double old_position_big[2];
+    double old_mass_big, old_mass_small, old_potential_big, old_potential_small;
+
+
+
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
     {
         for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
@@ -141,18 +154,78 @@ void collision(vector<Body> &bodies)
             // their radius, we merge them
             if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
             {
+                
+
                 if((*j).radius > (*k).radius)
                 {
-                   (*j).merge(*k);
+                    p=(*j).merge(*k);
+
+                    old_position_big[0] = p[0];
+                    old_position_big[1] = p[1];
+                    old_position_small[0] = p[2];
+                    old_position_small[1] = p[3];
+                    old_mass_big = p[4];
+                    old_mass_small = p[5]; 
+                    old_potential_big = p[6]; 
+                    old_potential_small = p[7];
+
+                    for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i)
+                    {
+                        if(i!=j && i!=k)
+                        {
+                        double potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
+                        double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                        double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                        double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                        (*i).potential_energy += delta_i;
+                        (*j).potential_energy += potential_big_i;
+                        (*j).binding_energy += -0.5*delta_i;
+                        }
+
+                    }
+
+                    (*j).binding_energy -= 0.5*((*j).potential_energy - (old_potential_big + old_potential_small));
+
                     bodies.erase(k); 
                 }
                 else
                 {
-                    (*k).merge(*j);
-                    bodies.erase(j);
+                    p=(*k).merge(*j);
+
+                old_position_big[0] = p[0];
+                old_position_big[1] = p[1];
+                old_position_small[0] = p[2];
+                old_position_small[1] = p[3];
+                old_mass_big = p[4];
+                old_mass_small = p[5]; 
+                old_potential_big = p[6]; 
+                old_potential_small = p[7];
+
+                for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i)
+                {
+                    if(i!=j && i!=k)
+                    {
+                    double potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
+                    double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                    double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                    double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                    (*i).potential_energy += delta_i;
+                    (*k).potential_energy += potential_big_i;
+                    (*k).binding_energy += -0.5*delta_i;
+                    }
+
                 }
+
                 
+                (*k).binding_energy -= 0.5*((*k).potential_energy - (old_potential_big + old_potential_small));
+
+                bodies.erase(j);
+                }
+
+
             }
+
+
         }
     }
 
@@ -275,31 +348,34 @@ void create_pointers(double** &grid, double** &potential, double** &error)
         error[i] = new double[y_index];
     }
 
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {grid[i][j]=0; potential[i][j]=0;}
-
 }
 
-void make_grid(vector<Body> &bodies, double** &grid)
+void make_grid(vector<Body> &bodies, double** &grid, double** &potential, double** &error)
 {
+for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) {grid[i][j]=0; potential[i][j]=0; error[i][j]=0;}
 
 int i, j;
 
     for(vector<Body>::iterator k=bodies.begin(); k<bodies.end(); ++k)
     {
-        //modf((*k).position[0], &i);
-        //modf((*k).position[1], &j);
         i = int((*k).position[0]);
         j = int((*k).position[1]);
         i+=500;
         j+=500;
         i = i/delta;
         j = j/delta;
-        if(i>0 && j>0 && i<x_index && j<y_index) grid[i][j] += (*k).mass/mass_i;        
+        if(i<x_index && j<y_index) 
+        {
+            grid[i][j] += ((*k).mass/mass_i);
+            //grid[i+1][j] += (3/17)*((*k).mass/mass_i);
+            //grid[i][j+1] += (3/17)*((*k).mass/mass_i);
+            //grid[i-1][j] += (3/17)*((*k).mass/mass_i);
+            //grid[i][j-1] += (3/17)*((*k).mass/mass_i);
+        }        
     }
 }
 
-void next(double** &potential, double** &grid, double** &error)
+void next( double** &grid, double** &potential, double** &error)
 {
     for(int i=1; i<x_index-1; ++i ) for(int j=1; j<y_index-1; ++j)
     {

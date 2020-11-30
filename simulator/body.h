@@ -11,7 +11,7 @@ class Body
     Body() = default; //default constructor
 
     //functions
-    void merge(Body& a); //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
+    double* merge(Body& a); //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
     void print(); //show all attributes of the object.
     void update_position(double dt); //update the position of the object using costant accelerated motion over a dt time.
     void update_velocity(double dt); //update the velocity of the object using costant accelerated motion over a dt time.
@@ -59,3 +59,4 @@ class Body
 };
 
 #endif
+
