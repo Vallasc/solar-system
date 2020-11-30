@@ -9,11 +9,13 @@ class Startup {
     static mainCanvas : HTMLCanvasElement;
     static axesCanvas : HTMLCanvasElement;
     static trajectoryCanvas : HTMLCanvasElement;
-    static sideContainer : HTMLElement;
+
     static loop : Loop;
     static axes : Axes;
     static trajectory : Trajectory;
     static gui : any;
+
+    static chart : NumberChart;
     static someNumber = 0;
 
     public static main(): number {
@@ -33,6 +35,7 @@ class Startup {
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
 
         Startup.createGui(); // And resize
+
         return 0;
     }
 
