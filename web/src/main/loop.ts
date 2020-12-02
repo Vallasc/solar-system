@@ -34,7 +34,7 @@ class Loop {
 
     public chart : NumberChart;
 
-    private energyFile : DeserializerEnergyChart;
+    private energyFile : EnergyArray;
 
     constructor( canvas: HTMLCanvasElement, gui: any) {
 
@@ -44,7 +44,7 @@ class Loop {
         this.imatrix = this.context.getTransform().inverse();
 
         this.file = new File([],"");
-        this.energyFile = new DeserializerEnergyChart(new ArrayBuffer(0));
+        this.energyFile = new EnergyArray(new ArrayBuffer(0));
 
         this.buffer = new Fifo();
         this.lastObjects = null;
@@ -471,11 +471,15 @@ class Loop {
             this.buffer.clear();
             for(let i=2; i<this.entries.length; i++) { //TODO cambiare in i=0, primo file non letto perche contiene metadati
                 console.log("Load file: "+this.entries[i].filename);
-                let arrayBuffer = await ZipReader.getEntryFile(this.entries[i]);
+                let blob = await ZipReader.getEntryFile(this.entries[i]);
+                let arrayBuffer = await blob.arrayBuffer();
                 this.buffer.pushFifo( Deserializer.parseBinaryFloat32Array(arrayBuffer) );
             }
             console.log(this.buffer.size);
-            this.energyFile = new DeserializerEnergyChart(await ZipReader.getEntryFile(this.entries[1]));
+
+            let blob = await ZipReader.getEntryFile(this.entries[1]);
+            let arrayBuffer = await blob.arrayBuffer();
+            this.energyFile = new EnergyArray(arrayBuffer);
             ZipReader.closeZipReader();
             this.readEnd = true;
             //this.addGuiRange(0, entries.length);
@@ -505,12 +509,16 @@ class Loop {
         try {
             if(this.entries == null){
                 this.entries = await ZipReader.getEntries(file);
-                if(this.entries != null)
-                    this.energyFile = new DeserializerEnergyChart(await ZipReader.getEntryFile(this.entries[1]));
+                if(this.entries != null){
+                    let blob = await ZipReader.getEntryFile(this.entries[1]);
+                    let arrayBuffer = await blob.arrayBuffer();
+                    this.energyFile = new EnergyArray(arrayBuffer);
+                }
             }
             if(this.entries != null && this.indexChunck < this.entries.length) {
                 console.log("Load file: "+this.entries[this.indexChunck].filename);
-                let arrayBuffer = await ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                let blob = await ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                let arrayBuffer = await blob.arrayBuffer();
                 let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
                 // Funzione ch bilancia le richieste
                 this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
