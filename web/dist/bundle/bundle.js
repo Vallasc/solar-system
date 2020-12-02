@@ -209,6 +209,56 @@ class Body {
         this.visible = src.visible;
     }
 }
+class ChartStartup {
+    static main() {
+        return 0;
+    }
+    static reset() {
+        document.getElementById("file").innerHTML = window.file.name;
+        ChartStartup.loadFile(window.file);
+    }
+    static loadFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let fm = new FileManager(file);
+            yield fm.init();
+            let energies = yield fm.getEnergies();
+            let arrays = energies.getArrays();
+            var trace1 = {
+                x: arrays.x,
+                y: arrays.yTotalEnergy,
+                type: 'scatter'
+            };
+            var trace2 = {
+                x: arrays.x,
+                y: arrays.yKineticEnergy,
+                type: 'scatter'
+            };
+            var trace3 = {
+                x: arrays.x,
+                y: arrays.yInternalEnergy,
+                type: 'scatter'
+            };
+            var trace4 = {
+                x: arrays.x,
+                y: arrays.yPotentialEnergy,
+                type: 'scatter'
+            };
+            var trace5 = {
+                x: arrays.x,
+                y: arrays.yBindingEnergy,
+                type: 'scatter'
+            };
+            var data = [trace1, trace2, trace3, trace4, trace5];
+            var layout = {
+                xaxis: {
+                    rangeslider: {},
+                }
+            };
+            var options = {};
+            Plotly.newPlot('plot', data, layout, options);
+        });
+    }
+}
 zip.workerScriptsPath = "./dist/lib/zipjs/";
 class Deserializer {
     static parseBinaryFloat32Array(blob) {
@@ -234,10 +284,11 @@ class Deserializer {
 }
 Deserializer.bodyNumParams = 5;
 Deserializer.numIterationParam = 2; // id + size
-class DeserializerEnergyChart {
+class EnergyArray {
     constructor(blob) {
         // Nel file delle energie l'indice dell'array corrisponde all'iterazione
         // size = numero di iterazioni
+        // ["Total energy","Kinetic energy", "Internal energy", "Potential energy", "Binding energy"]
         this.numParamsRow = 5;
         this.buffer = new Float32Array(blob);
         this.size = this.buffer.length / this.numParamsRow;
@@ -245,6 +296,30 @@ class DeserializerEnergyChart {
     }
     getEnergy(index, type) {
         return this.buffer[type + this.numParamsRow * index];
+    }
+    getArrays() {
+        let x = [];
+        let yTotalEnergy = [];
+        let yKineticEnergy = [];
+        let yInternalEnergy = [];
+        let yPotentialEnergy = [];
+        let yBindingEnergy = [];
+        for (let i = 0; i < this.size; i++) {
+            x.push(i);
+            yTotalEnergy.push(this.buffer[0 + this.numParamsRow * i]);
+            yKineticEnergy.push(this.buffer[1 + this.numParamsRow * i]);
+            yInternalEnergy.push(this.buffer[2 + this.numParamsRow * i]);
+            yPotentialEnergy.push(this.buffer[3 + this.numParamsRow * i]);
+            yBindingEnergy.push(this.buffer[4 + this.numParamsRow * i]);
+        }
+        return {
+            x: x,
+            yTotalEnergy: yTotalEnergy,
+            yKineticEnergy: yKineticEnergy,
+            yInternalEnergy: yInternalEnergy,
+            yPotentialEnergy: yPotentialEnergy,
+            yBindingEnergy: yBindingEnergy
+        };
     }
 }
 class ZipReader {
@@ -262,7 +337,7 @@ class ZipReader {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 entry.getData(new zip.BlobWriter(), (blob) => __awaiter(this, void 0, void 0, function* () {
-                    resolve(yield blob.arrayBuffer());
+                    resolve(blob);
                 }), (p) => {
                 });
             });
@@ -273,6 +348,41 @@ class ZipReader {
             ZipReader.zipReader.close();
             ZipReader.zipReader = null;
         }
+    }
+}
+class FileManager {
+    constructor(file) {
+        this.infoJson = null;
+        this.file = file;
+        this.entriesMap = new Map();
+    }
+    init() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let entries = yield ZipReader.getEntries(this.file);
+            //console.log(entries);
+            for (let i = 0; i < entries.length; i++) {
+                this.entriesMap.set(entries[i].filename, entries[i]);
+            }
+            let infoFile = yield ZipReader.getEntryFile(this.entriesMap.get("info.json"));
+            this.infoJson = JSON.parse(yield infoFile.text());
+            console.log(this.infoJson);
+        });
+    }
+    close() {
+        ZipReader.closeZipReader();
+    }
+    getInfo() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.infoJson;
+        });
+    }
+    getEnergies() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let energiesFileName = this.infoJson["energiesFileName"];
+            let blob = yield ZipReader.getEntryFile(this.entriesMap.get(energiesFileName));
+            let array = yield blob.arrayBuffer();
+            return new EnergyArray(array);
+        });
     }
 }
 class Fifo {
@@ -455,7 +565,12 @@ class Startup {
             type: 'file',
             label: 'File',
             onChange: (file) => __awaiter(this, void 0, void 0, function* () {
+                Startup.file = file;
                 yield Startup.loop.reset(file);
+                if (Startup.chartWindow != null) {
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }
             })
         });
         Startup.gui.Register([{
@@ -481,7 +596,15 @@ class Startup {
                 label: 'Show charts',
                 streched: true,
                 action: () => {
-                    window.open("charts.html");
+                    console.log(Startup.file);
+                    if (Startup.chartWindow != null) {
+                        Startup.chartWindow.close();
+                    }
+                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=900,height=900");
+                    Startup.chartWindow.addEventListener('load', () => {
+                        Startup.chartWindow.file = Startup.file;
+                        Startup.chartWindow.reset();
+                    }, false);
                 }
             }, {
                 type: 'folder',
@@ -531,6 +654,7 @@ class Startup {
 Startup.canvasMarginTop = 25;
 Startup.canvasMarginRight = 350;
 Startup.someNumber = 0;
+Startup.chartWindow = null;
 class MouseInput {
     constructor(loop, axes, trajectory) {
         this.globalScale = 1;
@@ -625,7 +749,7 @@ class Loop {
         this.context.imageSmoothingEnabled = false;
         this.imatrix = this.context.getTransform().inverse();
         this.file = new File([], "");
-        this.energyFile = new DeserializerEnergyChart(new ArrayBuffer(0));
+        this.energyFile = new EnergyArray(new ArrayBuffer(0));
         this.buffer = new Fifo();
         this.lastObjects = null;
         this.stats = new Stats();
@@ -1018,11 +1142,14 @@ class Loop {
                 this.buffer.clear();
                 for (let i = 2; i < this.entries.length; i++) { //TODO cambiare in i=0, primo file non letto perche contiene metadati
                     console.log("Load file: " + this.entries[i].filename);
-                    let arrayBuffer = yield ZipReader.getEntryFile(this.entries[i]);
+                    let blob = yield ZipReader.getEntryFile(this.entries[i]);
+                    let arrayBuffer = yield blob.arrayBuffer();
                     this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
                 }
                 console.log(this.buffer.size);
-                this.energyFile = new DeserializerEnergyChart(yield ZipReader.getEntryFile(this.entries[1]));
+                let blob = yield ZipReader.getEntryFile(this.entries[1]);
+                let arrayBuffer = yield blob.arrayBuffer();
+                this.energyFile = new EnergyArray(arrayBuffer);
                 ZipReader.closeZipReader();
                 this.readEnd = true;
                 //this.addGuiRange(0, entries.length);
@@ -1047,12 +1174,16 @@ class Loop {
             try {
                 if (this.entries == null) {
                     this.entries = yield ZipReader.getEntries(file);
-                    if (this.entries != null)
-                        this.energyFile = new DeserializerEnergyChart(yield ZipReader.getEntryFile(this.entries[1]));
+                    if (this.entries != null) {
+                        let blob = yield ZipReader.getEntryFile(this.entries[1]);
+                        let arrayBuffer = yield blob.arrayBuffer();
+                        this.energyFile = new EnergyArray(arrayBuffer);
+                    }
                 }
                 if (this.entries != null && this.indexChunck < this.entries.length) {
                     console.log("Load file: " + this.entries[this.indexChunck].filename);
-                    let arrayBuffer = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                    let blob = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
+                    let arrayBuffer = yield blob.arrayBuffer();
                     let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
                     // Funzione ch bilancia le richieste
                     this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
