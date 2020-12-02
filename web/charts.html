@@ -1,29 +1,20 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link href="css/main.css" rel="stylesheet">
     </head>
     <body>
         CHARTS
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"></script>
-        <script type="text/javascript" src="dist/lib/Chart.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.3/chartjs-plugin-zoom.js"></script>
-
-        <script type="text/javascript" src="dist/lib/stats.min.js"></script>
-        <script type="text/javascript" src="dist/lib/guify.min.js"></script>
+        <div id="file"></div>
+        <div id="plot"></div>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script type="text/javascript" src="dist/lib/zipjs/zip.js"></script>
         <script type="text/javascript" src="dist/lib/zipjs/zip-ext.js"></script>
-
         <script type="text/javascript" src="dist/bundle/bundle.js"></script>
-        <script async type="text/javascript" src="dist/wasm/simulator.js"></script>
         <script>
-        /*var main;
-        var Module = {
-            onRuntimeInitialized: function() {
-            main = Module.cwrap("web_main", "number", []);
+            ChartStartup.main();
+            function reset(){
+                ChartStartup.reset();
             }
-        };*/
         </script>
     </body>
 </html> 

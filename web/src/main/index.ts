@@ -9,12 +9,17 @@ class Startup {
     static mainCanvas : HTMLCanvasElement;
     static axesCanvas : HTMLCanvasElement;
     static trajectoryCanvas : HTMLCanvasElement;
-    static sideContainer : HTMLElement;
+
     static loop : Loop;
     static axes : Axes;
     static trajectory : Trajectory;
     static gui : any;
+
+    static chart : NumberChart;
     static someNumber = 0;
+    static file : File;
+
+    static chartWindow : any = null
 
     public static main(): number {
 
@@ -33,6 +38,7 @@ class Startup {
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
 
         Startup.createGui(); // And resize
+
         return 0;
     }
 
@@ -61,7 +67,12 @@ class Startup {
             type: 'file',
             label: 'File',
             onChange: async (file: any) => {
+                Startup.file = file;
                 await Startup.loop.reset(file);
+                if(Startup.chartWindow != null){
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }
             }
         })
         Startup.gui.Register([{
@@ -87,7 +98,15 @@ class Startup {
             label: 'Show charts',
             streched: true,
             action: () => {
-                window.open("charts.html");
+                console.log(Startup.file);
+                if(Startup.chartWindow != null){
+                    Startup.chartWindow.close();
+                }
+                Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=900,height=900");
+                Startup.chartWindow.addEventListener('load', () => {
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }, false);
             }
         },{
             type: 'folder',

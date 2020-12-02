@@ -79,7 +79,7 @@ char n_file = char(i);
 //-----------------------------------------------------------
 
 //file name
-string filename = "prova2"; // Do not specify the extension
+string filename = "generated/sim"; // Do not specify the extension
 
 //web app
 bool override_input = false;
@@ -98,6 +98,8 @@ int main(){
     double** grid;
     double** potential;
     double** error;
+
+    Serializer serializer(filename); //writing data on file
 
     //random seed
     srand(time(NULL)); 
@@ -162,6 +164,7 @@ int main(){
     std::cout<<"Total energy: " << E_tot<<endl;
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+    serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
 
     if(E_tot > 0)
     {
@@ -178,8 +181,6 @@ int main(){
         std::cout<<"Next time will be better :)"<<endl;
         return 0;
     }
-
-    Serializer serializer(filename); //writing data on file
 
     ofstream off("test.txt");
 
@@ -220,8 +221,6 @@ int main(){
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
-        
-        serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
 
         /*
         if(n_iteration%1000 == 0)
@@ -261,8 +260,11 @@ int main(){
             }
 
             of.close();
-        
-        }*/    
+
+            serializer.write_potential(potential, x_index, y_index);
+        }*/
+        serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
+        serializer.write_bodies(bodies);
 
         if (t > (t_f)) 
         {   
@@ -303,6 +305,7 @@ int main(){
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
 
+    serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
 
     //make grid
     //make_grid(bodies);
