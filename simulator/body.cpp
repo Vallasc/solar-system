@@ -195,7 +195,7 @@ int Body::write_to_file(std::ofstream &outfile)
     outfile.write(reinterpret_cast<char*>(& y ), sizeof(float));
     outfile.write(reinterpret_cast<char*>(& r ), sizeof(float)); // 16 bit?
     outfile.write(reinterpret_cast<char*>(& t ), sizeof(float));
-    return sizeof(float) * 6; // N byte scritti
+    return sizeof(float) * 5; // N byte scritti
 }
 
 //---------------static methods------------------------
