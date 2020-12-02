@@ -80,8 +80,9 @@ int Body::get_color()
 
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
-double* Body::merge(Body& a)
+void Body::merge(Body& a)
     {    
+        /*
         //dummy array
         double* old_parameters = new double[8];
         old_parameters[0] = this->position[0];
@@ -92,6 +93,7 @@ double* Body::merge(Body& a)
         old_parameters[5] = a.mass;
         old_parameters[6] = this->potential_energy;
         old_parameters[7] = a.potential_energy;
+        */
 
         //dummy variables
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
@@ -116,15 +118,15 @@ double* Body::merge(Body& a)
         this->internal_energy += (a.internal_energy + (kinetic_initial - this->get_kinetic_energy()));
 
         //update the binding energy.
-        this->binding_energy += a.binding_energy;
+        this->binding_energy += a.binding_energy + delta_potential;
         
-        //this->potential_energy -= delta_potential;
-        this->potential_energy=0;
+        this->potential_energy -= delta_potential;
+        //this->potential_energy=0;
 
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
 
-        return old_parameters;
+        //return old_parameters;
     }
 
 //b.print(); show all attributes of b.

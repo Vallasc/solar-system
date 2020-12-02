@@ -11,8 +11,8 @@
 #include "serializer.h"
 #include "body.h"
 
-//#define CARTESIAN
-#define POLAR
+#define CARTESIAN
+//#define POLAR
 //#define POLAR_VORTEX
 
 //------------------------------------extern parameters-----------------------------
@@ -136,6 +136,7 @@ double distance_position(double* p1, double* p2)
     return sqrt(pow(p1[0]-p2[0],2) + pow(p1[1]-p2[1],2));
 }
 
+/*
 void collision(vector<Body> &bodies)
 {   
     vector<Body>::iterator small, big;
@@ -226,6 +227,37 @@ void collision(vector<Body> &bodies)
             }
 
 
+        }
+    }
+
+    bodies.shrink_to_fit();
+
+}
+*/
+
+
+void collision(vector<Body> &bodies)
+{
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
+    {
+        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
+        {             
+            // computing the distance of each couple of bodies: if this distance is minor than the sum of 
+            // their radius, we merge them
+            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
+            {
+                if((*j).radius > (*k).radius)
+                {
+                   (*j).merge(*k);
+                    bodies.erase(k); 
+                }
+                else
+                {
+                    (*k).merge(*j);
+                    bodies.erase(j);
+                }
+                
+            }
         }
     }
 

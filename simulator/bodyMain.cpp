@@ -13,8 +13,8 @@
 
 using namespace std;
 
-#define POLAR               // coordinates
-//#define CARTESIAN
+#define CARTESIAN           // coordinates
+//#define POLAR  
 //#define POLAR_VORTEX
 
 //#define EULER             //evolution
@@ -28,13 +28,13 @@ using namespace std;
 //----------------------------defining coordinates---------------------------------------
 #ifdef CARTESIAN
 //cartesian coordinates
-double x_min=0, x_max=1000; // lower and upper limit for positions and velocities
+double x_min=0, x_max=500; // lower and upper limit for positions and velocities
 double v_min=0, v_max=0.5;
 #endif
 
 #ifdef POLAR
 //polar coordinates
-double rho=100;
+double rho=300;
 double v_max=0;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
@@ -48,12 +48,12 @@ double theta=0, R_module=0;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 10; // number of bodies
+int N = 100; // number of bodies
 double t = 0; // time
-double dt = 0.0001; // time interval
+double dt = 0.01; // time interval
 double t_f = 100; // final time
-double mass_i = 100;
-double radius_i = 10;
+double mass_i = 10;
+double radius_i = 0.1;
 
 //------------------Temperature estimation----------------------------
 double Temp_max=0.75*(0.0288*N+13)*mass_i;
@@ -183,11 +183,14 @@ int main(){
 
     ofstream off("test.txt");
 
+    cout << bodies[0].position[0] << " " << bodies[0].position[1] << endl;
+
     //------------------------------------ evolution ------------------------------
     
     while(1)
     {   
-        
+
+
         #ifdef  PERCENTAGE
         if(n_iteration % 13 == 0)
         {
@@ -206,20 +209,17 @@ int main(){
         
         collision(bodies);
 
-        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
+        //off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
         
         if(n_iteration % 200 == 0)
         {
             compute_CM(bodies);
         }
         
-
        
-        for(int i=0; i<6; ++i)
+        for(int i=0; i<5; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
-
-
         
         serializer.write(t, bodies, total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
 
