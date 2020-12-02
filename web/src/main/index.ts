@@ -17,6 +17,9 @@ class Startup {
 
     static chart : NumberChart;
     static someNumber = 0;
+    static file : File;
+
+    static chartWindow : any = null
 
     public static main(): number {
 
@@ -64,7 +67,12 @@ class Startup {
             type: 'file',
             label: 'File',
             onChange: async (file: any) => {
+                Startup.file = file;
                 await Startup.loop.reset(file);
+                if(Startup.chartWindow != null){
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }
             }
         })
         Startup.gui.Register([{
@@ -90,7 +98,15 @@ class Startup {
             label: 'Show charts',
             streched: true,
             action: () => {
-                window.open("charts.html");
+                console.log(Startup.file);
+                if(Startup.chartWindow != null){
+                    Startup.chartWindow.close();
+                }
+                Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=900,height=900");
+                Startup.chartWindow.addEventListener('load', () => {
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }, false);
             }
         },{
             type: 'folder',
