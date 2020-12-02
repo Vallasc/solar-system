@@ -27,9 +27,11 @@ class Deserializer {
     }
 }
 
-class DeserializerEnergyChart {
+class EnergyArray {
   // Nel file delle energie l'indice dell'array corrisponde all'iterazione
   // size = numero di iterazioni
+  // ["Total energy","Kinetic energy", "Internal energy", "Potential energy", "Binding energy"]
+
   private readonly numParamsRow = 5;
   private buffer : Float32Array;
   private size : number; 
@@ -42,6 +44,31 @@ class DeserializerEnergyChart {
 
   public getEnergy(index : number, type : number) : number {
     return this.buffer[type + this.numParamsRow*index];
+  }
+
+  public getArrays(){
+    let x = [];
+    let yTotalEnergy = [];
+    let yKineticEnergy = [];
+    let yInternalEnergy = [];
+    let yPotentialEnergy = [];
+    let yBindingEnergy = [];
+    for(let i = 0; i<this.size; i++){
+      x.push(i);
+      yTotalEnergy.push(this.buffer[0 + this.numParamsRow*i]);
+      yKineticEnergy.push(this.buffer[1 + this.numParamsRow*i]);
+      yInternalEnergy.push(this.buffer[2 + this.numParamsRow*i]);
+      yPotentialEnergy.push(this.buffer[3 + this.numParamsRow*i]);
+      yBindingEnergy.push(this.buffer[4 + this.numParamsRow*i]);
+    }
+    return {
+      x: x,
+      yTotalEnergy: yTotalEnergy,
+      yKineticEnergy: yKineticEnergy,
+      yInternalEnergy: yInternalEnergy,
+      yPotentialEnergy: yPotentialEnergy,
+      yBindingEnergy: yBindingEnergy
+    }
   }
 
 }
@@ -57,10 +84,10 @@ class ZipReader {
     });
   }
 
-  public static async getEntryFile(entry: any) : Promise<ArrayBuffer> {
+  public static async getEntryFile(entry: any) : Promise<Blob> {
     return new Promise((resolve, reject) =>{
       entry.getData(new zip.BlobWriter(), async (blob: any) => {
-        resolve(await blob.arrayBuffer());
+        resolve(blob);
       }, (p: any) => { //Decompressing loading
       });
     });
@@ -72,4 +99,42 @@ class ZipReader {
       ZipReader.zipReader = null;
     }
   }
+}
+
+class FileManager{
+  private file : File;
+  private infoJson : any | null = null;
+  private entriesMap : Map<string, any>;
+
+  constructor(file: File){
+    this.file = file;
+    this.entriesMap = new Map<string, any>();
+  }
+
+  public async init(){
+    let entries = await ZipReader.getEntries(this.file);
+    //console.log(entries);
+    for(let i=0; i<entries.length; i++) {
+      this.entriesMap.set(entries[i].filename, entries[i]);
+    }
+    let infoFile = await ZipReader.getEntryFile(this.entriesMap.get("info.json"));
+    this.infoJson = JSON.parse(await infoFile!.text());
+    console.log(this.infoJson);
+  }
+
+  public close(){
+    ZipReader.closeZipReader();
+  }
+
+  public async getInfo() {
+    return this.infoJson;
+  }
+
+  public async getEnergies() {
+    let energiesFileName = this.infoJson["energiesFileName"];
+    let blob = await ZipReader.getEntryFile(this.entriesMap.get(energiesFileName));
+    let array: ArrayBuffer = await blob.arrayBuffer();
+    return new EnergyArray(array);
+  }
+
 }
