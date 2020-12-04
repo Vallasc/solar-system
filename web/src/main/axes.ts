@@ -24,6 +24,13 @@ class Axes {
 
         let margin : number = 50;
 
+        let numColors : number = 10;
+        let r : number = 0;
+        let b : number = 0;
+        let N : number = 1000;
+        let tempMax : number = 0.75*(0.0288*N+13)*10; 
+        let temperature : number = 0;
+
         distGrids *= this.scale;
 
         if(this.panningOffsetX >= (w*0.5) - margin )
@@ -41,6 +48,46 @@ class Axes {
             offY = this.panningOffsetY;
             
         this.context.clearRect(0, 0, w, h);
+
+        //color temperature scale
+        if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
+            this.context.fillStyle = "rgb(60,0,0)";
+        } else {
+            this.context.fillStyle = "rgba(60,0,0,0.3)";
+        }
+        this.context.font = "11px Arial"
+        this.context.fillText("Temperature (K)",w-120, 40);
+        this.context.font = "9px Arial"
+        for (let i = 1; i<11; i++) {
+            r = 255 * (11-i) /numColors;
+            b = 255 - r;
+            if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
+                this.context.fillStyle = "rgb("+r+",0,"+b+")";
+                this.context.strokeStyle = "rgb("+r+",0,"+b+")";
+            } else {
+                this.context.fillStyle = "rgba("+r+",0,"+b+",0.3)";
+                this.context.strokeStyle = "rgba("+r+",0,"+b+",0.3)";
+            }
+            this.context.fillRect(w-115, 40+20*i, 30,20);
+
+            temperature = (11-i)*tempMax/10;
+            if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
+                this.context.fillStyle = "rgb(60,0,0)";
+            } else {
+                this.context.fillStyle = "rgba(60,0,0,0.3)";
+            }
+            this.context.fillText(temperature+"",w-73, 41+20*i);
+            this.context.beginPath();
+            this.context.moveTo(w-85,40.5+20*i);
+            this.context.lineTo(w-75,40.5+20*i);
+            this.context.stroke();
+        }
+        this.context.beginPath();
+        this.context.moveTo(w-85,39.5+20*11);
+        this.context.lineTo(w-75,39.5+20*11);
+        this.context.stroke();
+        this.context.fillText("0",w-73, 41+20*(11));
+
         this.context.strokeStyle = "rgb(60,0,0)"; 
         this.context.lineWidth = 1;
         // Draw >  
@@ -143,31 +190,39 @@ class Axes {
         }
         
         this.context.fillStyle = "rgb(60,0,0)";
-        this.context.font = "15px Arial"
-        this.context.fillText('Y',w/2+20 + offX, 30);
+        this.context.font = "11px Arial"
+        this.context.fillText('Y',w/2-30 + offX, 30);
         this.context.fillText('X',w-30, h/2 + 30 + offY);
 
-        this.context.fillText(': 1 astronomical unit',w-170, h-70);
+        console.log(offX, offY, w/2, h/2);
+
+        if ((offX <= w/2-185) && (offY <= h/2-95)) {
+            this.context.fillStyle = "rgb(60,0,0)";
+            this.context.strokeStyle = "rgb(60,0,0)"; 
+        } else {
+            this.context.fillStyle = "rgba(60,0,0,0.3)";
+            this.context.strokeStyle = "rgba(60,0,0,0.3)"; 
+        }
+        this.context.fillText(': 1 astronomical unit',w-145, h-70);
         let scaleString : string = 'scale: ';
         let roundScale : number = Math.round(this.scale * 10) / 10
         let str : string = scaleString.concat(roundScale.toString());
-        this.context.fillText(str,w-150, h-40);
-        this.context.strokeStyle = "rgb(60,0,0)"; 
+        this.context.fillText(str,w-125, h-40);
         this.context.lineWidth = 1;
         //long line
-        this.context.moveTo(w-180 - distGrids, h-60);
-        this.context.lineTo(w-30, h-60);
+        this.context.moveTo(w-155 - distGrids, h-60);
+        this.context.lineTo(w-40, h-60);
         // first |
-        this.context.moveTo(w-175 - distGrids, h-78);
-        this.context.lineTo(w-175 - distGrids, h-70);
+        this.context.moveTo(w-150 - distGrids, h-78);
+        this.context.lineTo(w-150 - distGrids, h-70);
         // second |
-        this.context.moveTo(w-175, h-78);
-        this.context.lineTo(w-175, h-70);
+        this.context.moveTo(w-150, h-78);
+        this.context.lineTo(w-150, h-70);
         // central -
-        this.context.moveTo(w-175 - distGrids, h-74);
-        this.context.lineTo(w-175, h-74);
+        this.context.moveTo(w-150 - distGrids, h-74);
+        this.context.lineTo(w-150, h-74);
         this.context.stroke();
-        
+
     }
 
     public setPanningOffset(x: number, y: number){
