@@ -11,8 +11,8 @@
 #include "serializer.h"
 #include "body.h"
 
-#define CARTESIAN
-//#define POLAR
+//#define CARTESIAN
+#define POLAR
 //#define POLAR_VORTEX
 
 //------------------------------------extern parameters-----------------------------

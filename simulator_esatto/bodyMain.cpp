@@ -34,8 +34,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=20;
-double v_max=0;
+double rho=30;
+double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
@@ -48,11 +48,11 @@ double theta=0, R_module=0;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 3; // number of bodies
 double t = 0; // time
-double dt = 0.0001; // time interval
-double t_f = 100; // final time
-double mass_i = 10;
+double dt = 0.001; // time interval
+double t_f = 10; // final time
+double mass_i = 100;
 double radius_i = 1;
 
 //------------------Temperature estimation----------------------------
@@ -79,7 +79,7 @@ char n_file = char(i);
 //-----------------------------------------------------------
 
 //file name
-string filename = "sim1"; // Do not specify the extension
+string filename = "prova2"; // Do not specify the extension
 
 //web app
 bool override_input = false;
@@ -211,17 +211,11 @@ int main(){
         
         collision(bodies);
 
-        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
-        
-        if(n_iteration % 200 == 0)
-        {
-            compute_CM(bodies);
-        }
-
-
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
+
+        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
 
         /*
         if(n_iteration%1000 == 0)

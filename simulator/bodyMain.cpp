@@ -13,8 +13,8 @@
 
 using namespace std;
 
-#define CARTESIAN           // coordinates
-//#define POLAR  
+//#define CARTESIAN           // coordinates
+#define POLAR  
 //#define POLAR_VORTEX
 
 //#define EULER             //evolution
@@ -34,8 +34,8 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=300;
-double v_max=0;
+double rho=30;
+double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 
@@ -48,12 +48,12 @@ double theta=0, R_module=0;
 
 //------------------------------- global parameters ----------------------------
 
-int N = 100; // number of bodies
+int N = 3; // number of bodies
 double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 100; // final time
-double mass_i = 10;
-double radius_i = 0.1;
+double mass_i = 100;
+double radius_i = 1;
 
 //------------------Temperature estimation----------------------------
 double Temp_max=0.75*(0.0288*N+13)*mass_i;
@@ -208,19 +208,13 @@ int main(){
         }
         #endif 
         
-        collision(bodies);
-
-        //off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
-        
-        if(n_iteration % 200 == 0)
-        {
-            compute_CM(bodies);
-        }
-        
+        collision(bodies);      
        
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
+
+        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
 
         /*
         if(n_iteration%1000 == 0)
