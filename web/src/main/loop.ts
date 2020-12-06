@@ -181,6 +181,7 @@ class Loop {
         }
         Startup.slider.onmouseup = (ev: Event) => {
             this.selectedBody.reset();
+            this.chart.deleteData();
             this.selectX = null;
             this.selectY = null;
             this.numIteration = parseInt(Startup.slider.value);
@@ -336,14 +337,14 @@ class Loop {
         }
 
         // Aggiorno grafico ongni 30 frame
-        if(this.numIteration % 30 == 0){
-            /*this.chart.updateChart([
+        if(this.isPlaying && this.numIteration % 30 == 0){ 
+            this.chart.updateChart([
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4)}
-            ]);*/
+            ]);
         }
     }
 
