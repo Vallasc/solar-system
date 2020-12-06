@@ -22,3 +22,35 @@ body {
 ::backdrop {
     background: none;
 }
+
+.slider {
+  position: absolute;
+  bottom: 0px;
+  -webkit-appearance: none;
+  height: 20px;
+  background: #232323;
+  outline: none;
+  opacity: 0.6;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 20px;
+  background: #af4c4c;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px;
+  height: 20px;
+  background: #af4c4c;
+  cursor: pointer;
+}
