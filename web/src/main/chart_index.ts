@@ -52,6 +52,17 @@ class ChartStartup{
         
         var options = {};
         
-        Plotly.newPlot('plot', data, layout, options);
+        Plotly.newPlot('plot1', data, layout, options);
+
+        let p = await fm.getPotential(10);
+        let data2 = [
+            {
+              z: p.getMatrix(),
+               type: 'surface'
+            }
+          ];
+        var layout2 = {
+        };
+        Plotly.newPlot('plot2', data2, layout2);
     }
 }
