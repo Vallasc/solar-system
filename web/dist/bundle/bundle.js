@@ -182,7 +182,7 @@ class Axes {
         this.context.font = "11px Arial";
         this.context.fillText('Y', w / 2 - 30 + offX, 30);
         this.context.fillText('X', w - 30, h / 2 + 30 + offY);
-        console.log(offX, offY, w / 2, h / 2);
+        //console.log(offX, offY, w/2, h/2);
         if ((offX <= w / 2 - 185) && (offY <= h / 2 - 95)) {
             this.context.fillStyle = "rgb(60,0,0)";
             this.context.strokeStyle = "rgb(60,0,0)";
@@ -309,7 +309,16 @@ class ChartStartup {
                 }
             };
             var options = {};
-            Plotly.newPlot('plot', data, layout, options);
+            Plotly.newPlot('plot1', data, layout, options);
+            let p = yield fm.getPotential(10);
+            let data2 = [
+                {
+                    z: p.getMatrix(),
+                    type: 'surface'
+                }
+            ];
+            var layout2 = {};
+            Plotly.newPlot('plot2', data2, layout2);
         });
     }
 }
@@ -350,6 +359,24 @@ class EnergyArray {
             yPotentialEnergy: yPotentialEnergy,
             yBindingEnergy: yBindingEnergy
         };
+    }
+}
+class PotentialMatrix {
+    constructor(blob, m, n) {
+        this.buffer = new Float32Array(blob);
+        this.m = m;
+        this.n = n;
+    }
+    getMatrix() {
+        let matrix = [];
+        for (let i = 0; i < this.m; i++) {
+            matrix.push([]);
+            for (let j = 0; j < this.n; j++) {
+                matrix[i].push(this.buffer[i * this.m + j]);
+            }
+        }
+        console.log(matrix);
+        return matrix;
     }
 }
 class ZipReader {
@@ -416,6 +443,21 @@ class FileManager {
             let blob = yield ZipReader.getEntryFile(this.entriesMap.get(energiesFileName));
             let array = yield blob.arrayBuffer();
             return new EnergyArray(array);
+        });
+    }
+    getPotential(index) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let potentials = this.infoJson["potentials"];
+            let saved = null;
+            for (let i = 0; i < potentials.length; i++) {
+                if (index <= potentials[i]["iteration"]) {
+                    saved = potentials[i];
+                    break;
+                }
+            }
+            let blob = yield ZipReader.getEntryFile(this.entriesMap.get(saved["fileName"]));
+            let array = yield blob.arrayBuffer();
+            return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
         });
     }
     loadNextFile() {
@@ -940,6 +982,7 @@ class Loop {
         };
         Startup.slider.onmouseup = (ev) => {
             this.selectedBody.reset();
+            this.chart.deleteData();
             this.selectX = null;
             this.selectY = null;
             this.numIteration = parseInt(Startup.slider.value);
@@ -1081,14 +1124,14 @@ class Loop {
             Startup.trajectory.clear();
         }
         // Aggiorno grafico ongni 30 frame
-        if (this.numIteration % 30 == 0) {
-            /*this.chart.updateChart([
-                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0)},
-                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1)},
-                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2)},
-                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3)},
-                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4)}
-            ]);*/
+        if (this.isPlaying && this.numIteration % 30 == 0) {
+            this.chart.updateChart([
+                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0) },
+                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1) },
+                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2) },
+                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3) },
+                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4) }
+            ]);
         }
     }
     play() {
@@ -1268,33 +1311,13 @@ class NumberChart {
             }
         });
     }
-    /*public updateChart( data : Array<{x : number, y : number}>) : void {
-    
-        for(let i=0; i<this.size; i++){
-            this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
-        }
-        this.chart.update();
-    }*/
-    setDataset(data) {
-        /*
-        // allow 1px inaccuracy by adding 1
-        const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
-        if(this.chart.data.datasets[0].data.length % 4 == 0){
-            this.width += 80;
-            this.div.style.width = this.width+'px';
-        }
-        // Scroll to left
-        if (isScrolledToLeft) {
-            this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
-        }*/
-        for (let i = 0; i < data.size; i++) {
-            //    this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
+    updateChart(data) {
+        for (let i = 0; i < this.size; i++) {
+            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
         }
         this.chart.update();
     }
     deleteData() {
-        this.width = 250;
-        this.div.style.width = this.width + 'px';
         for (let i = 0; i < this.size; i++) {
             this.chart.data.datasets[i].data = [];
         }
