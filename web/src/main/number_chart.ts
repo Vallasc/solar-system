@@ -62,24 +62,33 @@ class NumberChart {
                     display: true,
                     align: "start",
                     labels: {
+                        fontColor: "#ebebeb",
                         fontSize: 10,
                     }
                 },
                 scales: {
                     yAxes: [{
                         ticks: {
+                            fontColor: "#ebebeb",
                             callback: function(val: any) {
                                 return val.toExponential()
                             }
+                        },
+                        gridLines: {
+                            zeroLineColor: '#ffffff'
                         }
                     }],
                     xAxes: [{
                         type: 'linear',
                         position: 'bottom',
                         ticks: {
+                            fontColor: "#ebebeb",
                             autoSkip: true,
                             maxRotation: 0,
                             minRotation: 0,
+                        },
+                        gridLines: {
+                            zeroLineColor: '#ffffff'
                         }
                     }]
                 },
@@ -108,7 +117,15 @@ class NumberChart {
         });
     }
 
-    public updateChart( data : Array<{x : number, y : number}>) : void {
+    /*public updateChart( data : Array<{x : number, y : number}>) : void {
+    
+        for(let i=0; i<this.size; i++){
+            this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
+        }
+        this.chart.update();
+    }*/
+
+    public setDataset( data : EnergyArray) : void {
         /*
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
@@ -121,8 +138,8 @@ class NumberChart {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
         }*/
     
-        for(let i=0; i<this.size; i++){
-            this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
+        for(let i=0; i<data.size; i++){
+        //    this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
         }
         this.chart.update();
     }
