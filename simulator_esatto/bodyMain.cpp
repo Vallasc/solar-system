@@ -111,13 +111,13 @@ int main(){
     compute_CM(bodies);
 
     //create pointers
-    //create_pointers(grid, potential, error);
+    create_pointers(grid, potential, error);
 
     //make grid
-    //make_grid(bodies, grid, potential, error);
+    make_grid(bodies, grid, potential, error);
 
     //iterate potential
-    //for(int k=0; k<1000; ++k) next(potential, grid, error);
+    for(int k=0; k<1000; ++k) next(potential, grid, error);
 
     //writing files
     /*ofstream of(grid_file+n_file+".txt");
@@ -217,19 +217,19 @@ int main(){
 
         off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
 
-        /*
+        
         if(n_iteration%1000 == 0)
         {
             //number of files
-            ++i; 
-            n_file = char(i); 
+            //++i; 
+            //n_file = char(i); 
 
             //make grid
             make_grid(bodies, grid, potential, error);
 
             //iterate potential
             for(int k=0; k<1000; ++k) next(grid, potential, error);
-            
+            /*
             //writing files
             of.open(grid_file+n_file+".txt");
             for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
@@ -255,9 +255,9 @@ int main(){
             }
 
             of.close();
-
+            */
             serializer.write_potential(potential, x_index, y_index);
-        }*/
+        }
         serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
         serializer.write_bodies(bodies);
 
