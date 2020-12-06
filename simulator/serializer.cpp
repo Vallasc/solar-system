@@ -31,6 +31,7 @@ Serializer::Serializer(string file_name) {
     write_attr("version", file_version);
     write_attr("infoFileName", info_file_name);
     write_attr("energiesFileName", energies_file_name);
+    write_attr("simFileName", bin_file_name);
 }
 
 Serializer::~Serializer() {
