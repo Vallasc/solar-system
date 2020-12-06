@@ -396,7 +396,7 @@ int i, j;
         j+=500;
         i = i/delta;
         j = j/delta;
-        if(i<x_index && j<y_index) 
+        if(i>0 && j>0 && i<x_index && j<y_index) 
         {
             grid[i][j] += ((*k).mass/mass_i);
             //grid[i+1][j] += (3/17)*((*k).mass/mass_i);
