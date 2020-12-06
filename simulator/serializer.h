@@ -18,6 +18,7 @@ class Serializer {
         string file_name;
         int byte_written;
         int name_index;
+        int potential_index;
         int num_iteration;
         stringstream potentials_json;
         const int max_file_size = 5000000; // 2MB
@@ -35,7 +36,7 @@ class Serializer {
         void open_file();
         void split_file();
         void compress_files();
-        void write_attr(string key, string value);
+        void write_attr(string key, string value, bool is_num);
 
     public:
         Serializer(string file_name);
