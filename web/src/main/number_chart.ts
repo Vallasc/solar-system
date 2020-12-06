@@ -117,36 +117,14 @@ class NumberChart {
         });
     }
 
-    /*public updateChart( data : Array<{x : number, y : number}>) : void {
-    
+    public updateChart( data : Array<{x : number, y : number}>) : void {
         for(let i=0; i<this.size; i++){
             this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
-        }
-        this.chart.update();
-    }*/
-
-    public setDataset( data : EnergyArray) : void {
-        /*
-        // allow 1px inaccuracy by adding 1
-        const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
-        if(this.chart.data.datasets[0].data.length % 4 == 0){
-            this.width += 80;
-            this.div.style.width = this.width+'px';
-        }
-        // Scroll to left
-        if (isScrolledToLeft) {
-            this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
-        }*/
-    
-        for(let i=0; i<data.size; i++){
-        //    this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
         }
         this.chart.update();
     }
 
     public deleteData() : void {
-        this.width = 250;
-        this.div.style.width = this.width+'px';
         for(let i=0; i<this.size; i++){
             this.chart.data.datasets[i].data = [];
         }
