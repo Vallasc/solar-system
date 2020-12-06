@@ -47,6 +47,31 @@ class EnergyArray {
 
 }
 
+class PotentialMatrix {
+  private buffer : Float32Array;
+  public m : number; 
+  public n : number; 
+ 
+  constructor(blob: ArrayBuffer, m: number, n: number){
+    this.buffer = new Float32Array(blob);
+    this.m = m;
+    this.n = n;
+  }
+
+  public getMatrix(){
+    let matrix : Array<Array<number>> = [];
+    for(let i=0; i<this.m; i++){
+      matrix.push([])
+      for(let j=0; j<this.n; j++){
+        matrix[i].push(this.buffer[i*this.m + j]);
+      }
+    }
+    console.log(matrix);
+    return matrix;
+  }
+
+}
+
 class ZipReader {
   private static zipReader: any | null;
   public static async getEntries(file: File) : Promise<any> {
@@ -119,6 +144,20 @@ class FileManager{
     let blob = await ZipReader.getEntryFile(this.entriesMap.get(energiesFileName));
     let array: ArrayBuffer = await blob.arrayBuffer();
     return new EnergyArray(array);
+  }
+
+  public async getPotential(index : number) {
+    let potentials : Array<any> = this.infoJson["potentials"];
+    let saved = null;
+    for( let i = 0; i< potentials.length; i++){
+      if(index <= potentials[i]["iteration"]){
+        saved = potentials[i];
+        break;
+      }
+    }
+    let blob = await ZipReader.getEntryFile(this.entriesMap.get(saved["fileName"]));
+    let array: ArrayBuffer = await blob.arrayBuffer();
+    return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
   }
 
   private async loadNextFile() : Promise<void> {
