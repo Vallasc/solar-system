@@ -9,6 +9,7 @@ class Startup {
     static mainCanvas : HTMLCanvasElement;
     static axesCanvas : HTMLCanvasElement;
     static trajectoryCanvas : HTMLCanvasElement;
+    static slider : HTMLInputElement;
 
     static loop : Loop;
     static axes : Axes;
@@ -24,6 +25,8 @@ class Startup {
     public static main(): number {
 
         console.log('Main');
+        Startup.slider = <HTMLInputElement> document.getElementById('slider');
+
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
 
         window.onresize = Startup.onWindowResized;
@@ -125,8 +128,8 @@ class Startup {
             label: 'Run Main',
             streched: true,
             action: () => {
-                _web_main();
-                Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
+                //_web_main();
+                //Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
             }
         }]);
         Startup.gui.Register(Startup.loop.guiPanel);
@@ -155,6 +158,8 @@ class Startup {
         Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
         Startup.trajectoryCanvas.style.marginRight = Startup.canvasMarginRight + "px";
         Startup.trajectoryCanvas.style.marginTop = Startup.canvasMarginTop + "px";
+
+        Startup.slider.style.width = window.innerWidth - Startup.canvasMarginRight - 4 + "px";
     }
 
 }
