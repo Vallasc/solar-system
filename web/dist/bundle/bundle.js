@@ -260,30 +260,6 @@ class ChartStartup {
     }
 }
 zip.workerScriptsPath = "./dist/lib/zipjs/";
-class Deserializer {
-    static parseBinaryFloat32Array(blob) {
-        let floatArray = new Float32Array(blob);
-        let fifo = new Fifo();
-        let objects;
-        //let last : Float32Array | null = null;
-        let offset = 0;
-        try {
-            for (let i = (Deserializer.numIterationParam - 1); i < floatArray.length; i = i + offset) {
-                offset = Deserializer.bodyNumParams * floatArray[i] + Deserializer.numIterationParam;
-                //console.log(floatArray[i]);
-                objects = new Float32Array(floatArray.slice(i - (Deserializer.numIterationParam - 1), i + offset));
-                fifo.push(objects);
-                //console.log(objects);
-            }
-            return fifo;
-        }
-        catch (e) {
-            throw Error("Failed parsing file");
-        }
-    }
-}
-Deserializer.bodyNumParams = 5;
-Deserializer.numIterationParam = 2; // id + size
 class EnergyArray {
     constructor(blob) {
         // Nel file delle energie l'indice dell'array corrisponde all'iterazione
@@ -355,6 +331,9 @@ class FileManager {
         this.infoJson = null;
         this.file = file;
         this.entriesMap = new Map();
+        this.numIterations = 0;
+        this.fileIndex = 0;
+        this.bodies = new Array();
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -366,6 +345,7 @@ class FileManager {
             let infoFile = yield ZipReader.getEntryFile(this.entriesMap.get("info.json"));
             this.infoJson = JSON.parse(yield infoFile.text());
             console.log(this.infoJson);
+            this.numIterations = this.infoJson["numIteration"];
         });
     }
     close() {
@@ -384,7 +364,43 @@ class FileManager {
             return new EnergyArray(array);
         });
     }
+    loadNextFile() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let file = yield ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
+            let arrayBuffer = yield file.arrayBuffer();
+            let floatArray = new Float32Array(arrayBuffer);
+            let objects;
+            let offset = 0;
+            try {
+                for (let i = (FileManager.numIterationParam - 1); i < floatArray.length; i = i + offset) {
+                    offset = FileManager.bodyNumParams * floatArray[i] + FileManager.numIterationParam;
+                    objects = new Float32Array(floatArray.slice(i - (FileManager.numIterationParam - 1), i + offset));
+                    this.bodies.push(objects);
+                }
+            }
+            catch (e) {
+                throw Error("Failed parsing file");
+            }
+            this.fileIndex++;
+        });
+    }
+    getBodies(index) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // EOF
+            if (index >= this.numIterations)
+                return null;
+            while (this.bodies.length <= index) {
+                yield this.loadNextFile();
+            }
+            return this.bodies[index];
+        });
+    }
+    getNumIterations() {
+        return this.numIterations;
+    }
 }
+FileManager.bodyNumParams = 5;
+FileManager.numIterationParam = 2; // id + size
 class Fifo {
     constructor() {
         this.size = 0;
@@ -528,6 +544,7 @@ class JsonStreamer {
 class Startup {
     static main() {
         console.log('Main');
+        Startup.slider = document.getElementById('slider');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
         Startup.trajectoryCanvas = document.getElementById('trajectory-canvas');
@@ -623,8 +640,8 @@ class Startup {
                 label: 'Run Main',
                 streched: true,
                 action: () => {
-                    _web_main();
-                    Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer));
+                    //_web_main();
+                    //Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
                 }
             }]);
         Startup.gui.Register(Startup.loop.guiPanel);
@@ -649,6 +666,7 @@ class Startup {
         Startup.trajectoryCanvas.height = window.innerHeight - Startup.canvasMarginTop;
         Startup.trajectoryCanvas.style.marginRight = Startup.canvasMarginRight + "px";
         Startup.trajectoryCanvas.style.marginTop = Startup.canvasMarginTop + "px";
+        Startup.slider.style.width = window.innerWidth - Startup.canvasMarginRight - 4 + "px";
     }
 }
 Startup.canvasMarginTop = 25;
@@ -725,33 +743,19 @@ class Loop {
         this.selectedBody = new Body();
         this.axesBodyOffset = new Body();
         this.scale = 1;
-        this.loadAllFile = true;
         this.forceLoadAllCheckbox = false;
         this.isPlaying = false;
         this.isEof = false;
-        this.readEnd = false;
-        this.bufferSize = 90;
         this.reqId = -1;
-        //private setAxesOffset(selectedBody : Body){
-        //Startup.trajectory.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
-        //Startup.axes.setAxesOffset(selectedBody.x*this.scale, selectedBody.y*this.scale);
-        //    this.axesOffsetX = selectedBody.x*this.scale;
-        //    this.axesOffsetY = selectedBody.y*this.scale;
-        //}
         this.numIteration = 0;
         this.lastTime = 0;
-        this.indexChunck = 2; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
-        this.loadingChunck = false;
-        this.entries = null;
-        this.rangeSlider = null;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.imatrix = this.context.getTransform().inverse();
         this.file = new File([], "");
         this.energyFile = new EnergyArray(new ArrayBuffer(0));
-        this.buffer = new Fifo();
-        this.lastObjects = null;
+        this.fileManager = null;
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
@@ -875,34 +879,39 @@ class Loop {
             }
         ];
         this.barContainer = document.getElementById("guify-bar-container");
+        let saveIsPlaying = false;
+        Startup.slider.onmousedown = (ev) => {
+            saveIsPlaying = this.isPlaying;
+            this.isPlaying = false;
+        };
+        Startup.slider.onmouseup = (ev) => {
+            this.selectedBody.reset();
+            this.selectX = null;
+            this.selectY = null;
+            this.numIteration = parseInt(Startup.slider.value);
+            this.isPlaying = saveIsPlaying;
+        };
     }
     draw(time) {
-        this.stats.begin();
-        //if(time - this.lastTime <= 20){
-        if (this.lastObjects == null || this.isPlaying) { //Disegno il primo frame sempre o qundo e'play
-            let objects = this.buffer.pop();
-            // Ho dei frame da visualizzare
-            if (objects != null && !this.isEof) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.stats.begin();
+            let objects = yield this.fileManager.getBodies(this.numIteration);
+            if (objects == null) {
+                this.pause();
+                this.isEof = true;
+            }
+            else {
                 this.drawStates(objects);
-                this.lastObjects = objects;
+                this.isEof = false;
+            }
+            if (this.isPlaying) {
+                Startup.slider.value = this.numIteration + "";
                 this.numIteration++;
             }
-            else if (!this.loadingChunck) { // Non ne sto caricando delgli altri
-                this.isEof = true;
-                this.isPlaying = false;
-                this.barContainer.innerText = "⏹";
-            }
-        }
-        else if (this.lastObjects != null)
-            this.drawStates(this.lastObjects);
-        //} else {
-        //    this.buffer.pop(); //TODO Aggiustare cosi non funziona
-        //}
-        this.reqId = window.requestAnimationFrame((time) => this.draw(time));
-        if (!this.loadAllFile && !this.readEnd && this.buffer.size < this.bufferSize)
-            this.loadFileChunck(this.file, false);
-        this.stats.end();
-        this.lastTime = time;
+            this.reqId = window.requestAnimationFrame((time) => this.draw(time));
+            this.stats.end();
+            this.lastTime = time;
+        });
     }
     // per aumentare la velocita di calcolo utilizzo un quadrato circoscritto
     squareHitTest(x, y, r, xp, yp) {
@@ -930,14 +939,14 @@ class Loop {
         return { x: x, y: y };
     }
     drawStates(objects) {
-        const numParams = Deserializer.bodyNumParams;
-        // Controllo se devo cmabiare il centro degli assi
+        const numParams = FileManager.bodyNumParams;
+        // Controllo se devo camabiare il centro degli assi
         if (this.axesBodyOffset.id != -1) {
-            for (let i = 0; i < objects[Deserializer.numIterationParam - 1]; i++) {
+            for (let i = 0; i < objects[FileManager.numIterationParam - 1]; i++) {
                 // Prelevo gli attributi del body
-                let id = objects[Deserializer.numIterationParam + i * numParams + 0];
-                let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
-                let y = objects[Deserializer.numIterationParam + i * numParams + 2];
+                let id = objects[FileManager.numIterationParam + i * numParams + 0];
+                let x = objects[FileManager.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
+                let y = objects[FileManager.numIterationParam + i * numParams + 2];
                 // Mette l'offset dell'iterazione precednte
                 if (this.axesBodyOffset.id == id) {
                     this.axesBodyOffset.x = x;
@@ -957,13 +966,13 @@ class Loop {
         // Controllo che ci sia un'occorrenza del body selezionato
         let bodyIsIn = false;
         let fillColor = -1;
-        for (let i = 0; i < objects[Deserializer.numIterationParam - 1]; i++) {
+        for (let i = 0; i < objects[FileManager.numIterationParam - 1]; i++) {
             // Prelevo gli attributi del body
-            let id = objects[Deserializer.numIterationParam + i * numParams + 0];
-            let x = objects[Deserializer.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
-            let y = objects[Deserializer.numIterationParam + i * numParams + 2];
-            let r = objects[Deserializer.numIterationParam + i * numParams + 3];
-            let t = objects[Deserializer.numIterationParam + i * numParams + 4];
+            let id = objects[FileManager.numIterationParam + i * numParams + 0];
+            let x = objects[FileManager.numIterationParam + i * numParams + 1]; // posizione 1 dell'array
+            let y = objects[FileManager.numIterationParam + i * numParams + 2];
+            let r = objects[FileManager.numIterationParam + i * numParams + 3];
+            let t = objects[FileManager.numIterationParam + i * numParams + 4];
             // Se il corpo e' stato selezionato
             if (this.selectedBody.id == id && this.selectedBody.visible) {
                 this.selectedBody.x = x;
@@ -1017,6 +1026,7 @@ class Loop {
             this.selectedBody.setVisible(false);
             Startup.trajectory.clear();
         }
+        // Aggiorno grafico ongni 30 frame
         if (this.numIteration % 30 == 0) {
             this.chart.updateChart([
                 { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0) },
@@ -1028,16 +1038,27 @@ class Loop {
         }
     }
     play() {
-        if (this.isPlaying || this.isEof)
+        if (this.isEof)
             return;
         this.isPlaying = true;
         this.barContainer.innerText = "⏵";
     }
     pause() {
-        if (!this.isPlaying || this.isEof)
+        if (this.isEof)
             return;
         this.isPlaying = false;
         this.barContainer.innerText = "⏸";
+    }
+    stop() {
+        this.isEof = false;
+        this.isPlaying = false;
+        this.numIteration = 0;
+        this.selectedBody.reset();
+        this.axesBodyOffset.reset();
+        this.selectX = null;
+        this.selectY = null;
+        this.chart.deleteData();
+        this.barContainer.innerText = "⏹";
     }
     playPause() {
         if (!this.isPlaying)
@@ -1048,163 +1069,35 @@ class Loop {
     reset(file = this.file) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("reset");
+            this.barContainer.style.color = "#ffffff";
             this.barContainer.innerText = "";
             window.cancelAnimationFrame(this.reqId);
-            // Reset variabili
-            this.isEof = false;
-            this.isPlaying = false;
-            this.lastObjects = null;
-            this.numIteration = 0;
-            this.bufferSize = 90;
-            this.selectedBody.reset();
-            this.axesBodyOffset.reset();
-            this.selectX = null;
-            this.selectY = null;
-            if (!this.loadAllFile) {
-                while (this.loadingChunck) { // Aspetto la fine del worker
-                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
-                }
-            }
-            this.buffer.clear();
-            this.chart.deleteData();
+            this.stop();
             try {
                 this.file = file;
                 yield this.loadFile(file);
-                //console.log("File loaded");
             }
             catch (e) {
                 console.error(e);
             }
-            this.barContainer.innerText = "⏹";
+            this.pause();
             this.draw(0);
-            //this.play();
-        });
-    }
-    resetArray(arrayBuffer) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("reset");
-            this.barContainer.innerText = "";
-            window.cancelAnimationFrame(this.reqId);
-            // Reset variabili
-            this.isEof = false;
-            this.isPlaying = false;
-            this.lastObjects = null;
-            this.numIteration = 0;
-            this.bufferSize = 90;
-            this.selectedBody.reset();
-            this.axesBodyOffset.reset();
-            this.selectX = null;
-            this.selectY = null;
-            if (!this.loadAllFile) {
-                while (this.loadingChunck) { // Aspetto la fine del worker
-                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
-                }
-            }
-            this.buffer.clear();
-            this.chart.deleteData();
-            try {
-                this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
-            }
-            catch (e) {
-                console.error(e);
-            }
-            this.barContainer.innerText = "⏹";
-            this.draw(0);
+            Startup.slider.value = "0";
+            Startup.slider.max = this.fileManager.getNumIterations() + "";
         });
     }
     loadFile(file) {
         return __awaiter(this, void 0, void 0, function* () {
             Startup.gui.Loader(true);
-            //if( this.file.size < 100000000 || this.forceLoadAllCheckbox){ //100MB 
-            if (this.forceLoadAllCheckbox) {
-                this.loadAllFile = true;
-                try {
-                    yield this.loadFileAll(file);
-                }
-                catch (e) {
-                    throw Error("Failed loading file");
-                }
-            }
-            else {
-                this.loadAllFile = false;
-                yield this.loadFileChunck(file, true);
-            }
+            this.fileManager = new FileManager(file);
+            yield this.fileManager.init();
+            this.energyFile = yield this.fileManager.getEnergies();
+            yield this.fileManager.getBodies(0);
+            /*if(this.forceLoadAllCheckbox){
+    
+            }*/
             Startup.gui.Loader(false);
             return;
-        });
-    }
-    loadFileAll(file) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                this.entries = yield ZipReader.getEntries(file);
-                if (this.entries == null)
-                    return;
-                this.buffer.clear();
-                for (let i = 2; i < this.entries.length; i++) { //TODO cambiare in i=0, primo file non letto perche contiene metadati
-                    console.log("Load file: " + this.entries[i].filename);
-                    let blob = yield ZipReader.getEntryFile(this.entries[i]);
-                    let arrayBuffer = yield blob.arrayBuffer();
-                    this.buffer.pushFifo(Deserializer.parseBinaryFloat32Array(arrayBuffer));
-                }
-                console.log(this.buffer.size);
-                let blob = yield ZipReader.getEntryFile(this.entries[1]);
-                let arrayBuffer = yield blob.arrayBuffer();
-                this.energyFile = new EnergyArray(arrayBuffer);
-                ZipReader.closeZipReader();
-                this.readEnd = true;
-                //this.addGuiRange(0, entries.length);
-            }
-            catch (e) {
-                console.log(e);
-            }
-        });
-    }
-    loadFileChunck(file, reset) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if ((this.loadingChunck || this.readEnd) && !reset) {
-                return;
-            }
-            if (reset) {
-                ZipReader.closeZipReader();
-                this.entries = null;
-                this.indexChunck = 2; //TODO cambiare in indexChunck=0, primo file non letto perche contiene metadati
-            }
-            this.readEnd = false;
-            this.loadingChunck = true;
-            try {
-                if (this.entries == null) {
-                    this.entries = yield ZipReader.getEntries(file);
-                    if (this.entries != null) {
-                        let blob = yield ZipReader.getEntryFile(this.entries[1]);
-                        let arrayBuffer = yield blob.arrayBuffer();
-                        this.energyFile = new EnergyArray(arrayBuffer);
-                    }
-                }
-                if (this.entries != null && this.indexChunck < this.entries.length) {
-                    console.log("Load file: " + this.entries[this.indexChunck].filename);
-                    let blob = yield ZipReader.getEntryFile(this.entries[this.indexChunck]);
-                    let arrayBuffer = yield blob.arrayBuffer();
-                    let b = Deserializer.parseBinaryFloat32Array(arrayBuffer);
-                    // Funzione ch bilancia le richieste
-                    this.bufferSize = b.size > 12000 ? 60 : -100 * Math.log(b.size) + 1000;
-                    //this.bufferSize = 600;
-                    //console.log(this.bufferSize);
-                    this.buffer.pushFifo(b);
-                    this.indexChunck++;
-                    if (this.indexChunck == this.entries.length) {
-                        this.readEnd = true;
-                        ZipReader.closeZipReader();
-                    }
-                    //this.addGuiRange(0, this.entries.length-1);
-                }
-            }
-            catch (e) {
-                console.log(e);
-                this.readEnd = true;
-            }
-            finally {
-                this.loadingChunck = false;
-            }
         });
     }
     setPanningOffset(x, y) {
@@ -1214,31 +1107,6 @@ class Loop {
     setSelected(x, y) {
         this.selectX = x;
         this.selectY = y;
-    }
-    addGuiRange(min, max) {
-        if (this.rangeSlider != null) {
-            Startup.gui.Remove(this.rangeSlider);
-        }
-        this.rangeSlider = Startup.gui.Register({
-            type: 'range',
-            label: 'Stepped Range',
-            min: min, max: max, step: 1,
-            object: this, property: "indexChunck",
-            onChange: (data) => __awaiter(this, void 0, void 0, function* () {
-                yield this.setCursor(data);
-            })
-        });
-    }
-    setCursor(cursor) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.loadAllFile) {
-                while (this.loadingChunck) { // Aspetto la fine del worker
-                    yield new Promise((resolve) => { setTimeout(() => { resolve(); }, 100); });
-                }
-            }
-            this.buffer.clear();
-            yield this.loadFileChunck(this.file, false);
-        });
     }
 }
 class NumberChart {
@@ -1292,24 +1160,33 @@ class NumberChart {
                     display: true,
                     align: "start",
                     labels: {
+                        fontColor: "#ebebeb",
                         fontSize: 10,
                     }
                 },
                 scales: {
                     yAxes: [{
                             ticks: {
+                                fontColor: "#ebebeb",
                                 callback: function (val) {
                                     return val.toExponential();
                                 }
+                            },
+                            gridLines: {
+                                zeroLineColor: '#ffffff'
                             }
                         }],
                     xAxes: [{
                             type: 'linear',
                             position: 'bottom',
                             ticks: {
+                                fontColor: "#ebebeb",
                                 autoSkip: true,
                                 maxRotation: 0,
                                 minRotation: 0,
+                            },
+                            gridLines: {
+                                zeroLineColor: '#ffffff'
                             }
                         }]
                 },
