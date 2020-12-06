@@ -194,7 +194,7 @@ class Axes {
         this.context.fillText('Y',w/2-30 + offX, 30);
         this.context.fillText('X',w-30, h/2 + 30 + offY);
 
-        console.log(offX, offY, w/2, h/2);
+        //console.log(offX, offY, w/2, h/2);
 
         if ((offX <= w/2-185) && (offY <= h/2-95)) {
             this.context.fillStyle = "rgb(60,0,0)";
