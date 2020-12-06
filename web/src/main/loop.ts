@@ -337,13 +337,13 @@ class Loop {
 
         // Aggiorno grafico ongni 30 frame
         if(this.numIteration % 30 == 0){
-            this.chart.updateChart([
+            /*this.chart.updateChart([
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3)},
                 {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4)}
-            ]);
+            ]);*/
         }
     }
 
