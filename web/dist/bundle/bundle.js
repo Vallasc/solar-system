@@ -1082,13 +1082,13 @@ class Loop {
         }
         // Aggiorno grafico ongni 30 frame
         if (this.numIteration % 30 == 0) {
-            this.chart.updateChart([
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4) }
-            ]);
+            /*this.chart.updateChart([
+                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0)},
+                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1)},
+                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2)},
+                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3)},
+                {x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4)}
+            ]);*/
         }
     }
     play() {
@@ -1268,7 +1268,14 @@ class NumberChart {
             }
         });
     }
-    updateChart(data) {
+    /*public updateChart( data : Array<{x : number, y : number}>) : void {
+    
+        for(let i=0; i<this.size; i++){
+            this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
+        }
+        this.chart.update();
+    }*/
+    setDataset(data) {
         /*
         // allow 1px inaccuracy by adding 1
         const isScrolledToLeft = this.container.scrollWidth- this.container.clientWidth <= this.container.scrollLeft + 1
@@ -1280,8 +1287,8 @@ class NumberChart {
         if (isScrolledToLeft) {
             this.container.scrollLeft = this.container.scrollWidth - this.container.clientWidth
         }*/
-        for (let i = 0; i < this.size; i++) {
-            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
+        for (let i = 0; i < data.size; i++) {
+            //    this.chart.data.datasets[i].data.push({x: new Date(data[i].x), y: data[i].y});
         }
         this.chart.update();
     }
