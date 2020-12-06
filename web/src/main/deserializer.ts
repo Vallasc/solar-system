@@ -1,32 +1,6 @@
 declare var zip : any;
 zip.workerScriptsPath = "./dist/lib/zipjs/";
 
-class Deserializer {
-    static readonly bodyNumParams = 5;
-    static readonly numIterationParam = 2; // id + size
-
-    public static parseBinaryFloat32Array(blob: ArrayBuffer): Fifo<Float32Array> {
-      let floatArray = new Float32Array(blob);
-      let fifo: Fifo<Float32Array> = new Fifo();
-
-      let objects : Float32Array;
-      //let last : Float32Array | null = null;
-      let offset = 0;
-      try{
-        for(let i=(Deserializer.numIterationParam-1); i<floatArray.length; i= i + offset) {
-          offset = Deserializer.bodyNumParams*floatArray[i] + Deserializer.numIterationParam;
-          //console.log(floatArray[i]);
-          objects = new Float32Array(floatArray.slice(i-(Deserializer.numIterationParam-1), i + offset))
-          fifo.push(objects);
-          //console.log(objects);
-        }
-        return fifo;
-      } catch (e) {
-        throw Error("Failed parsing file");
-      }
-    }
-}
-
 class EnergyArray {
   // Nel file delle energie l'indice dell'array corrisponde all'iterazione
   // size = numero di iterazioni
@@ -34,7 +8,7 @@ class EnergyArray {
 
   private readonly numParamsRow = 5;
   private buffer : Float32Array;
-  private size : number; 
+  public size : number; 
 
   constructor(blob: ArrayBuffer){
     this.buffer = new Float32Array(blob);
@@ -102,13 +76,22 @@ class ZipReader {
 }
 
 class FileManager{
+  static readonly bodyNumParams = 5;
+  static readonly numIterationParam = 2; // id + size
+
   private file : File;
+  private numIterations : number;
+  private bodies : Array<Float32Array>
+  private fileIndex: number;
   private infoJson : any | null = null;
   private entriesMap : Map<string, any>;
 
   constructor(file: File){
     this.file = file;
     this.entriesMap = new Map<string, any>();
+    this.numIterations = 0;
+    this.fileIndex = 0;
+    this.bodies = new Array<Float32Array>();
   }
 
   public async init(){
@@ -120,6 +103,7 @@ class FileManager{
     let infoFile = await ZipReader.getEntryFile(this.entriesMap.get("info.json"));
     this.infoJson = JSON.parse(await infoFile!.text());
     console.log(this.infoJson);
+    this.numIterations = this.infoJson["numIteration"];
   }
 
   public close(){
@@ -135,6 +119,40 @@ class FileManager{
     let blob = await ZipReader.getEntryFile(this.entriesMap.get(energiesFileName));
     let array: ArrayBuffer = await blob.arrayBuffer();
     return new EnergyArray(array);
+  }
+
+  private async loadNextFile() : Promise<void> {
+    let file = await ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
+    let arrayBuffer = await file.arrayBuffer();
+    let floatArray = new Float32Array(arrayBuffer);
+
+    let objects : Float32Array;
+    let offset = 0;
+    try{
+      for(let i=(FileManager.numIterationParam-1); i<floatArray.length; i= i + offset) {
+        offset = FileManager.bodyNumParams*floatArray[i] + FileManager.numIterationParam;
+        objects = new Float32Array(floatArray.slice(i-(FileManager.numIterationParam-1), i + offset))
+        this.bodies.push(objects);
+      }
+    } catch (e) {
+      throw Error("Failed parsing file");
+    }
+
+    this.fileIndex++;
+  }
+
+  public async getBodies( index: number): Promise<Float32Array | null> {
+    // EOF
+    if(index >= this.numIterations) return null;
+
+    while(this.bodies.length <= index){
+      await this.loadNextFile();
+    }
+    return this.bodies[index];
+  }
+
+  public getNumIterations() : number {
+    return this.numIterations;
   }
 
 }
