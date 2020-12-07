@@ -10,7 +10,8 @@
  
 
 extern double Temp_max;
-double* old_parameters = new double[8];
+extern double limit_radius;
+extern double k_elastic;
 
 //-------------------class constructors and operators-----------------------
 //parametric costructor
@@ -78,6 +79,10 @@ int Body::get_color()
     return color;
 }
 
+double Body::get_total_energy()///////////////////////////////////////
+{
+    return 0.5*potential_energy + get_kinetic_energy() + binding_energy + internal_energy;
+}
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
 double* Body::merge(Body& a)
@@ -217,20 +222,37 @@ double Body::distancep(double* q, double* p)
 //force_and_potential(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void Body::force_and_potential(Body &a, Body &b)
 {
-    double u = (b.mass*a.mass)/(distance(a,b)); 
-    double f = u/(pow(distance(a,b), 2));
-    double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
-    double fy_a = f*(b.position[1]-a.position[1]);//force along y on a
+    double dist = distance(a,b);
 
-    a.acceleration[0] += fx_a/(a.mass);//updating acceleration
-    a.acceleration[1] += fy_a/(a.mass);
+    if(dist > limit_radius)
+    { 
+        double u = (b.mass*a.mass)/(dist); 
+        double f = u/(pow(dist, 2));
+        double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
+        double fy_a = f*(b.position[1]-a.position[1]);//force along y on a
 
-    b.acceleration[0] -= fx_a/(b.mass);//let f_a the force acting on a, therefore -f_a is the force actiong on b (third newton principle)
-    b.acceleration[1] -= fy_a/(b.mass);
+        a.acceleration[0] += fx_a/(a.mass);//updating acceleration
+        a.acceleration[1] += fy_a/(a.mass);
 
-    //potential energy
-    a.potential_energy -= u;
-    b.potential_energy -= u;
+        b.acceleration[0] -= fx_a/(b.mass);//let f_a the force acting on a, therefore -f_a is the force actiong on b (third newton principle)
+        b.acceleration[1] -= fy_a/(b.mass);
+
+        //potential energy
+        a.potential_energy -= u;
+        b.potential_energy -= u;
+    }
+    else
+    {
+        double u = 0.5*a.mass*b.mass*k_elastic*pow(dist,2);
+
+        a.acceleration[0] += a.mass*b.mass*k_elastic*(b.position[0]-a.position[0]);
+        a.acceleration[1] += a.mass*b.mass*k_elastic*(b.position[1]-a.position[1]);
+
+        a.potential_energy -= u;
+        b.potential_energy -= u;
+
+    }
+    
 
 }
 

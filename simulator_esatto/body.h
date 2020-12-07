@@ -31,7 +31,7 @@ class Body
     double get_y_momentum(); //return y momentum
     double get_orbital_momentum(); //return orbital angular momentum
     int get_color();
-    double get_total_energies();
+    double get_total_energy();//////////////////////
     
     //variables
     int id; 
