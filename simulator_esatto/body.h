@@ -31,7 +31,6 @@ class Body
     double get_y_momentum(); //return y momentum
     double get_orbital_momentum(); //return orbital angular momentum
     int get_color();
-    double get_total_energy();//////////////////////
     
     //variables
     int id; 
@@ -43,8 +42,11 @@ class Body
     double internal_energy;
     double binding_energy; 
     double potential_energy;
+    double potential_costant;
     double spin;
     bool is_big_endian;
+    int surpass_limit;
+
 
     private:
     // Swap float if it is big endian

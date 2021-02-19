@@ -139,6 +139,7 @@ double distance_position(double* p1, double* p2)
 
 void collision(vector<Body> &bodies)
 {   
+    double potential_big_i, potential_Obig_i, potential_Osmall_i, delta_i;
     vector<Body>::iterator small, big;
     double* p = new double[8];
     double old_position_small[2];
@@ -174,10 +175,10 @@ void collision(vector<Body> &bodies)
                     {
                         if(i!=j && i!=k)
                         {
-                        double potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
-                        double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                        double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                        double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                        potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
+                        potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                        potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                        delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
                         (*i).potential_energy += delta_i;
                         (*j).potential_energy += potential_big_i;
                         (*j).binding_energy += -0.5*delta_i;
@@ -206,10 +207,10 @@ void collision(vector<Body> &bodies)
                 {
                     if(i!=j && i!=k)
                     {
-                    double potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
-                    double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                    double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                    double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                    potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
+                    potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                    potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                    delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
                     (*i).potential_energy += delta_i;
                     (*k).potential_energy += potential_big_i;
                     (*k).binding_energy += -0.5*delta_i;

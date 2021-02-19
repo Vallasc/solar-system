@@ -53,14 +53,14 @@ double t = 0; // time
 double dt = 0.01; // time interval
 double t_f = 100; // final time
 double mass_i = 100;
-double radius_i = 5;
+double radius_i = 1;
 
 //------------------Temperature estimation----------------------------
 double Temp_max = 0.75*(0.0288*N+13)*mass_i;
 //--------------------------------------------------------------------
 //-----------------Elastic Parameters---------------------------------
 double k_elastic = 1e-3;
-double limit_radius = 10;
+double limit_radius = 20;
 //--------------------------------------------------------------------
 
 //--------------------conservation parameters--------------------
@@ -194,9 +194,6 @@ int main(){
     while(1)
     {   
 
-        //if(n_iteration%1000 == 0)
-        //bodies[0].print();
-
         #ifdef  PERCENTAGE
         if(n_iteration % 13 == 0)
         {
@@ -219,7 +216,7 @@ int main(){
         total_energies[i] = 0;
         get_total_energies(bodies);
 
-        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\t"<<Body::distance(bodies[0], bodies[1])<<"\n";
+        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\t"<<Body::distance(bodies[0], bodies[1])<< "\t"<<pow((pow(bodies[0].acceleration[0], 2) + pow(bodies[0].acceleration[1],2)),0.5)<<"\t" <<total_energies[1] << "\t" << total_energies[3] << "\n";
 
         
         if(n_iteration%1000 == 0)
