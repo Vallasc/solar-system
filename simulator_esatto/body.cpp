@@ -9,7 +9,7 @@
 
  
 
-extern double Temp_max;
+extern double temp_max;
 extern double limit_radius;
 extern double k_elastic;
 double u_g, u_el, f, fx_a, fy_a;
@@ -68,15 +68,15 @@ int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
-    if(temperature < Temp_max/10) color = 1;
-    else if(temperature < 2*Temp_max/10) color = 2;
-    else if(temperature < 3*Temp_max/10) color = 3;
-    else if(temperature < 4*Temp_max/10) color = 4;
-    else if(temperature < 5*Temp_max/10) color = 5;
-    else if(temperature < 6*Temp_max/10) color = 6;
-    else if(temperature < 7*Temp_max/10) color = 7;
-    else if(temperature < 8*Temp_max/10) color = 8;
-    else if(temperature < 9*Temp_max/10) color = 9;
+    if(temperature < temp_max/10) color = 1;
+    else if(temperature < 2*temp_max/10) color = 2;
+    else if(temperature < 3*temp_max/10) color = 3;
+    else if(temperature < 4*temp_max/10) color = 4;
+    else if(temperature < 5*temp_max/10) color = 5;
+    else if(temperature < 6*temp_max/10) color = 6;
+    else if(temperature < 7*temp_max/10) color = 7;
+    else if(temperature < 8*temp_max/10) color = 8;
+    else if(temperature < 9*temp_max/10) color = 9;
     else color = 10;
     
     return color;

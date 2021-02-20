@@ -15,6 +15,7 @@ using namespace std;
 Serializer::Serializer(string file_name) {
     this->byte_written = 0;
     this->name_index = 0;
+    this->potential_index = 0;
     this->num_iteration = 0;
     this->file_name = file_name;
 
@@ -25,21 +26,22 @@ Serializer::Serializer(string file_name) {
     // Apro il file delle energie
     outfile_energies.open(energies_file_name, std::ios::out);
     
-    cout << "Serializer: init" << endl;
+    //cout << "Serializer: init" << endl;
 
     outfile_info << "{ "<< endl;
-    write_attr("version", file_version);
-    write_attr("infoFileName", info_file_name);
-    write_attr("energiesFileName", energies_file_name);
+    write_attr("version", file_version, false);
+    write_attr("infoFileName", info_file_name, false);
+    write_attr("energiesFileName", energies_file_name, false);
+    write_attr("simFileName", bin_file_name, false);
 }
 
 Serializer::~Serializer() {
-    cout << "Serializer: end" << endl;
-    cout << "Serializer: number iterations = " << this->num_iteration << endl;
-    cout << "Serializer: minutes of simulation = " << this->num_iteration/60/60 << endl;
+    //cout << "Serializer: end" << endl;
+    //cout << "Serializer: number iterations = " << this->num_iteration << endl;
+    //cout << "Serializer: minutes of simulation = " << this->num_iteration/60/60 << endl;
 
-    write_attr("numIteration", to_string(this->num_iteration));
-    write_attr("minSimulation", to_string(this->num_iteration/60/60));
+    write_attr("numIteration", to_string(this->num_iteration), true);
+    write_attr("minSimulation", to_string(this->num_iteration/60/60), true);
     outfile_info << "\"potentials\": [" << endl;
     outfile_info << potentials_json.str();
     outfile_info << "]" << endl;
@@ -52,41 +54,47 @@ Serializer::~Serializer() {
     this->compress_files();
 }
 
-void Serializer::write_attr(string key, string value) {
-    outfile_info << "\""<< key << "\": " << "\"" << value << "\"," << endl;
+void Serializer::write_attr(string key, string value, bool is_num) {
+    if(is_num)
+        outfile_info << "\""<< key << "\": " << value << "," << endl;
+    else
+        outfile_info << "\""<< key << "\": " << "\"" << value << "\"," << endl;
 }
 
 void Serializer::write_init(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y) {
-    write_attr("e_tot_start", to_string(e_tot));
-    write_attr("ang_mom_tot_start", to_string(ang_mom_tot));
-    write_attr("mom_tot_x_start", to_string(momentum_tot_x));
-    write_attr("mom_tot_y_start", to_string(momentum_tot_y));
+    write_attr("e_tot_start", to_string(e_tot), true);
+    write_attr("ang_mom_tot_start", to_string(ang_mom_tot), true);
+    write_attr("mom_tot_x_start", to_string(momentum_tot_x), true);
+    write_attr("mom_tot_y_start", to_string(momentum_tot_y), true);
 }
 
 void Serializer::write_end(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y) {
-    write_attr("e_tot_end", to_string(e_tot));
-    write_attr("ang_mom_tot_end", to_string(ang_mom_tot));
-    write_attr("mom_tot_x_end", to_string(momentum_tot_x));
-    write_attr("mom_tot_y_end", to_string(momentum_tot_y));
+    write_attr("e_tot_end", to_string(e_tot), true);
+    write_attr("ang_mom_tot_end", to_string(ang_mom_tot), true);
+    write_attr("mom_tot_x_end", to_string(momentum_tot_x), true);
+    write_attr("mom_tot_y_end", to_string(momentum_tot_y), true);
 }
 
 void Serializer::write_potential(double** potential, int m, int n) {
-    string filename = potentials_file_name + to_string(num_iteration) + ".bin";
+    string filename = potentials_file_name + to_string(potential_index) + ".bin";
+    if(potential_index != 0)
+        potentials_json << "," << endl;
     potentials_json << "{" << endl;
-    potentials_json << "iteration:" << to_string(num_iteration) << endl;
-    potentials_json << "fileName:" << filename << endl;
-    potentials_json << "xSize:" << to_string(m) << endl;
-    potentials_json << "ySize:" << to_string(n) << endl;
-    potentials_json << "}" << endl;
+    potentials_json << "\"iteration\": " << to_string(num_iteration) << "," << endl;
+    potentials_json << "\"fileName\": \"" << filename << "\"," << endl;
+    potentials_json << "\"xSize\": " << to_string(m) << "," << endl;
+    potentials_json << "\"ySize\": " << to_string(n) << endl;
+    potentials_json << "}" ;
 
     ofstream out;
     out.open(filename, std::ios::binary);
     for(int i=0; i<m; i++)
         for(int j=0; j<n; j++){
             float el = potential[i][j];
-            outfile_energies.write(reinterpret_cast<char*>(& el), sizeof(float));
+            out.write(reinterpret_cast<char*>(& el), sizeof(float));
         }
     out.close();
+    potential_index++;
 }
 
 // Nel file delle energie l'indice dell'array corrisponde all'iterazione
@@ -156,6 +164,14 @@ void Serializer::compress_files() {
         // Compress binary files
         for(int i=0; i<name_index; i++) {
             string f_name = bin_file_name + std::to_string(i) + ".bin";
+            mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
+            remove(f_name.c_str());
+        }
+
+        // Compress ptential files
+        for(int i=0; i<potential_index; i++) {
+            string f_name = potentials_file_name + std::to_string(i) + ".bin";
+            //cout << f_name;
             mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
             remove(f_name.c_str());
         }

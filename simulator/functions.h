@@ -13,7 +13,6 @@
 
 //#define CARTESIAN
 #define POLAR
-//#define POLAR_VORTEX
 
 //------------------------------------extern parameters-----------------------------
 #ifdef CARTESIAN
@@ -26,10 +25,6 @@ extern double x_min, x_max, v_min, v_max;
 extern double rho, v_max, theta, phi, R_module, V_module;
 #endif
 
-#ifdef POLAR_VORTEX
-//polar coordinates with dependent rotation
-extern double rho, theta, R_module;
-#endif
 
 extern int N; 
 extern double mass_i, radius_i, dt;
@@ -37,7 +32,7 @@ extern double ang_mom_tot, E_tot, total_energies[5], momentum_tot[2];
 extern int x_grid_max, y_grid_max, delta, x_index, y_index;
 extern double alpha; 
 
-extern string filename ; // Do not specify the extension 
+extern string filename ; 
 
 //---------------------------------------------------------------------------------
 
@@ -106,15 +101,6 @@ void initial_condition(vector<Body> &bodies, double* position_i, double* velocit
         velocity_i[0] = V_module*cos(phi);
         velocity_i[1] = V_module*sin(phi);
         #endif
-       
-        #ifdef POLAR_VORTEX
-        theta = uniform_generator(0, 2*M_PI);
-        R_module = uniform_generator_polar(0, rho);
-        position_i[0] = R_module*cos(theta);
-        position_i[1] = R_module*sin(theta);
-        velocity_i[0] = -(1/10)*(300-R_module)*sin(theta);
-        velocity_i[1] = (1/10)*(300-R_module)*cos(theta);
-        #endif
 
         bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
     }
@@ -131,110 +117,10 @@ void check_up(Body &j)
 
 }
 
-double distance_position(double* p1, double* p2)
+double compute_error(double initial, double final)
 {
-    return sqrt(pow(p1[0]-p2[0],2) + pow(p1[1]-p2[1],2));
+    return abs((final - initial) / initial);
 }
-
-/*
-void collision(vector<Body> &bodies)
-{   
-    vector<Body>::iterator small, big;
-    double* p = new double[8];
-    double old_position_small[2];
-    double old_position_big[2];
-    double old_mass_big, old_mass_small, old_potential_big, old_potential_small;
-
-
-
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-    {
-        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
-        {             
-            // computing the distance of each couple of bodies: if this distance is minor than the sum of 
-            // their radius, we merge them
-            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
-            {
-                
-
-                if((*j).radius > (*k).radius)
-                {
-                    p=(*j).merge(*k);
-
-                    old_position_big[0] = p[0];
-                    old_position_big[1] = p[1];
-                    old_position_small[0] = p[2];
-                    old_position_small[1] = p[3];
-                    old_mass_big = p[4];
-                    old_mass_small = p[5]; 
-                    old_potential_big = p[6]; 
-                    old_potential_small = p[7];
-
-                    for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i)
-                    {
-                        if(i!=j && i!=k)
-                        {
-                        double potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
-                        double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                        double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                        double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
-                        (*i).potential_energy += delta_i;
-                        (*j).potential_energy += potential_big_i;
-                        (*j).binding_energy += -0.5*delta_i;
-                        }
-
-                    }
-
-                    (*j).binding_energy -= 0.5*((*j).potential_energy - (old_potential_big + old_potential_small));
-
-                    bodies.erase(k); 
-                }
-                else
-                {
-                    p=(*k).merge(*j);
-
-                old_position_big[0] = p[0];
-                old_position_big[1] = p[1];
-                old_position_small[0] = p[2];
-                old_position_small[1] = p[3];
-                old_mass_big = p[4];
-                old_mass_small = p[5]; 
-                old_potential_big = p[6]; 
-                old_potential_small = p[7];
-
-                for(vector<Body>::iterator i=bodies.begin(); i<bodies.end(); ++i)
-                {
-                    if(i!=j && i!=k)
-                    {
-                    double potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
-                    double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                    double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                    double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
-                    (*i).potential_energy += delta_i;
-                    (*k).potential_energy += potential_big_i;
-                    (*k).binding_energy += -0.5*delta_i;
-                    }
-
-                }
-
-                
-                (*k).binding_energy -= 0.5*((*k).potential_energy - (old_potential_big + old_potential_small));
-
-                bodies.erase(j);
-                }
-
-
-            }
-
-
-        }
-    }
-
-    bodies.shrink_to_fit();
-
-}
-*/
-
 
 void collision(vector<Body> &bodies)
 {
