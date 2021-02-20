@@ -3,11 +3,10 @@
 #include <math.h>
 #include <sstream>
 #include <iomanip>
-
-#include "body.h"
 #include <vector>
 
- 
+#include "body.h"
+
 
 extern double temp_max;
 
