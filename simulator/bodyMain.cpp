@@ -13,141 +13,114 @@
 
 using namespace std;
 
-//#define CARTESIAN           // coordinates
-#define POLAR  
-//#define POLAR_VORTEX
+//#define CARTESIAN     // cartesian coordinates
+#define POLAR       // cartesian coordinates
 
-//#define EULER             //evolution
-#define SIMPLETIC
+//#define EULER     // Euler's algorithm of evolution
+#define SIMPLETIC     // simpletic algorithm of evolution
 
-#define PERCENTAGE          //loading
-//#define LOADING_BAR
+#define PERCENTAGE     // loading percentage
 
 using namespace std;
 
-//----------------------------defining coordinates---------------------------------------
-#ifdef CARTESIAN
-//cartesian coordinates
+//---------------------------- natural units -----------------------------------------------
+double mass_natural = 5.972 * 1E24;     // Earth's mass (natural unit of mass in kg)
+double lenght_natural = 1.495978707 * 1E10;     // 1/10 of an astronomical unit (natural unit of mass in m)
+double G = 6.674 / (1E11);     // gravitational constant
+
+double time_natural = pow((pow(lenght_natural, 3) / (G * mass_natural)), 0.5);     // natural unit of time in s
+double energy_natural = mass_natural * pow((lenght_natural / time_natural), 2);     // natural unit of energy in J
+double angular_momentum_natural = energy_natural * time_natural;     // natural unit of angular momentum in kg*m^2/s
+double momentum_natural = mass_natural * lenght_natural / time_natural;     // natural unit of momentum in kg*m/s
+//------------------------------------------------------------------------------------------
+
+//---------------------------- defining coordinates ----------------------------------------
+#ifdef CARTESIAN     // cartesian coordinates
 double x_min=0, x_max=500; // lower and upper limit for positions and velocities
 double v_min=0, v_max=0.5;
 #endif
 
-#ifdef POLAR
-//polar coordinates
-double rho=30;
+#ifdef POLAR    // polar coordinates
+double rho=200;
 double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
+//------------------------------------------------------------------------------------------
 
-#ifdef POLAR_VORTEX
-//polar coordinates with dependent rotation
-double rho=300;
-double theta=0, R_module=0;
-#endif
-//-----------------------------------------------------------------
+//---------------------------- global parameters -------------------------------------------
+int N = 300;     // number of bodies
+double t = 0;    // time
+double dt = 0.01;    // time interval (fixed)
+double t_f = 100;    // final time
+double mass_i = 100;     // initial mass of bodies
+double radius_i = 1;     // initial radius of bodies (slide with data)
 
-//------------------------------- global parameters ----------------------------
+//---------------------------- temperature estimation --------------------------------------
+double temp_max = 0.75 * (0.0288 * N + 13) * mass_i;     // maximum temperature
+//------------------------------------------------------------------------------------------
 
-int N = 3; // number of bodies
-double t = 0; // time
-double dt = 0.01; // time interval
-double t_f = 100; // final time
-double mass_i = 100;
-double radius_i = 1;
 
-//------------------Temperature estimation----------------------------
-double Temp_max=0.75*(0.0288*N+13)*mass_i;
-//-------------------------------------------
-
-//--------------------conservation parameters--------------------
-double ang_mom_tot=0, E_tot=0;
-double total_energies[]{0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
+//---------------------------- physical quantities --------------------------------------
+double ang_mom_tot = 0, E_tot = 0;
 double momentum_tot[]{0,0};
-//--------------------------------------------------------------
+double total_energies[]{0, 0, 0, 0, 0};     // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
 
-//--------------------grid variables---------------------------
-int x_grid_max = 500; 
+double ang_mom_tot_initial = 0, E_tot_initial = 0;     // initial physical quantities
+double momentum_tot_initial[]{0,0};
+
+double err_E = 0, err_ang_mom = 0;     // errors of physical quantities
+double err_momentum[]{0,0};
+//------------------------------------------------------------------------------------------
+
+//------------------- variables for the computation of the potential -----------------------
+int x_grid_max = 500;     // dimensions of the grid
 int y_grid_max = 500;
-int delta = 5;//discretization parameter
-int x_index = 2*x_grid_max/delta + 1;
+int delta = 5;     // discretization parameter
+int x_index = 2*x_grid_max/delta + 1;     // indexes of the array that represents the grid
 int y_index = 2*y_grid_max/delta + 1;
-double alpha = 1.2; //convergence parameter
+double alpha = 1.2;    // convergence parameter
 string grid_file("grid");
 string potential_file("potential");
 int i = 97; 
 char n_file = char(i); 
-//-----------------------------------------------------------
+//------------------------------------------------------------------------------------------
 
-//file name
-string filename = "generated/sim"; // Do not specify the extension
 
-//web app
-bool override_input = false;
+string filename = "generated/sim";     // output file
+
+bool override_input = false;     // web app
 
 
 int main(){
 
-    //------------------------------------- start line ----------------------------------
-    vector<Body> bodies; // bodies vector
-    double position_i[2]; // variables with starting values
+    //------------------------------------- initial conditions -----------------------------
+    vector<Body> bodies;     // vector of bodies
+    double position_i[2];     // initial position and velocity (dummy)
     double velocity_i[2];
-    double step = 0;
-    int n_iteration = 0;
 
-    //grid
+    double step = 0;     // number of steps
+    int n_iteration = 0;     // number of iterations
+
     double** grid;
-    double** potential;
+    double** potential;     // 3 grids for the algorithm employed to compute the potential
     double** error;
 
-    Serializer serializer(filename); //writing data on file
+    Serializer serializer(filename);     // data serialization
 
-    //random seed
-    srand(time(NULL)); 
+    srand(time(NULL));     // random seed
 
-    //set initial condition
-    initial_condition(bodies, position_i, velocity_i);
+    initial_condition(bodies, position_i, velocity_i);     // set initial condition
 
-    //compute position and velocity of the center of mass and lock the reference
-    compute_CM(bodies);
+    compute_CM(bodies);     // moving to the center of mass frame of reference
 
-    //create pointers
-    create_pointers(grid, potential, error);
+    create_pointers(grid, potential, error);     // initialize the pointers previuosly declared
 
-    //make grid
-    make_grid(bodies, grid, potential, error);
+    make_grid(bodies, grid, potential, error);     // filling the 3 pointers with zeros
 
-    //iterate potential
-    for(int k=0; k<1000; ++k) next(potential, grid, error);
+    for(int k=0; k<1000; ++k) next(potential, grid, error);    // compute the initial potential
 
-    //writing files
-    /*ofstream of(grid_file+n_file+".txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << grid[i][j] << ' ';
-    }
-    
-    of.close();
-    
-    of.open(potential_file+n_file+".txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << potential[i][j] << '?';
-    }
-    of.close();
-    */
-
-
-    //initial conservatives parameters
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
-    {
+    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)    // computing the initial values of the 
+    {                                                                    // physical quantities
         if(j != (bodies.end()-1))
         {
             for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k) 
@@ -159,16 +132,22 @@ int main(){
         check_up(*j);    
     }
 
-    std::cout<<"Initial state of the system: "<<endl;
-    std::cout<<"Total angular momentum: "<<ang_mom_tot<<endl;
-    std::cout<<"Total energy: " << E_tot<<endl;
-    std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
-    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
-    serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
+    std::cout << "Initial state of the system: " << endl;     // writing on std output
+    std::cout << "Total angular momentum: " << ang_mom_tot << endl;
+    std::cout << "Total energy: " << E_tot << endl;
+    std::cout << "Total momentum (along x): " << momentum_tot[0] << endl;
+    std::cout << "Total momentum (along y): " << momentum_tot[1] << endl << endl;
 
-    if(E_tot > 0)
+    ang_mom_tot_initial = ang_mom_tot;     // intialize the initial physical quantities
+    E_tot_initial = E_tot;
+    momentum_tot_initial[0] = momentum_tot[0];
+    momentum_tot_initial[1] = momentum_tot[1];
+
+    serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);     // writing the initial physical quantities
+
+    if(E_tot > 0)     // controlling that the energy has a negative value
     {
-        std::cout<<"WARNING: the energy of the system is positive!"<<endl;
+        std::cout << "WARNING: the energy of the system is positive!" <<endl;
     }
 
     int response = 1; 
@@ -181,80 +160,35 @@ int main(){
         std::cout<<"Next time will be better :)"<<endl;
         return 0;
     }
+    //--------------------------------------------------------------------------------------
 
-    ofstream off("test.txt");
-
-    cout << bodies[0].position[0] << " " << bodies[0].position[1] << endl;
-
-    //------------------------------------ evolution ------------------------------
-    
+    //------------------------------------ evolution ---------------------------------------
     while(1)
     {   
-
-
+        
         #ifdef  PERCENTAGE
         if(n_iteration % 13 == 0)
         {
-            step=t/(t_f+1)*100;
-            std::cout<<"\r"<< step<<"%   (N = "<<bodies.size()<<")                  "<<flush;
+            step = t/(t_f+1)*100;
+            std::cout << "\r" << step << "%   (N = "<<bodies.size()<<")                  " << flush;
         }
         #endif
-
-        #ifdef LOADING_BAR      
-        if(n_iteration % 200 == 0)
-        {
-            step=t/(t_f)*100;
-            loading_bar(step);
-        }
-        #endif 
         
-        collision(bodies);      
+        collision(bodies);     // treating the collision between bodies   
        
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
-        get_total_energies(bodies);
+        get_total_energies(bodies);     // computing the energy of the entire system in all its form
 
-        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\n";
-
-        
-        if(n_iteration%1000 == 0)
+        //********************************************************************************************
+        if(n_iteration % 1000 == 0)
         {
-            //number of files
-            //++i; 
-            //n_file = char(i); 
-
             //make grid
             make_grid(bodies, grid, potential, error);
 
             //iterate potential
             for(int k=0; k<1000; ++k) next(grid, potential, error);
-            /*
-            //writing files
-            of.open(grid_file+n_file+".txt");
-            for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-            {
-                if(j!=0 || i!=0){
-                if(j % 201 == 0)
-                of << endl;}
-        
-                of << grid[i][j] << ' ';
-            }
-    
-            of.close();
-
-            of.open(potential_file+n_file+".txt");
-            of << setprecision(8);
-            for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-            {
-                if(j!=0 || i!=0){
-                if(j % 201 == 0)
-                of << endl;}
-        
-                of << potential[i][j] << '?';
-            }
-
-            of.close();
-            */
+  
             serializer.write_potential(potential, x_index, y_index);
         }
         serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
@@ -292,48 +226,20 @@ int main(){
         check_up((*j));
     }
 
-    std::cout << ' ' << endl << "COMPLETED                          "<<endl<<endl;
-    std::cout << "Final state of the system: "<<endl;
-    std::cout << "Total angular momentum: "<<ang_mom_tot<<endl;
-    std::cout<<"Total energy: " << E_tot <<endl;
+    //computing errors
+    err_E = compute_error(E_tot_initial, E_tot);
+    err_ang_mom  = compute_error(ang_mom_tot_initial, ang_mom_tot);
+    err_momentum[0] =compute_error(momentum_tot_initial[0], momentum_tot[0]);
+    err_momentum[1] = compute_error(momentum_tot_initial[1], momentum_tot[1]);
+
+    std::cout <<' '<< endl <<"COMPLETED                          "<<endl<<endl;
+    std::cout <<"Final state of the system: "<<endl;
+    std::cout <<"Total angular momentum: "<<ang_mom_tot<<" (relative error: "<<err_ang_mom<<")"<<endl;
+    std::cout<<"Total energy: " << E_tot <<" (relative error: "<<err_E<<")"<<endl;
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
-    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl;
 
     serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
-
-    //make grid
-    //make_grid(bodies);
-
-    //initial potential
-    //for(int k=0; k<1000; ++k) next(potential, grid);
-        
-    /*
-    ofstream of("potential_fine.txt");
-    of << setprecision(8);
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << potential[i][j] << '?';
-    }
-
-    of.close();
-    
-
-    of.open("grid_fine.txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << grid[i][j] << ' ';
-    }
-    
-    of.close();
-    */
 
 }
 

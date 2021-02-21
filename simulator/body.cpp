@@ -3,14 +3,12 @@
 #include <math.h>
 #include <sstream>
 #include <iomanip>
-
-#include "body.h"
 #include <vector>
 
- 
+#include "body.h"
 
-extern double Temp_max;
-double* old_parameters = new double[8];
+
+extern double temp_max;
 
 //-------------------class constructors and operators-----------------------
 //parametric costructor
@@ -64,36 +62,23 @@ int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
-    if(temperature < Temp_max/10) color = 1;
-    else if(temperature < 2*Temp_max/10) color = 2;
-    else if(temperature < 3*Temp_max/10) color = 3;
-    else if(temperature < 4*Temp_max/10) color = 4;
-    else if(temperature < 5*Temp_max/10) color = 5;
-    else if(temperature < 6*Temp_max/10) color = 6;
-    else if(temperature < 7*Temp_max/10) color = 7;
-    else if(temperature < 8*Temp_max/10) color = 8;
-    else if(temperature < 9*Temp_max/10) color = 9;
+    if(temperature < temp_max/10) color = 1;
+    else if(temperature < 2*temp_max/10) color = 2;
+    else if(temperature < 3*temp_max/10) color = 3;
+    else if(temperature < 4*temp_max/10) color = 4;
+    else if(temperature < 5*temp_max/10) color = 5;
+    else if(temperature < 6*temp_max/10) color = 6;
+    else if(temperature < 7*temp_max/10) color = 7;
+    else if(temperature < 8*temp_max/10) color = 8;
+    else if(temperature < 9*temp_max/10) color = 9;
     else color = 10;
     
     return color;
 }
 
-
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
 void Body::merge(Body& a)
     {    
-        /*
-        //dummy array
-        double* old_parameters = new double[8];
-        old_parameters[0] = this->position[0];
-        old_parameters[1] = this->position[1];
-        old_parameters[2] = a.position[0];
-        old_parameters[3] = a.position[1];
-        old_parameters[4] = this->mass;
-        old_parameters[5] = a.mass;
-        old_parameters[6] = this->potential_energy;
-        old_parameters[7] = a.potential_energy;
-        */
 
         //dummy variables
         double kinetic_initial = a.get_kinetic_energy() + this->get_kinetic_energy();
@@ -121,12 +106,9 @@ void Body::merge(Body& a)
         this->binding_energy += a.binding_energy + delta_potential;
         
         this->potential_energy += - 2*delta_potential + a.potential_energy;
-        //this->potential_energy=0;
 
         //update angular momentum. sum of spins + difference of initial and final orbital momentum
         this->spin += (a.spin + (orbital_initial - this->get_orbital_momentum()));
-
-        //return old_parameters;
     }
 
 //b.print(); show all attributes of b.
@@ -204,16 +186,6 @@ double Body::distance(const Body &a, const Body &b)
 {
     return sqrt(pow(a.position[0]-b.position[0],2) + pow(a.position[1]-b.position[1],2));
 }
-
-double Body::distance_(const Body &a, double* p)
-{
-    return sqrt(pow(a.position[0]-p[0],2) + pow(a.position[1]-p[1],2));
-};
-
-double Body::distancep(double* q, double* p)
-{
-    return sqrt(pow(q[0]-p[0],2) + pow(q[1]-p[1],2));
-};
 
 //force_and_potential(a,b); compute gravitational force between a and b and update the acceleration of each bodies.
 void Body::force_and_potential(Body &a, Body &b)

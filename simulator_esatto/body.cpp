@@ -9,9 +9,10 @@
 
  
 
-extern double Temp_max;
+extern double temp_max;
 extern double limit_radius;
 extern double k_elastic;
+double u_g, u_el, f, fx_a, fy_a;
 
 //-------------------class constructors and operators-----------------------
 //parametric costructor
@@ -31,6 +32,8 @@ Body::Body(int id_, double* position_, double* velocity_, double radius_, double
     mass = mass_;
     id = id_;
     is_big_endian = check_big_endian();
+    surpass_limit = 0;
+    potential_costant = 0;
 }
 
 
@@ -65,23 +68,18 @@ int Body::get_color()
 {
     int color;
     double temperature = this->internal_energy/this->mass;
-    if(temperature < Temp_max/10) color = 1;
-    else if(temperature < 2*Temp_max/10) color = 2;
-    else if(temperature < 3*Temp_max/10) color = 3;
-    else if(temperature < 4*Temp_max/10) color = 4;
-    else if(temperature < 5*Temp_max/10) color = 5;
-    else if(temperature < 6*Temp_max/10) color = 6;
-    else if(temperature < 7*Temp_max/10) color = 7;
-    else if(temperature < 8*Temp_max/10) color = 8;
-    else if(temperature < 9*Temp_max/10) color = 9;
+    if(temperature < temp_max/10) color = 1;
+    else if(temperature < 2*temp_max/10) color = 2;
+    else if(temperature < 3*temp_max/10) color = 3;
+    else if(temperature < 4*temp_max/10) color = 4;
+    else if(temperature < 5*temp_max/10) color = 5;
+    else if(temperature < 6*temp_max/10) color = 6;
+    else if(temperature < 7*temp_max/10) color = 7;
+    else if(temperature < 8*temp_max/10) color = 8;
+    else if(temperature < 9*temp_max/10) color = 9;
     else color = 10;
     
     return color;
-}
-
-double Body::get_total_energy()///////////////////////////////////////
-{
-    return 0.5*potential_energy + get_kinetic_energy() + binding_energy + internal_energy;
 }
 
 //b.merge(a); simulate a complete anelastic collision. b receive updated attributes, a must be deleted after the call of the function.
@@ -224,12 +222,21 @@ void Body::force_and_potential(Body &a, Body &b)
 {
     double dist = distance(a,b);
 
-    if(dist > limit_radius)
-    { 
-        double u = (b.mass*a.mass)/(dist); 
-        double f = u/(pow(dist, 2));
-        double fx_a = f*(b.position[0]-a.position[0]);//force along x on a
-        double fy_a = f*(b.position[1]-a.position[1]);//force along y on a
+    if(a.surpass_limit==0)
+    {
+        if(dist>=limit_radius) {a.surpass_limit=2; b.surpass_limit=2;}
+        if(dist<limit_radius) {a.surpass_limit=-2; b.surpass_limit=-2;}
+    }
+
+    if(a.surpass_limit==2 && dist<limit_radius) {a.surpass_limit=-1; b.surpass_limit=-1;}
+
+    if(a.surpass_limit==2)
+    {
+        u_g = -(b.mass*a.mass)/(dist); 
+  
+        f = (b.mass*a.mass)/(pow(dist, 3));
+        fx_a = f*(b.position[0]-a.position[0]);//force along x on a
+        fy_a = f*(b.position[1]-a.position[1]);//force along y on a
 
         a.acceleration[0] += fx_a/(a.mass);//updating acceleration
         a.acceleration[1] += fy_a/(a.mass);
@@ -238,21 +245,35 @@ void Body::force_and_potential(Body &a, Body &b)
         b.acceleration[1] -= fy_a/(b.mass);
 
         //potential energy
-        a.potential_energy -= u;
-        b.potential_energy -= u;
-    }
-    else
-    {
-        double u = 0.5*a.mass*b.mass*k_elastic*pow(dist,2);
-
-        a.acceleration[0] += a.mass*b.mass*k_elastic*(b.position[0]-a.position[0]);
-        a.acceleration[1] += a.mass*b.mass*k_elastic*(b.position[1]-a.position[1]);
-
-        a.potential_energy -= u;
-        b.potential_energy -= u;
-
+        a.potential_energy += u_g;
+        b.potential_energy += u_g;
     }
     
+    if(a.surpass_limit==-1 || a.surpass_limit==-2)
+    {
+       u_el = 0.5*a.mass*b.mass*k_elastic*pow(dist,2);
+
+        if(a.surpass_limit==-1)
+        {
+            k_elastic=1/pow(dist, 3);
+            u_el = 0.5*a.mass*b.mass*k_elastic*pow(dist,2);
+            u_g = -(b.mass*a.mass)/(dist); 
+            a.potential_costant = u_g-u_el;
+            b.potential_costant = a.potential_costant;
+            a.surpass_limit=-2;
+            b.surpass_limit=-2;
+        }
+
+        a.acceleration[0] += b.mass*k_elastic*(b.position[0]-a.position[0]);
+        a.acceleration[1] += b.mass*k_elastic*(b.position[1]-a.position[1]);
+        
+        b.acceleration[0] += -a.mass*k_elastic*(b.position[0]-a.position[0]);
+        b.acceleration[1] += -a.mass*k_elastic*(b.position[1]-a.position[1]);
+        
+        a.potential_energy += u_el + a.potential_costant;
+        b.potential_energy += u_el + b.potential_costant;
+
+    }
 
 }
 

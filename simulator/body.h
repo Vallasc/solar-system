@@ -1,5 +1,6 @@
 #include <math.h>
 #include <sstream>
+
 #ifndef BODY_H
 #define BODY_H
 
@@ -21,8 +22,6 @@ class Body
     int write_to_file(std::ofstream &outfile);
 
     static double distance(const Body &a, const Body &b);//compute the distance between two objects
-    static double distance_(const Body &a, double* p);
-    static double distancep(double* q, double* p);
     static void force_and_potential(Body &a, Body &b);//compute the force and the potential energy between two objects and change their accelaration accordingly
 
     //getters
@@ -31,7 +30,6 @@ class Body
     double get_y_momentum(); //return y momentum
     double get_orbital_momentum(); //return orbital angular momentum
     int get_color();
-    double get_total_energies();
     
     //variables
     int id; 

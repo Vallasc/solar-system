@@ -18,9 +18,10 @@ class Serializer {
         string file_name;
         int byte_written;
         int name_index;
+        int potential_index;
         int num_iteration;
         stringstream potentials_json;
-        const int max_file_size = 2000000; // 2MB
+        const int max_file_size = 5000000; // 2MB
         const int file_compression = 10; // 1 low - 10 max
         const string file_version = "0.0.1";
         const string energies_file_name = "energies.bin";
@@ -35,7 +36,7 @@ class Serializer {
         void open_file();
         void split_file();
         void compress_files();
-        void write_attr(string key, string value);
+        void write_attr(string key, string value, bool is_num);
 
     public:
         Serializer(string file_name);

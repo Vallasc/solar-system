@@ -15,15 +15,24 @@ using namespace std;
 
 //#define CARTESIAN           // coordinates
 #define POLAR  
-//#define POLAR_VORTEX
 
 //#define EULER             //evolution
 #define SIMPLETIC
 
 #define PERCENTAGE          //loading
-//#define LOADING_BAR
 
 using namespace std;
+
+//----------------------------natural units-------------------------
+double mass_natural = 5.972 * 1E24; //mass of Earth in Kg
+double lenght_natural = 1.495978707 * 1E10; //1/10 astronomical unit
+double G = 6.674 / (1E11); //gravitational constant
+
+double time_natural = pow((pow(lenght_natural, 3) / (G * mass_natural)), 0.5);
+double energy_natural = mass_natural * pow((lenght_natural / time_natural), 2);
+double angular_momentum_natural = energy_natural * time_natural;
+double momentum_natural = mass_natural * lenght_natural / time_natural;
+
 
 //----------------------------defining coordinates---------------------------------------
 #ifdef CARTESIAN
@@ -34,39 +43,40 @@ double v_min=0, v_max=0.5;
 
 #ifdef POLAR
 //polar coordinates
-double rho=40;
-double v_max=0;
+double rho=200;
+double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
-#endif
-
-#ifdef POLAR_VORTEX
-//polar coordinates with dependent rotation
-double rho=300;
-double theta=0, R_module=0;
 #endif
 //-----------------------------------------------------------------
 
 //------------------------------- global parameters ----------------------------
 
-int N = 2; // number of bodies
+int N = 300; // number of bodies
 double t = 0; // time
-double dt = 0.01; // time interval
+double dt = 0.01; // time interval //////fisso
 double t_f = 100; // final time
 double mass_i = 100;
-double radius_i = 5;
+double radius_i = 1;  ////slide con dati
 
 //------------------Temperature estimation----------------------------
-double Temp_max = 0.75*(0.0288*N+13)*mass_i;
+double temp_max = 0.75 * (0.0288 * N + 13) * mass_i;
 //--------------------------------------------------------------------
+
 //-----------------Elastic Parameters---------------------------------
 double k_elastic = 1e-3;
-double limit_radius = 10;
+double limit_radius = 20;
 //--------------------------------------------------------------------
 
 //--------------------conservation parameters--------------------
-double ang_mom_tot=0, E_tot=0;
-double total_energies[]{0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
+double ang_mom_tot = 0, E_tot = 0;
 double momentum_tot[]{0,0};
+double total_energies[]{0, 0, 0, 0, 0}; // 0: E_tot, 1: K_tot, 2: I_tot, 3:U_tot, 4: B_tot
+
+double ang_mom_tot_initial = 0, E_tot_initial = 0;
+double momentum_tot_initial[]{0,0};
+
+double err_E = 0, err_ang_mom = 0;
+double err_momentum[]{0,0};
 //--------------------------------------------------------------
 
 //--------------------grid variables---------------------------
@@ -83,7 +93,7 @@ char n_file = char(i);
 //-----------------------------------------------------------
 
 //file name
-string filename = "prova2"; // Do not specify the extension
+string filename = "generated/prova"; // Do not specify the extension
 
 //web app
 bool override_input = false;
@@ -123,32 +133,6 @@ int main(){
     //iterate potential
     for(int k=0; k<1000; ++k) next(potential, grid, error);
 
-    //writing files
-    /*ofstream of(grid_file+n_file+".txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << grid[i][j] << ' ';
-    }
-    
-    of.close();
-    
-    of.open(potential_file+n_file+".txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << potential[i][j] << '?';
-    }
-    of.close();
-    */
-
-
     //initial conservatives parameters
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
     {
@@ -168,6 +152,12 @@ int main(){
     std::cout<<"Total energy: " << E_tot<<endl;
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+    //fixing initial parameters
+    ang_mom_tot_initial = ang_mom_tot;
+    E_tot_initial = E_tot;
+    momentum_tot_initial[0] = momentum_tot[0];
+    momentum_tot_initial[1] = momentum_tot[1];
+    //writing initial parameters
     serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
 
     if(E_tot > 0)
@@ -186,16 +176,10 @@ int main(){
         return 0;
     }
 
-    ofstream off("test.txt");
-
-
     //------------------------------------ evolution ------------------------------
     
     while(1)
     {   
-
-        //if(n_iteration%1000 == 0)
-        //bodies[0].print();
 
         #ifdef  PERCENTAGE
         if(n_iteration % 13 == 0)
@@ -204,62 +188,21 @@ int main(){
             std::cout<<"\r"<< step<<"%   (N = "<<bodies.size()<<")                  "<<flush;
         }
         #endif
-
-        #ifdef LOADING_BAR      
-        if(n_iteration % 200 == 0)
-        {
-            step=t/(t_f)*100;
-            loading_bar(step);
-        }
-        #endif 
         
         collision(bodies);
 
         for(int i=0; i<5; ++i)
         total_energies[i] = 0;
         get_total_energies(bodies);
-
-        off<<bodies.capacity()<<"\t"<<total_energies[0]<<"\t"<<Body::distance(bodies[0], bodies[1])<<"\n";
-
         
-        if(n_iteration%1000 == 0)
+        if(n_iteration % 1000 == 0)
         {
-            //number of files
-            //++i; 
-            //n_file = char(i); 
-
             //make grid
             make_grid(bodies, grid, potential, error);
 
             //iterate potential
             for(int k=0; k<1000; ++k) next(grid, potential, error);
-            /*
-            //writing files
-            of.open(grid_file+n_file+".txt");
-            for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-            {
-                if(j!=0 || i!=0){
-                if(j % 201 == 0)
-                of << endl;}
-        
-                of << grid[i][j] << ' ';
-            }
-    
-            of.close();
-
-            of.open(potential_file+n_file+".txt");
-            of << setprecision(8);
-            for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-            {
-                if(j!=0 || i!=0){
-                if(j % 201 == 0)
-                of << endl;}
-        
-                of << potential[i][j] << '?';
-            }
-
-            of.close();
-            */
+            
             serializer.write_potential(potential, x_index, y_index);
         }
         serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
@@ -297,48 +240,21 @@ int main(){
         check_up((*j));
     }
 
-    std::cout << ' ' << endl << "COMPLETED                          "<<endl<<endl;
-    std::cout << "Final state of the system: "<<endl;
-    std::cout << "Total angular momentum: "<<ang_mom_tot<<endl;
-    std::cout<<"Total energy: " << E_tot <<endl;
-    std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
-    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl<<endl;
+    //computing errors
+    err_E = compute_error(E_tot_initial, E_tot);
+    err_ang_mom  = compute_error(ang_mom_tot_initial, ang_mom_tot);
+    err_momentum[0] =compute_error(momentum_tot_initial[0], momentum_tot[0]);
+    err_momentum[1] = compute_error(momentum_tot_initial[1], momentum_tot[1]);
+
+    std::cout <<' '<<endl<<"COMPLETED                          "<<endl<<endl;
+    std::cout <<"Final state of the system: "<<endl;
+    std::cout <<"Total angular momentum: "<<ang_mom_tot<<" (relative error: "<<err_ang_mom<<")"<<endl;
+    std::cout<<"Total energy: " << E_tot <<" (relative error: "<<err_E<<")"<<endl;
+    std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<" (relative error: "<<err_momentum[0]<<")"<<endl;
+    std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<" (relative error: "<<err_momentum[1]<<")"<<endl;
 
     serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
 
-    //make grid
-    //make_grid(bodies);
-
-    //initial potential
-    //for(int k=0; k<1000; ++k) next(potential, grid);
-        
-    /*
-    ofstream of("potential_fine.txt");
-    of << setprecision(8);
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << potential[i][j] << '?';
-    }
-
-    of.close();
-    
-
-    of.open("grid_fine.txt");
-    for(int i=0; i<x_index; ++i) for(int j=0; j<y_index; ++j) 
-    {
-        if(j!=0 || i!=0){
-        if(j % 201 == 0)
-        of << endl;}
-        
-        of << grid[i][j] << ' ';
-    }
-    
-    of.close();
-    */
 
 }
 

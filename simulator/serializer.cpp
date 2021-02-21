@@ -26,7 +26,7 @@ Serializer::Serializer(string file_name) {
     // Apro il file delle energie
     outfile_energies.open(energies_file_name, std::ios::out);
     
-    cout << "Serializer: init" << endl;
+    //cout << "Serializer: init" << endl;
 
     outfile_info << "{ "<< endl;
     write_attr("version", file_version, false);
@@ -36,9 +36,9 @@ Serializer::Serializer(string file_name) {
 }
 
 Serializer::~Serializer() {
-    cout << "Serializer: end" << endl;
-    cout << "Serializer: number iterations = " << this->num_iteration << endl;
-    cout << "Serializer: minutes of simulation = " << this->num_iteration/60/60 << endl;
+    //cout << "Serializer: end" << endl;
+    //cout << "Serializer: number iterations = " << this->num_iteration << endl;
+    //cout << "Serializer: minutes of simulation = " << this->num_iteration/60/60 << endl;
 
     write_attr("numIteration", to_string(this->num_iteration), true);
     write_attr("minSimulation", to_string(this->num_iteration/60/60), true);
@@ -171,7 +171,7 @@ void Serializer::compress_files() {
         // Compress ptential files
         for(int i=0; i<potential_index; i++) {
             string f_name = potentials_file_name + std::to_string(i) + ".bin";
-            cout << f_name;
+            //cout << f_name;
             mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
             remove(f_name.c_str());
         }

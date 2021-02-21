@@ -13,7 +13,6 @@
 
 //#define CARTESIAN
 #define POLAR
-//#define POLAR_VORTEX
 
 //------------------------------------extern parameters-----------------------------
 #ifdef CARTESIAN
@@ -37,7 +36,7 @@ extern double ang_mom_tot, E_tot, total_energies[5], momentum_tot[2];
 extern int x_grid_max, y_grid_max, delta, x_index, y_index;
 extern double alpha; 
 
-extern string filename ; // Do not specify the extension 
+extern string filename ; 
 
 //---------------------------------------------------------------------------------
 
@@ -131,14 +130,19 @@ void check_up(Body &j)
 
 }
 
+double compute_error(double initial, double final)
+{
+    return abs((final - initial) / initial);
+}
+
 double distance_position(double* p1, double* p2)
 {
     return sqrt(pow(p1[0]-p2[0],2) + pow(p1[1]-p2[1],2));
 }
 
-
 void collision(vector<Body> &bodies)
 {   
+    double potential_big_i, potential_Obig_i, potential_Osmall_i, delta_i;
     vector<Body>::iterator small, big;
     double* p = new double[8];
     double old_position_small[2];
@@ -174,10 +178,10 @@ void collision(vector<Body> &bodies)
                     {
                         if(i!=j && i!=k)
                         {
-                        double potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
-                        double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                        double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                        double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                        potential_big_i = - (*j).mass*(*i).mass/(Body::distance((*j), (*i)));
+                        potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                        potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                        delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
                         (*i).potential_energy += delta_i;
                         (*j).potential_energy += potential_big_i;
                         (*j).binding_energy += -0.5*delta_i;
@@ -206,10 +210,10 @@ void collision(vector<Body> &bodies)
                 {
                     if(i!=j && i!=k)
                     {
-                    double potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
-                    double potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
-                    double potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
-                    double delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
+                    potential_big_i = - (*k).mass*(*i).mass/(Body::distance((*k), (*i)));
+                    potential_Obig_i = - old_mass_big*(*i).mass/(distance_position(old_position_big, (*i).position)); 
+                    potential_Osmall_i = - old_mass_small*(*i).mass/(distance_position(old_position_small, (*i).position));
+                    delta_i = potential_big_i - (potential_Obig_i + potential_Osmall_i);
                     (*i).potential_energy += delta_i;
                     (*k).potential_energy += potential_big_i;
                     (*k).binding_energy += -0.5*delta_i;
@@ -234,37 +238,6 @@ void collision(vector<Body> &bodies)
 
 }
 
-
-/*
-void collision(vector<Body> &bodies)
-{
-    for(vector<Body>::iterator j=bodies.begin(); j<bodies.end()-1; ++j)
-    {
-        for(vector<Body>::iterator k=j+1; k<bodies.end(); ++k)
-        {             
-            // computing the distance of each couple of bodies: if this distance is minor than the sum of 
-            // their radius, we merge them
-            if(Body::distance(*j, *k) < ((*j).radius + (*k).radius))
-            {
-                if((*j).radius > (*k).radius)
-                {
-                   (*j).merge(*k);
-                    bodies.erase(k); 
-                }
-
-                else
-                {
-                    (*k).merge(*j);
-                    bodies.erase(j);
-                }
-                
-            }
-        }
-    }
-
-    bodies.shrink_to_fit();
-}
-*/
 void euler_dynamic(vector<Body> &bodies)
 {
     //reset potential energy
