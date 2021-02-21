@@ -178,11 +178,47 @@ class Axes {
             }
             this.context.stroke();
         }
+        //X and Y
         this.context.fillStyle = "rgb(60,0,0)";
         this.context.font = "11px Arial";
         this.context.fillText('Y', w / 2 - 30 + offX, 30);
         this.context.fillText('X', w - 30, h / 2 + 30 + offY);
-        //console.log(offX, offY, w/2, h/2);
+        //box Natural Units
+        this.context.font = "11px Arial";
+        console.log(offX, offY, w / 2, h / 2);
+        if ((offX >= 300 - w / 2) && (offY >= 180 - h / 2)) {
+            this.context.fillStyle = "rgb(60,0,0)";
+            this.context.strokeStyle = "rgb(60,0,0)";
+        }
+        else {
+            this.context.fillStyle = "rgba(60,0,0,0.3)";
+            this.context.strokeStyle = "rgba(60,0,0,0.3)";
+        }
+        this.context.fillText('Natural Units:', 40, 40);
+        this.context.fillText("- Mass: 5.972 · 10     kg (Earth's mass)", 45, 60);
+        this.context.fillText('- Time: 9.165 · 10   s (1/10 of an astronomical unit)', 45, 80);
+        this.context.fillText('- Energy: 1.591 · 10     J', 45, 100);
+        this.context.fillText('- Length: 1.496 · 10     m', 45, 120);
+        this.context.fillText('- Angular Momentum: 1.458 · 10', 45, 140);
+        this.context.fillText('kg·m', 226, 132);
+        this.context.fillText('s', 236, 148);
+        this.context.fillText('_____', 223, 136);
+        this.context.stroke();
+        this.context.fillText('- Momentum: 9.748 · 10', 45, 160);
+        this.context.fillText('kg·m', 186, 152);
+        this.context.fillText('s', 196, 168);
+        this.context.fillText('_____', 183, 156);
+        this.context.stroke();
+        this.context.font = "9px Arial";
+        this.context.fillText('2', 251, 128);
+        this.context.fillText('24', 134, 56);
+        this.context.fillText('7', 132, 76);
+        this.context.fillText('29', 144, 96);
+        this.context.fillText('10', 143, 116);
+        this.context.fillText('37', 205, 136);
+        this.context.fillText('26', 164, 156);
+        //astronomical unit and scale
+        this.context.font = "11px Arial";
         if ((offX <= w / 2 - 185) && (offY <= h / 2 - 95)) {
             this.context.fillStyle = "rgb(60,0,0)";
             this.context.strokeStyle = "rgb(60,0,0)";
