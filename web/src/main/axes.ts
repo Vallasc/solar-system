@@ -198,7 +198,7 @@ class Axes {
         //box Natural Units
         this.context.font = "11px Arial"
         console.log(offX, offY, w/2, h/2);
-        if ((offX >= 300 - w/2) && (offY >= 180 - h/2)) {
+        if ((offX >= 325 - w/2) && (offY >= 180 - h/2)) {
             this.context.fillStyle = "rgb(60,0,0)";
             this.context.strokeStyle = "rgb(60,0,0)"; 
         } else {
