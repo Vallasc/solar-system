@@ -196,9 +196,9 @@ class Axes {
         }
         this.context.fillText('Natural Units:', 40, 40);
         this.context.fillText("- Mass: 5.972 · 10     kg (Earth's mass)", 45, 60);
-        this.context.fillText('- Time: 9.165 · 10   s (1/10 of an astronomical unit)', 45, 80);
+        this.context.fillText('- Length: 1.496 · 10     m (1/10 of an astronomical unit)', 45, 80);
         this.context.fillText('- Energy: 1.591 · 10     J', 45, 100);
-        this.context.fillText('- Length: 1.496 · 10     m', 45, 120);
+        this.context.fillText('- Time: 9.165 · 10   s', 45, 120);
         this.context.fillText('- Angular Momentum: 1.458 · 10', 45, 140);
         this.context.fillText('kg·m', 226, 132);
         this.context.fillText('s', 236, 148);
@@ -212,9 +212,9 @@ class Axes {
         this.context.font = "9px Arial";
         this.context.fillText('2', 251, 128);
         this.context.fillText('24', 134, 56);
-        this.context.fillText('7', 132, 76);
+        this.context.fillText('10', 143, 76);
         this.context.fillText('29', 144, 96);
-        this.context.fillText('10', 143, 116);
+        this.context.fillText('7', 132, 116);
         this.context.fillText('37', 205, 136);
         this.context.fillText('26', 164, 156);
         //astronomical unit and scale
