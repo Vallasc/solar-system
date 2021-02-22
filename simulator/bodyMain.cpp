@@ -180,8 +180,7 @@ int main(){
         total_energies[i] = 0;
         get_total_energies(bodies);     // computing the energy of the entire system in all its form
 
-        //********************************************************************************************
-        if(n_iteration % 1000 == 0)
+        if(n_iteration % 1000 == 0)     // the algorithm to compute the potential
         {
             //make grid
             make_grid(bodies, grid, potential, error);
@@ -192,9 +191,9 @@ int main(){
             serializer.write_potential(potential, x_index, y_index);
         }
         serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
-        serializer.write_bodies(bodies);
+        serializer.write_bodies(bodies);     // writing bodies' features and energies on the file
 
-        if (t > (t_f)) 
+        if (t > (t_f))     // terminate the dynamic
         {   
             --n_iteration;
             break; // when we reach t_f the evolution terminates
@@ -202,23 +201,24 @@ int main(){
         }
 
         #ifdef EULER
-        //-------------------------------------- Euler dynamic ----------------------------------------
+        //-------------------------------------- Euler's dynamic -------------------------------
         euler_dynamic(bodies);
-        //----------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
         #endif
 
         #ifdef SIMPLETIC
-        //----------------------------------------- Simpletic dynamic ------------------------------------
+        //----------------------------------------- Simpletic dynamic --------------------------
         simpletic_dynamic(bodies);
-        //-----------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------
         #endif
 
-        t+=dt; // the time flows
-        ++n_iteration; //the iterations rise
+        t+=dt;     // the time flows
+        ++n_iteration;     // the iterations rise
     
     }
+    //--------------------------------------------------------------------------------------
 
-    //checking conservation
+    //---------------- checking conservation and comuputing discrepancies ------------------
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
     for(vector<Body>::iterator j=bodies.begin(); j<bodies.end(); ++j)
@@ -226,27 +226,30 @@ int main(){
         check_up((*j));
     }
 
-    //computing errors
     err_E = compute_error(E_tot_initial, E_tot);
     err_ang_mom  = compute_error(ang_mom_tot_initial, ang_mom_tot);
     err_momentum[0] =compute_error(momentum_tot_initial[0], momentum_tot[0]);
     err_momentum[1] = compute_error(momentum_tot_initial[1], momentum_tot[1]);
 
-    std::cout <<' '<< endl <<"COMPLETED                          "<<endl<<endl;
+    std::cout <<' '<< endl <<"COMPLETED                          "<<endl<<endl;     // writing on std output
     std::cout <<"Final state of the system: "<<endl;
     std::cout <<"Total angular momentum: "<<ang_mom_tot<<" (relative error: "<<err_ang_mom<<")"<<endl;
     std::cout<<"Total energy: " << E_tot <<" (relative error: "<<err_E<<")"<<endl;
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl;
 
-    serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);
+    serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);     // writing bodies' energies
 
 }
+//--------------------------------------------------------------------------------------
 
+
+//--------------------------------- web part -------------------------------------------
 extern "C"{	
     int web_main(){	
         override_input = true;	
         return main();	
     }	
 }
+//--------------------------------------------------------------------------------------
 
