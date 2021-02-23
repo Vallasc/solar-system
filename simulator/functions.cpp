@@ -211,21 +211,6 @@ void get_total_energies(vector<Body> &bodies)
 total_energies[0] += (total_energies[1] + total_energies[2] + total_energies[3] + total_energies[4]);
 }
  
-void loading_bar(double step)
-{
-    int n = int(step/10);
-    std::cout << "\r" << "??" << ' ' <<flush;
-    for(int i=0; i<n; ++i)
-    std::cout <<  '|' << ' ' << flush; 
-    for(int i=0; i<10-n; ++i)
-    {
-        if(i==0) std::cout << ' ' << flush;
-        std::cout << ' ' << ' ' << flush;
-    }
-    std::cout << "??" << ' ' << flush;
-
-   }
-
 void create_pointers(double** &grid, double** &potential, double** &error)
 {
     grid = new double*[x_index];
