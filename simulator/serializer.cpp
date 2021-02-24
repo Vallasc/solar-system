@@ -61,11 +61,13 @@ void Serializer::write_attr(string key, string value, bool is_num) {
         outfile_info << "\""<< key << "\": " << "\"" << value << "\"," << endl;
 }
 
-void Serializer::write_init(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y) {
+void Serializer::write_init(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y, int N, double mass_i) {
     write_attr("e_tot_start", to_string(e_tot), true);
     write_attr("ang_mom_tot_start", to_string(ang_mom_tot), true);
     write_attr("mom_tot_x_start", to_string(momentum_tot_x), true);
     write_attr("mom_tot_y_start", to_string(momentum_tot_y), true);
+    write_attr("num_bodies", to_string(N), true);
+    write_attr("mass_i", to_string(mass_i), true);
 }
 
 void Serializer::write_end(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y) {

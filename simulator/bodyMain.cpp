@@ -142,8 +142,8 @@ int main(){
     E_tot_initial = E_tot;
     momentum_tot_initial[0] = momentum_tot[0];
     momentum_tot_initial[1] = momentum_tot[1];
-
-    serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);     // writing the initial physical quantities
+    
+    serializer.write_init(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1], N, mass_i);     // writing the initial physical quantities
 
     if(E_tot > 0)     // controlling that the energy has a negative value
     {

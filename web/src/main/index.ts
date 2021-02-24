@@ -72,6 +72,7 @@ class Startup {
             onChange: async (file: any) => {
                 Startup.file = file;
                 await Startup.loop.reset(file);
+                await Startup.axes.reset(file);
                 if(Startup.chartWindow != null){
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
