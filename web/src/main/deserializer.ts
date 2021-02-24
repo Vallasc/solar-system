@@ -160,6 +160,16 @@ class FileManager{
     return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
   }
 
+  public getNumberOfBodies() : number {
+    let N : number = this.infoJson["num_bodies"];
+    return N;
+  }
+
+  public getMass() : number {
+    let mass : number = this.infoJson["mass_i"];
+    return mass;
+  }
+
   private async loadNextFile() : Promise<void> {
     let file = await ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
     let arrayBuffer = await file.arrayBuffer();

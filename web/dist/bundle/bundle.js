@@ -14,11 +14,41 @@ class Axes {
         this.panningOffsetY = 0;
         this.scale = 1;
         this.canvas = canvas;
+        this.file = new File([], "");
+        this.fileManager = null;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.drawAxes();
     }
+    reset(file = this.file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("reset");
+            try {
+                this.file = file;
+                yield this.loadFile(file);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            this.drawAxes();
+            Startup.slider.value = "0";
+            Startup.slider.max = this.fileManager.getNumIterations() + "";
+        });
+    }
+    loadFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            Startup.gui.Loader(true);
+            this.fileManager = new FileManager(file);
+            yield this.fileManager.init();
+            /*if(this.forceLoadAllCheckbox){
+    
+            }*/
+            Startup.gui.Loader(false);
+            return;
+        });
+    }
     drawAxes() {
+        var _a, _b;
         let w = this.canvas.width;
         let h = this.canvas.height;
         let distGrids = 10; //distance between grids
@@ -29,9 +59,10 @@ class Axes {
         let numColors = 10;
         let r = 0;
         let b = 0;
-        let N = 1000;
-        let tempMax = 0.75 * (0.0288 * N + 13) * 10;
+        let tempMax = 0;
         let temperature = 0;
+        let N = (_a = this.fileManager) === null || _a === void 0 ? void 0 : _a.getNumberOfBodies();
+        let mass_i = (_b = this.fileManager) === null || _b === void 0 ? void 0 : _b.getMass();
         distGrids *= this.scale;
         if (this.panningOffsetX >= (w * 0.5) - margin)
             offX = (w * 0.5) - margin;
@@ -46,7 +77,7 @@ class Axes {
         else
             offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
-        //color temperature scale
+        //color temperature scale when file is not loaded (scale without values)
         if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
             this.context.fillStyle = "rgb(60,0,0)";
         }
@@ -68,14 +99,6 @@ class Axes {
                 this.context.strokeStyle = "rgba(" + r + ",0," + b + ",0.3)";
             }
             this.context.fillRect(w - 115, 40 + 20 * i, 30, 20);
-            temperature = (11 - i) * tempMax / 10;
-            if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
-                this.context.fillStyle = "rgb(60,0,0)";
-            }
-            else {
-                this.context.fillStyle = "rgba(60,0,0,0.3)";
-            }
-            this.context.fillText(temperature + "", w - 73, 41 + 20 * i);
             this.context.beginPath();
             this.context.moveTo(w - 85, 40.5 + 20 * i);
             this.context.lineTo(w - 75, 40.5 + 20 * i);
@@ -85,7 +108,22 @@ class Axes {
         this.context.moveTo(w - 85, 39.5 + 20 * 11);
         this.context.lineTo(w - 75, 39.5 + 20 * 11);
         this.context.stroke();
-        this.context.fillText("0", w - 73, 41 + 20 * (11));
+        //values of temperatures' scale (when file is loaded)
+        if ((N != null) && (mass_i != null)) {
+            tempMax = 0.75 * (0.0288 * N + 13) * mass_i;
+            this.context.font = "9px Arial";
+            for (let i = 1; i < 11; i++) {
+                temperature = Math.round((11 - i) * tempMax / 10 * 100) / 100;
+                if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
+                    this.context.fillStyle = "rgb(60,0,0)";
+                }
+                else {
+                    this.context.fillStyle = "rgba(60,0,0,0.3)";
+                }
+                this.context.fillText(temperature + "", w - 73, 41 + 20 * i);
+            }
+            this.context.fillText("0", w - 73, 41 + 20 * (11));
+        }
         this.context.strokeStyle = "rgb(60,0,0)";
         this.context.lineWidth = 1;
         // Draw >  
@@ -185,7 +223,6 @@ class Axes {
         this.context.fillText('X', w - 30, h / 2 + 30 + offY);
         //box Natural Units
         this.context.font = "11px Arial";
-        console.log(offX, offY, w / 2, h / 2);
         if ((offX >= 325 - w / 2) && (offY >= 180 - h / 2)) {
             this.context.fillStyle = "rgb(60,0,0)";
             this.context.strokeStyle = "rgb(60,0,0)";
@@ -496,6 +533,14 @@ class FileManager {
             return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
         });
     }
+    getNumberOfBodies() {
+        let N = this.infoJson["num_bodies"];
+        return N;
+    }
+    getMass() {
+        let mass = this.infoJson["mass_i"];
+        return mass;
+    }
     loadNextFile() {
         return __awaiter(this, void 0, void 0, function* () {
             let file = yield ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
@@ -716,6 +761,7 @@ class Startup {
             onChange: (file) => __awaiter(this, void 0, void 0, function* () {
                 Startup.file = file;
                 yield Startup.loop.reset(file);
+                yield Startup.axes.reset(file);
                 if (Startup.chartWindow != null) {
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
