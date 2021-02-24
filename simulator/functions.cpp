@@ -92,7 +92,7 @@ void check_up(Body &j)
 
 double compute_error(double initial, double final)
 {
-    return abs((final - initial) / initial);
+    return abs((final - initial) / initial)*100;
 }
 
 void collision(vector<Body> &bodies)
@@ -236,17 +236,18 @@ int i, j;
     {
         i = int((*k).position[0]);
         j = int((*k).position[1]);
-        i+=500;
-        j+=500;
+        i += int(rho) + 100;
+        j += int(rho) + 100;
         i = i/delta;
         j = j/delta;
         if(i>0 && j>0 && i<x_index && j<y_index) 
         {
-            grid[i][j] += ((*k).mass/mass_i);
-            //grid[i+1][j] += (3/17)*((*k).mass/mass_i);
-            //grid[i][j+1] += (3/17)*((*k).mass/mass_i);
-            //grid[i-1][j] += (3/17)*((*k).mass/mass_i);
-            //grid[i][j-1] += (3/17)*((*k).mass/mass_i);
+
+            grid[i][j] += ((*k).mass/mass_i);     // do not put double values, only int
+            //grid[i+1][j] += ((*k).mass/mass_i);
+            //grid[i][j+1] += ((*k).mass/mass_i);
+            //grid[i-1][j] += ((*k).mass/mass_i);
+            //grid[i][j-1] += ((*k).mass/mass_i);
         }        
     }
 }

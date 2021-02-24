@@ -41,14 +41,14 @@ double v_min=0, v_max=0.5;
 #endif
 
 #ifdef POLAR    // polar coordinates
-double rho=200;
+double rho=300;
 double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 #endif
 //------------------------------------------------------------------------------------------
 
 //---------------------------- global parameters -------------------------------------------
-int N = 300;     // number of bodies
+int N = 500;     // number of bodies
 double t = 0;    // time
 double dt = 0.01;    // time interval (fixed)
 double t_f = 100;    // final time
@@ -73,8 +73,8 @@ double err_momentum[]{0,0};
 //------------------------------------------------------------------------------------------
 
 //------------------- variables for the computation of the potential -----------------------
-int x_grid_max = 500;     // dimensions of the grid
-int y_grid_max = 500;
+int x_grid_max = int(rho)+100;     // dimensions of the grid
+int y_grid_max = int(rho)+100;
 int delta = 5;     // discretization parameter
 int x_index = 2*x_grid_max/delta + 1;     // indexes of the array that represents the grid
 int y_index = 2*y_grid_max/delta + 1;
@@ -233,8 +233,8 @@ int main(){
 
     std::cout <<' '<< endl <<"COMPLETED                          "<<endl<<endl;     // writing on std output
     std::cout <<"Final state of the system: "<<endl;
-    std::cout <<"Total angular momentum: "<<ang_mom_tot<<" (relative error: "<<err_ang_mom<<")"<<endl;
-    std::cout<<"Total energy: " << E_tot <<" (relative error: "<<err_E<<")"<<endl;
+    std::cout <<"Total angular momentum: "<<ang_mom_tot<<" (percentual error: "<<err_ang_mom<<"%)"<<endl;
+    std::cout<<"Total energy: " << E_tot <<" (percentual error: "<<err_E<<"%)"<<endl;
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl;
 
