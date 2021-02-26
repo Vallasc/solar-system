@@ -37,5 +37,5 @@ release: CXXFLAGS += -O2
 release: all
 
 clean:
-	-@rm -rvf $(BUILD)/*
+	-@rm -rvf $(BUILD)
 	-@rm -rvf $(TARGET)
