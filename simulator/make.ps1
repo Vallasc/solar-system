@@ -1,1 +1,0 @@
-g++ src/*.cpp -Iinclude -std=c++17 -O2 -o simulator
