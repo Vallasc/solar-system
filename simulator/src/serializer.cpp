@@ -3,7 +3,7 @@
 
 #ifdef _WIN32
 #include<windows.h>
-#elif
+#else
 #include <filesystem>
 #endif
 
@@ -198,7 +198,7 @@ void Serializer::compress_files() {
 void Serializer::create_dir(string name) {
     #ifdef _WIN32
     CreateDirectoryA(name.c_str(), NULL);
-    #elif
+    #else
     filesystem::create_directory(name);
     #endif
 }
