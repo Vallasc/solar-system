@@ -25,6 +25,9 @@
 *.a
 *.lib
 
+build
+generated
+
 # Executables
 *.exe
 *.out
@@ -36,9 +39,6 @@
 # Ignore node
 node_modules/
 package-lock.json
-
-
-simulator/out
 
 *.old
 simulator/close_orbital.zip
