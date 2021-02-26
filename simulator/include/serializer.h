@@ -41,6 +41,7 @@ class Serializer {
         void split_file();
         void compress_files();
         void write_attr(string key, string value, bool is_num);
+        void create_dir(string name);
 
     public:
         Serializer(string file_name, string out_dir);

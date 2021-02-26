@@ -1,10 +1,11 @@
 #include <algorithm>
 #include <functional>
 
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
+#ifdef _WIN32
+#include<windows.h>
+#elif
 #include <filesystem>
+#endif
 
 #include "serializer.h"
 
@@ -13,7 +14,6 @@
 #endif
 
 using namespace std;
-using namespace std::filesystem;
 
 // Fare sequenzialmente 
 // write_potentials
@@ -25,7 +25,7 @@ Serializer::Serializer(string file_name, string out_dir) {
     this->potential_index = 0;
     this->num_iteration = 0;
     this->out_dir = out_dir;
-    create_directory(out_dir);
+    create_dir(out_dir);
     
     this->file_name = out_dir + '/' + file_name;
 
@@ -192,5 +192,13 @@ void Serializer::compress_files() {
         mz_zip_writer_finalize_archive(&archive);
         mz_zip_writer_end(&archive);
         cout << "Serializer: compressing done" << endl;
+    #endif
+}
+
+void Serializer::create_dir(string name) {
+    #ifdef _WIN32
+    CreateDirectoryA(name.c_str(), NULL);
+    #elif
+    filesystem::create_directory(name);
     #endif
 }
