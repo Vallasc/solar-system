@@ -2,8 +2,8 @@ CXX      := -g++
 CXXFLAGS := -std=c++17
 LDFLAGS  := -L/usr/lib -lstdc++ -lm
 BUILD    := ./build
-OBJ_DIR  := $(BUILD)
-APP_DIR  := .
+OBJ_DIR  := $(BUILD)/objects
+APP_DIR  := $(BUILD)/app
 TARGET   := simulator.out
 INCLUDE  := -Iinclude/
 SRC      :=  $(wildcard src/*.cpp)
