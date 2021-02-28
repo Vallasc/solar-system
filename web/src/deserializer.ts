@@ -74,7 +74,6 @@ class PotentialMatrix {
         matrix[i].push(this.buffer[i*this.m + j]);
       }
     }
-    console.log(matrix);
     return matrix;
   }
 
@@ -167,8 +166,8 @@ class FileManager{
     let array: ArrayBuffer = await blob.arrayBuffer();
     return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
   }
-  public getPotentialSize() : number {
-    return this.infoJson["potentials"].length;
+  public getPotentials() : any {
+    return this.infoJson["potentials"];
   }
 
   public getNumberOfBodies() : number {
