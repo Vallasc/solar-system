@@ -346,44 +346,84 @@ class ChartStartup {
     }
     static loadFile(file) {
         return __awaiter(this, void 0, void 0, function* () {
-            let fm = new FileManager(file);
-            yield fm.init();
-            let energies = yield fm.getEnergies();
+            ChartStartup.fileManager = new FileManager(file);
+            yield ChartStartup.fileManager.init();
+            let energies = yield ChartStartup.fileManager.getEnergies();
             let arrays = energies.getArrays();
-            var trace1 = {
-                x: arrays.x,
-                y: arrays.yTotalEnergy,
-                type: 'scatter'
-            };
-            var trace2 = {
-                x: arrays.x,
-                y: arrays.yKineticEnergy,
-                type: 'scatter'
-            };
-            var trace3 = {
-                x: arrays.x,
-                y: arrays.yInternalEnergy,
-                type: 'scatter'
-            };
-            var trace4 = {
-                x: arrays.x,
-                y: arrays.yPotentialEnergy,
-                type: 'scatter'
-            };
-            var trace5 = {
-                x: arrays.x,
-                y: arrays.yBindingEnergy,
-                type: 'scatter'
-            };
-            var data = [trace1, trace2, trace3, trace4, trace5];
-            var layout = {
+            let data = [{
+                    name: 'Total energy',
+                    x: arrays.time,
+                    y: arrays.yTotalEnergy,
+                    type: 'scatter',
+                    line: {
+                        color: '#ff0000',
+                    }
+                }, {
+                    name: 'Internal energy',
+                    x: arrays.time,
+                    y: arrays.yKineticEnergy,
+                    type: 'scatter',
+                    line: {
+                        color: '#00ff4e',
+                    }
+                }, {
+                    name: 'Kinetic energy',
+                    x: arrays.time,
+                    y: arrays.yInternalEnergy,
+                    type: 'scatter',
+                    line: {
+                        color: '#ffb100',
+                    }
+                }, {
+                    name: 'Potential energy',
+                    x: arrays.time,
+                    y: arrays.yPotentialEnergy,
+                    type: 'scatter',
+                    line: {
+                        color: '#0066ff',
+                    }
+                }, {
+                    name: 'Binding energy',
+                    x: arrays.time,
+                    y: arrays.yBindingEnergy,
+                    type: 'scatter',
+                    line: {
+                        color: '#ff00eb',
+                    }
+                }
+            ];
+            ChartStartup.layoutPlot1 = {
+                yaxis: {
+                    //type: 'log', 
+                    autorange: true
+                },
                 xaxis: {
                     rangeslider: {},
                 }
             };
-            var options = {};
-            Plotly.newPlot('plot1', data, layout, options);
-            let p = yield fm.getPotential(10);
+            let options = {};
+            ChartStartup.plot1 = yield Plotly.newPlot('plot1', data, ChartStartup.layoutPlot1, options);
+            let isPressing = false;
+            window.onmousedown = (event) => {
+                isPressing = true;
+                console.log("ko");
+            };
+            window.onmouseup = (event) => {
+                if (isPressing) {
+                    let initRangeX = ChartStartup.layoutPlot1.xaxis.range[0];
+                    let index = ChartStartup.potentialSize * initRangeX / 100;
+                    ChartStartup.drawPotentialsPlot(index);
+                }
+                isPressing = false;
+                console.log("ok");
+            };
+            ChartStartup.potentialSize = ChartStartup.fileManager.getPotentialSize();
+            ChartStartup.drawPotentialsPlot(0);
+        });
+    }
+    static drawPotentialsPlot(index) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let p = yield ChartStartup.fileManager.getPotential(index);
             let data2 = [
                 {
                     z: p.getMatrix(),
@@ -401,16 +441,21 @@ class EnergyArray {
         // Nel file delle energie l'indice dell'array corrisponde all'iterazione
         // size = numero di iterazioni
         // ["Total energy","Kinetic energy", "Internal energy", "Potential energy", "Binding energy"]
-        this.numParamsRow = 5;
+        this.numParamsRow = 6;
         this.buffer = new Float32Array(blob);
         this.size = this.buffer.length / this.numParamsRow;
         console.log(this.size);
     }
+    // index is in [0, 4]
     getEnergy(index, type) {
         return this.buffer[type + this.numParamsRow * index];
     }
+    getTime(index) {
+        return this.buffer[5 + this.numParamsRow * index];
+    }
     getArrays() {
         let x = [];
+        let time = [];
         let yTotalEnergy = [];
         let yKineticEnergy = [];
         let yInternalEnergy = [];
@@ -423,14 +468,16 @@ class EnergyArray {
             yInternalEnergy.push(this.buffer[2 + this.numParamsRow * i]);
             yPotentialEnergy.push(this.buffer[3 + this.numParamsRow * i]);
             yBindingEnergy.push(this.buffer[4 + this.numParamsRow * i]);
+            time.push(this.buffer[5 + this.numParamsRow * i]);
         }
         return {
             x: x,
+            time: time,
             yTotalEnergy: yTotalEnergy,
             yKineticEnergy: yKineticEnergy,
             yInternalEnergy: yInternalEnergy,
             yPotentialEnergy: yPotentialEnergy,
-            yBindingEnergy: yBindingEnergy
+            yBindingEnergy: yBindingEnergy,
         };
     }
 }
@@ -533,6 +580,9 @@ class FileManager {
             return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
         });
     }
+    getPotentialSize() {
+        return this.infoJson["potentials"].length;
+    }
     getNumberOfBodies() {
         let N = this.infoJson["num_bodies"];
         return N;
@@ -578,146 +628,6 @@ class FileManager {
 }
 FileManager.bodyNumParams = 5;
 FileManager.numIterationParam = 2; // id + size
-class Fifo {
-    constructor() {
-        this.size = 0;
-        this.first = null;
-        this.last = null;
-    }
-    push(element) {
-        if (this.size == 0) {
-            let e = new FifoElement(element, null);
-            this.first = e;
-            this.last = e;
-        }
-        else {
-            let e = new FifoElement(element, null);
-            this.last.next = e;
-            this.last = e;
-        }
-        this.size++;
-    }
-    pushFifo(fifo) {
-        if (this.size == 0) {
-            this.first = fifo.first;
-            this.last = fifo.last;
-        }
-        else {
-            this.last.next = fifo.first;
-            this.last = fifo.last;
-        }
-        this.size += fifo.size;
-    }
-    pop() {
-        if (this.size == 0) {
-            return null;
-        }
-        else if (this.size == 1) {
-            let e = this.first.element;
-            this.first = null;
-            this.last = null;
-            this.size--;
-            return e;
-        }
-        else {
-            let e = this.first.element;
-            this.first = this.first.next;
-            this.size--;
-            return e;
-        }
-    }
-    clear() {
-        this.size = 0;
-        this.first = null;
-        this.last = null;
-    }
-}
-class FifoElement {
-    constructor(element, next) {
-        this.next = null;
-        this.element = null;
-        this.element = element;
-        this.next = next;
-    }
-}
-class FileStreamer {
-    constructor(file) {
-        this.file = file;
-        this.offset = 0;
-        this.defaultChunkSize = 64 * 1024; // bytes
-        this.rewind();
-    }
-    rewind() {
-        this.offset = 0;
-    }
-    isEndOfFile() {
-        return this.offset >= this.getFileSize();
-    }
-    readBlockAsText(length = this.defaultChunkSize) {
-        const fileReader = new FileReader();
-        const blob = this.file.slice(this.offset, this.offset + length);
-        this.file.stream;
-        return new Promise((resolve, reject) => {
-            fileReader.onloadend = (event) => {
-                const target = (event.target);
-                if (target.error == null) {
-                    const result = target.result;
-                    this.offset += result.length;
-                    this.testEndOfFile();
-                    resolve(result);
-                }
-                else {
-                    reject(target.error);
-                }
-            };
-            fileReader.readAsText(blob);
-        });
-    }
-    testEndOfFile() {
-        if (this.isEndOfFile()) {
-            console.log('Done reading file');
-        }
-    }
-    getFileSize() {
-        return this.file.size;
-    }
-}
-class JsonStreamer {
-    constructor(fs) {
-        this.initialSequenceSize = 12;
-        this.initialSequenceElementSize = 16;
-        this.afterElementSize = 1;
-        this.fs = fs;
-        this.buffer = "";
-        this.chunkSize = 200;
-    }
-    init() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.fs.isEndOfFile())
-                return null;
-            let s = yield this.fs.readBlockAsText(this.initialSequenceSize);
-            console.log(s);
-        });
-    }
-    read() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.fs.isEndOfFile()) {
-                let s1 = yield this.fs.readBlockAsText(this.initialSequenceElementSize);
-                console.log(s1);
-                if (s1 == ']}')
-                    return null;
-                let n = parseInt(s1.slice(8, 16)) || null;
-                if (n == null)
-                    return null;
-                console.log(n);
-                let s2 = yield this.fs.readBlockAsText(n - this.initialSequenceElementSize + this.afterElementSize);
-                console.log(s1 + s2);
-                return JSON.parse(s1 + s2.slice(0, -1));
-            }
-            return null;
-        });
-    }
-}
 class Startup {
     static main() {
         console.log('Main');
@@ -795,7 +705,7 @@ class Startup {
                     if (Startup.chartWindow != null) {
                         Startup.chartWindow.close();
                     }
-                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=900,height=900");
+                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1000,height=900");
                     Startup.chartWindow.addEventListener('load', () => {
                         Startup.chartWindow.file = Startup.file;
                         Startup.chartWindow.reset();
@@ -912,6 +822,124 @@ class MouseInput {
         this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
     }
 }
+class LittleChart {
+    constructor(titles, colors) {
+        this.width = 305;
+        this.height = 300;
+        this.size = titles.length;
+        this.container = document.createElement("div");
+        this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
+        this.div = document.createElement("div");
+        this.div.setAttribute("style", "width: " + this.width + "px; height: " + this.height + "px; position: relative;");
+        this.container.appendChild(this.div);
+        this.canvas = document.createElement("canvas");
+        this.canvas.height = this.height;
+        //this.canvas.width = this.width;
+        this.context = this.canvas.getContext("2d");
+        this.div.appendChild(this.canvas);
+        let datasets = [];
+        for (let i = 0; i < titles.length; i++) {
+            datasets.push({
+                label: titles[i],
+                borderWidth: 1,
+                // backgroundColor: "rgba(255, 0, 0, 0.6)",
+                borderColor: colors[i],
+                filled: false,
+                data: []
+            });
+        }
+        this.chart = new Chart(this.context, {
+            type: 'line',
+            data: {
+                datasets: datasets
+            },
+            options: {
+                tooltips: {
+                    mode: "index"
+                },
+                elements: {
+                    line: {
+                        tension: 0 // disables bezier curves
+                    },
+                    point: {
+                        radius: 0,
+                        hitRadius: 10,
+                        hoverRadius: 3
+                    }
+                },
+                maintainAspectRatio: false,
+                responsive: false,
+                legend: {
+                    display: true,
+                    align: "start",
+                    labels: {
+                        fontColor: "#ebebeb",
+                        fontSize: 10,
+                    }
+                },
+                scales: {
+                    yAxes: [{
+                            ticks: {
+                                fontColor: "#ebebeb",
+                                callback: function (val) {
+                                    return val.toExponential();
+                                }
+                            },
+                            gridLines: {
+                                zeroLineColor: '#ffffff'
+                            }
+                        }],
+                    xAxes: [{
+                            type: 'linear',
+                            position: 'bottom',
+                            ticks: {
+                                fontColor: "#ebebeb",
+                                autoSkip: true,
+                                maxRotation: 0,
+                                minRotation: 0,
+                            },
+                            gridLines: {
+                                zeroLineColor: '#ffffff'
+                            }
+                        }]
+                },
+                animation: {
+                    duration: 0 // general animation time
+                },
+                hover: {
+                    animationDuration: 0 // duration of animations when hovering an item
+                },
+                responsiveAnimationDuration: 0,
+                pan: {
+                    enabled: true,
+                    mode: "x",
+                    speed: 10,
+                    threshold: 5
+                },
+                zoom: {
+                    enabled: true,
+                    //drag: true,
+                    mode: "x",
+                    speed: 0.1,
+                    threshold: 2,
+                    sensitivity: 3
+                }
+            }
+        });
+    }
+    updateChart(data) {
+        for (let i = 0; i < this.size; i++) {
+            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
+        }
+        this.chart.update();
+    }
+    deleteData() {
+        for (let i = 0; i < this.size; i++) {
+            this.chart.data.datasets[i].data = [];
+        }
+        this.chart.update();
+    }
+}
 class Loop {
     constructor(canvas, gui) {
         this.panningOffsetX = 0;
@@ -937,7 +965,7 @@ class Loop {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         this.stats.dom.style = "margin-left: 100px;";
-        this.chart = new NumberChart(["Total energy", "Kinetic energy", "Internal energy", "Potential energy", "Binding energy"], ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]);
+        this.chart = new LittleChart(["Total energy", "Kinetic energy", "Internal energy", "Potential energy", "Binding energy"], ["#ff0000", "#ffb100", "#00ff4e", "#0066ff", "#ff00eb"]);
         let div = document.createElement("div");
         div.id = "container";
         this.guiPanel = [
@@ -1136,6 +1164,7 @@ class Loop {
         }
         let xBase = this.canvas.width / 2 + this.panningOffsetX - this.axesBodyOffset.x * this.scale;
         let yBase = this.canvas.height / 2 + this.panningOffsetY + this.axesBodyOffset.y * this.scale;
+        // Reset scaling and clean screen
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.translate(xBase, yBase);
@@ -1205,14 +1234,15 @@ class Loop {
             this.selectedBody.setVisible(false);
             Startup.trajectory.clear();
         }
-        // Aggiorno grafico ongni 30 frame
-        if (this.isPlaying && this.numIteration % 30 == 0) {
+        // Aggiorno grafico ongni 10 frame
+        if (this.isPlaying && this.numIteration % 10 == 0) {
+            let time = this.energyFile.getTime(this.numIteration);
             this.chart.updateChart([
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 0) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 1) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 2) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 3) },
-                { x: this.numIteration, y: this.energyFile.getEnergy(this.numIteration, 4) }
+                { x: time, y: this.energyFile.getEnergy(this.numIteration, 0) },
+                { x: time, y: this.energyFile.getEnergy(this.numIteration, 1) },
+                { x: time, y: this.energyFile.getEnergy(this.numIteration, 2) },
+                { x: time, y: this.energyFile.getEnergy(this.numIteration, 3) },
+                { x: time, y: this.energyFile.getEnergy(this.numIteration, 4) }
             ]);
         }
     }
@@ -1288,124 +1318,6 @@ class Loop {
         this.selectY = y;
     }
 }
-class NumberChart {
-    constructor(titles, colors) {
-        this.width = 305;
-        this.height = 300;
-        this.size = titles.length;
-        this.container = document.createElement("div");
-        this.container.setAttribute("style", "width: 100%; overflow: auto; display: flex; flex-direction: column-reverse;");
-        this.div = document.createElement("div");
-        this.div.setAttribute("style", "width: " + this.width + "px; height: " + this.height + "px; position: relative;");
-        this.container.appendChild(this.div);
-        this.canvas = document.createElement("canvas");
-        this.canvas.height = this.height;
-        //this.canvas.width = this.width;
-        this.context = this.canvas.getContext("2d");
-        this.div.appendChild(this.canvas);
-        let datasets = [];
-        for (let i = 0; i < titles.length; i++) {
-            datasets.push({
-                label: titles[i],
-                borderWidth: 1,
-                // backgroundColor: "rgba(255, 0, 0, 0.6)",
-                borderColor: colors[i],
-                filled: false,
-                data: []
-            });
-        }
-        this.chart = new Chart(this.context, {
-            type: 'line',
-            data: {
-                datasets: datasets
-            },
-            options: {
-                tooltips: {
-                    mode: "index"
-                },
-                elements: {
-                    line: {
-                        tension: 0 // disables bezier curves
-                    },
-                    point: {
-                        radius: 0,
-                        hitRadius: 10,
-                        hoverRadius: 3
-                    }
-                },
-                maintainAspectRatio: false,
-                responsive: false,
-                legend: {
-                    display: true,
-                    align: "start",
-                    labels: {
-                        fontColor: "#ebebeb",
-                        fontSize: 10,
-                    }
-                },
-                scales: {
-                    yAxes: [{
-                            ticks: {
-                                fontColor: "#ebebeb",
-                                callback: function (val) {
-                                    return val.toExponential();
-                                }
-                            },
-                            gridLines: {
-                                zeroLineColor: '#ffffff'
-                            }
-                        }],
-                    xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            ticks: {
-                                fontColor: "#ebebeb",
-                                autoSkip: true,
-                                maxRotation: 0,
-                                minRotation: 0,
-                            },
-                            gridLines: {
-                                zeroLineColor: '#ffffff'
-                            }
-                        }]
-                },
-                animation: {
-                    duration: 0 // general animation time
-                },
-                hover: {
-                    animationDuration: 0 // duration of animations when hovering an item
-                },
-                responsiveAnimationDuration: 0,
-                pan: {
-                    enabled: true,
-                    mode: "x",
-                    speed: 10,
-                    threshold: 5
-                },
-                zoom: {
-                    enabled: true,
-                    //drag: true,
-                    mode: "x",
-                    speed: 0.1,
-                    threshold: 2,
-                    sensitivity: 3
-                }
-            }
-        });
-    }
-    updateChart(data) {
-        for (let i = 0; i < this.size; i++) {
-            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
-        }
-        this.chart.update();
-    }
-    deleteData() {
-        for (let i = 0; i < this.size; i++) {
-            this.chart.data.datasets[i].data = [];
-        }
-        this.chart.update();
-    }
-}
 class Trajectory {
     constructor(canvas) {
         this.panningOffsetX = 0;
@@ -1459,6 +1371,146 @@ class Trajectory {
     }
     setScale(s) {
         this.scale = s;
+    }
+}
+class Fifo {
+    constructor() {
+        this.size = 0;
+        this.first = null;
+        this.last = null;
+    }
+    push(element) {
+        if (this.size == 0) {
+            let e = new FifoElement(element, null);
+            this.first = e;
+            this.last = e;
+        }
+        else {
+            let e = new FifoElement(element, null);
+            this.last.next = e;
+            this.last = e;
+        }
+        this.size++;
+    }
+    pushFifo(fifo) {
+        if (this.size == 0) {
+            this.first = fifo.first;
+            this.last = fifo.last;
+        }
+        else {
+            this.last.next = fifo.first;
+            this.last = fifo.last;
+        }
+        this.size += fifo.size;
+    }
+    pop() {
+        if (this.size == 0) {
+            return null;
+        }
+        else if (this.size == 1) {
+            let e = this.first.element;
+            this.first = null;
+            this.last = null;
+            this.size--;
+            return e;
+        }
+        else {
+            let e = this.first.element;
+            this.first = this.first.next;
+            this.size--;
+            return e;
+        }
+    }
+    clear() {
+        this.size = 0;
+        this.first = null;
+        this.last = null;
+    }
+}
+class FifoElement {
+    constructor(element, next) {
+        this.next = null;
+        this.element = null;
+        this.element = element;
+        this.next = next;
+    }
+}
+class FileStreamer {
+    constructor(file) {
+        this.file = file;
+        this.offset = 0;
+        this.defaultChunkSize = 64 * 1024; // bytes
+        this.rewind();
+    }
+    rewind() {
+        this.offset = 0;
+    }
+    isEndOfFile() {
+        return this.offset >= this.getFileSize();
+    }
+    readBlockAsText(length = this.defaultChunkSize) {
+        const fileReader = new FileReader();
+        const blob = this.file.slice(this.offset, this.offset + length);
+        this.file.stream;
+        return new Promise((resolve, reject) => {
+            fileReader.onloadend = (event) => {
+                const target = (event.target);
+                if (target.error == null) {
+                    const result = target.result;
+                    this.offset += result.length;
+                    this.testEndOfFile();
+                    resolve(result);
+                }
+                else {
+                    reject(target.error);
+                }
+            };
+            fileReader.readAsText(blob);
+        });
+    }
+    testEndOfFile() {
+        if (this.isEndOfFile()) {
+            console.log('Done reading file');
+        }
+    }
+    getFileSize() {
+        return this.file.size;
+    }
+}
+class JsonStreamer {
+    constructor(fs) {
+        this.initialSequenceSize = 12;
+        this.initialSequenceElementSize = 16;
+        this.afterElementSize = 1;
+        this.fs = fs;
+        this.buffer = "";
+        this.chunkSize = 200;
+    }
+    init() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.fs.isEndOfFile())
+                return null;
+            let s = yield this.fs.readBlockAsText(this.initialSequenceSize);
+            console.log(s);
+        });
+    }
+    read() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.fs.isEndOfFile()) {
+                let s1 = yield this.fs.readBlockAsText(this.initialSequenceElementSize);
+                console.log(s1);
+                if (s1 == ']}')
+                    return null;
+                let n = parseInt(s1.slice(8, 16)) || null;
+                if (n == null)
+                    return null;
+                console.log(n);
+                let s2 = yield this.fs.readBlockAsText(n - this.initialSequenceElementSize + this.afterElementSize);
+                console.log(s1 + s2);
+                return JSON.parse(s1 + s2.slice(0, -1));
+            }
+            return null;
+        });
     }
 }
 //# sourceMappingURL=bundle.js.map
