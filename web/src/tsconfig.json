@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "target": "es2015",
+      "sourceMap": true,
+      "allowJs": true,
+      "strict": true,
+      "module": "system",
+      "outFile": "../dist/bundle/bundle.js",
+      "lib": ["es2015", "dom"],
+    }
+  }
