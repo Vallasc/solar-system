@@ -506,9 +506,8 @@ class Conservation {
         this.angMomErr = this.fileManager.getMomAngErr();
         this.momentumStartX = this.fileManager.getMomentumStartX();
         this.momentumEndX = this.fileManager.getMomentumEndX();
-        this.momentumEndX = this.fileManager.getMomentumEndX();
         this.momentumErrX = this.fileManager.getMomentumErrX();
-        this.momentumEndY = this.fileManager.getMomentumEndY();
+        this.momentumStartY = this.fileManager.getMomentumStartY();
         this.momentumEndY = this.fileManager.getMomentumEndY();
         this.momentumErrY = this.fileManager.getMomentumErrY();
         this.energyStart = this.fileManager.getEnergyStart();
