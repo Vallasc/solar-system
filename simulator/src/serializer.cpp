@@ -87,12 +87,13 @@ void Serializer::write_end(float e_tot, float ang_mom_tot, float momentum_tot_x,
     write_attr("mom_tot_y_end", to_string(momentum_tot_y), true);
 }
 
-void Serializer::write_potential(double** potential, int m, int n) {
+void Serializer::write_potential(double** potential, int m, int n, double time) {
     string filename = potentials_file_name + to_string(potential_index) + ".bin";
     if(potential_index != 0)
         potentials_json << "," << endl;
     potentials_json << "{" << endl;
     potentials_json << "\"iteration\": " << to_string(num_iteration) << "," << endl;
+    potentials_json << "\"time\": " << to_string(time) << "," << endl;
     potentials_json << "\"fileName\": \"" << filename << "\"," << endl;
     potentials_json << "\"xSize\": " << to_string(m) << "," << endl;
     potentials_json << "\"ySize\": " << to_string(n) << endl;
@@ -110,7 +111,7 @@ void Serializer::write_potential(double** potential, int m, int n) {
 }
 
 // Nel file delle energie l'indice dell'array corrisponde all'iterazione
-void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot) {
+void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, double time) {
     //float it = (float)num_iteration;
     //outfile_energies.write(reinterpret_cast<char*>(& it), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
@@ -118,6 +119,8 @@ void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float
     outfile_energies.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
+    float ftime = (float) time;
+    outfile_energies.write(reinterpret_cast<char*>(& ftime), sizeof(float));
 }
 
 void Serializer::write_bodies(vector<Body> &state) {
@@ -127,7 +130,6 @@ void Serializer::write_bodies(vector<Body> &state) {
     std::sort(state.begin(), state.end(), [](Body& lhs, Body& rhs) {
         return lhs.get_color() < rhs.get_color();
     });
-    
 
     float size = (float) state.size();
     outfile.write(reinterpret_cast<char*>(& size), sizeof(float));

@@ -177,7 +177,7 @@ int main(){
         collision(bodies);     // treating the collision between bodies   
        
         for(int i=0; i<5; ++i)
-        total_energies[i] = 0;
+            total_energies[i] = 0;
         get_total_energies(bodies);     // computing the energy of the entire system in all its form
 
         if(n_iteration % 1000 == 0)     // the algorithm to compute the potential
@@ -188,9 +188,9 @@ int main(){
             //iterate potential
             for(int k=0; k<1000; ++k) next(grid, potential, error);
   
-            serializer.write_potential(potential, x_index, y_index);
+            serializer.write_potential(potential, x_index, y_index, t);
         }
-        serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4]);
+        serializer.write_energies(total_energies[0], total_energies[1], total_energies[2], total_energies[3], total_energies[4], t);
         serializer.write_bodies(bodies);     // writing bodies' features and energies on the file
 
         if (t > (t_f))     // terminate the dynamic
