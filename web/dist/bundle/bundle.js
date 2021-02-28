@@ -78,41 +78,29 @@ class Axes {
             offY = this.panningOffsetY;
         this.context.clearRect(0, 0, w, h);
         //color temperature scale when file is not loaded (scale without values)
-        if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
-            this.context.fillStyle = "rgb(60,0,0)";
-        }
-        else {
-            this.context.fillStyle = "rgba(60,0,0,0.3)";
-        }
-        this.context.font = "11px Arial";
-        this.context.fillText("Temperature (K)", w - 120, 40);
-        this.context.font = "9px Arial";
-        for (let i = 1; i < 11; i++) {
-            r = 255 * (11 - i) / numColors;
-            b = 255 - r;
+        if ((N != null) && (mass_i != null)) {
             if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
-                this.context.fillStyle = "rgb(" + r + ",0," + b + ")";
-                this.context.strokeStyle = "rgb(" + r + ",0," + b + ")";
+                this.context.fillStyle = "rgb(60,0,0)";
             }
             else {
-                this.context.fillStyle = "rgba(" + r + ",0," + b + ",0.3)";
-                this.context.strokeStyle = "rgba(" + r + ",0," + b + ",0.3)";
+                this.context.fillStyle = "rgba(60,0,0,0.3)";
             }
-            this.context.fillRect(w - 115, 40 + 20 * i, 30, 20);
-            this.context.beginPath();
-            this.context.moveTo(w - 85, 40.5 + 20 * i);
-            this.context.lineTo(w - 75, 40.5 + 20 * i);
-            this.context.stroke();
-        }
-        this.context.beginPath();
-        this.context.moveTo(w - 85, 39.5 + 20 * 11);
-        this.context.lineTo(w - 75, 39.5 + 20 * 11);
-        this.context.stroke();
-        //values of temperatures' scale (when file is loaded)
-        if ((N != null) && (mass_i != null)) {
-            tempMax = 0.75 * (0.0288 * N + 13) * mass_i;
+            this.context.font = "11px Arial";
+            this.context.fillText("Temperature (K)", w - 120, 40);
             this.context.font = "9px Arial";
+            tempMax = 0.75 * (0.0288 * N + 13) * mass_i;
             for (let i = 1; i < 11; i++) {
+                r = 255 * (11 - i) / numColors;
+                b = 255 - r;
+                if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
+                    this.context.fillStyle = "rgb(" + r + ",0," + b + ")";
+                    this.context.strokeStyle = "rgb(" + r + ",0," + b + ")";
+                }
+                else {
+                    this.context.fillStyle = "rgba(" + r + ",0," + b + ",0.3)";
+                    this.context.strokeStyle = "rgba(" + r + ",0," + b + ",0.3)";
+                }
+                this.context.fillRect(w - 115, 40 + 20 * i, 30, 20);
                 temperature = Math.round((11 - i) * tempMax / 10 * 100) / 100;
                 if ((offX <= w / 2 - 130) && (offY >= -h / 2 + 42 + 20 * 12)) {
                     this.context.fillStyle = "rgb(60,0,0)";
@@ -121,9 +109,14 @@ class Axes {
                     this.context.fillStyle = "rgba(60,0,0,0.3)";
                 }
                 this.context.fillText(temperature + "", w - 73, 41 + 20 * i);
+                this.context.beginPath();
+                this.context.moveTo(w - 85, 40.5 + 20 * i);
+                this.context.lineTo(w - 75, 40.5 + 20 * i);
+                this.context.stroke();
             }
             this.context.fillText("0", w - 73, 41 + 20 * (11));
         }
+        //values of temperatures' scale (when file is loaded)
         this.context.strokeStyle = "rgb(60,0,0)";
         this.context.lineWidth = 1;
         // Draw >  
@@ -435,6 +428,67 @@ class ChartStartup {
         });
     }
 }
+class Conservation {
+    constructor() {
+        this.angMomStart = "0";
+        this.angMomEnd = "0";
+        this.angMomErr = "0";
+        this.momentumStartX = "0";
+        this.momentumEndX = "0";
+        this.momentumErrX = "0";
+        this.momentumStartY = "0";
+        this.momentumEndY = "0";
+        this.momentumErrY = "0";
+        this.energyStart = "0";
+        this.energyEnd = "0";
+        this.energyErr = "0";
+        this.file = new File([], "");
+        this.fileManager = null;
+    }
+    reset(file = this.file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log("reset");
+            try {
+                this.file = file;
+                yield this.loadFile(file);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            //this.drawAxes();
+            this.getValues();
+            Startup.slider.value = "0";
+            Startup.slider.max = this.fileManager.getNumIterations() + "";
+        });
+    }
+    loadFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            Startup.gui.Loader(true);
+            this.fileManager = new FileManager(file);
+            yield this.fileManager.init();
+            /*if(this.forceLoadAllCheckbox){
+    
+            }*/
+            Startup.gui.Loader(false);
+            return;
+        });
+    }
+    getValues() {
+        this.angMomStart = this.fileManager.getMomAngStart();
+        this.angMomEnd = this.fileManager.getMomAngEnd();
+        this.angMomErr = this.fileManager.getMomAngErr();
+        this.momentumStartX = this.fileManager.getMomentumStartX();
+        this.momentumEndX = this.fileManager.getMomentumEndX();
+        this.momentumEndX = this.fileManager.getMomentumEndX();
+        this.momentumErrX = this.fileManager.getMomentumErrX();
+        this.momentumEndY = this.fileManager.getMomentumEndY();
+        this.momentumEndY = this.fileManager.getMomentumEndY();
+        this.momentumErrY = this.fileManager.getMomentumErrY();
+        this.energyStart = this.fileManager.getEnergyStart();
+        this.energyEnd = this.fileManager.getEnergyEnd();
+        this.energyErr = this.fileManager.getEnergyErr();
+    }
+}
 zip.workerScriptsPath = "./dist/lib/zipjs/";
 class EnergyArray {
     constructor(blob) {
@@ -591,6 +645,42 @@ class FileManager {
         let mass = this.infoJson["mass_i"];
         return mass;
     }
+    getMomAngStart() {
+        return this.infoJson["ang_mom_tot_start"];
+    }
+    getMomAngEnd() {
+        return this.infoJson["ang_mom_tot_end"];
+    }
+    getMomAngErr() {
+        return this.infoJson["err_ang_mom"];
+    }
+    getMomentumStartX() {
+        return this.infoJson["mom_tot_x_start"];
+    }
+    getMomentumEndX() {
+        return this.infoJson["mom_tot_x_end"];
+    }
+    getMomentumErrX() {
+        return this.infoJson["err_momentum_x"];
+    }
+    getMomentumStartY() {
+        return this.infoJson["mom_tot_y_start"];
+    }
+    getMomentumEndY() {
+        return this.infoJson["mom_tot_y_end"];
+    }
+    getMomentumErrY() {
+        return this.infoJson["err_momentum_y"];
+    }
+    getEnergyStart() {
+        return this.infoJson["e_tot_start"];
+    }
+    getEnergyEnd() {
+        return this.infoJson["e_tot_end"];
+    }
+    getEnergyErr() {
+        return this.infoJson["err_E"];
+    }
     loadNextFile() {
         return __awaiter(this, void 0, void 0, function* () {
             let file = yield ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
@@ -640,6 +730,7 @@ class Startup {
         Startup.axes = new Axes(Startup.axesCanvas);
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
+        Startup.conservation = new Conservation();
         Startup.createGui(); // And resize
         return 0;
     }
@@ -672,6 +763,7 @@ class Startup {
                 Startup.file = file;
                 yield Startup.loop.reset(file);
                 yield Startup.axes.reset(file);
+                yield Startup.conservation.reset(file);
                 if (Startup.chartWindow != null) {
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
@@ -692,6 +784,102 @@ class Startup {
                 action: () => {
                     Startup.loop.reset();
                 }
+            }, {
+                type: 'folder',
+                label: 'Conservation',
+                open: true
+            }, {
+                type: 'folder',
+                folder: 'Conservation',
+                label: 'Angular Momentum',
+                open: false
+            }, {
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Initial:',
+                object: this.conservation,
+                property: 'angMomStart'
+            }, {
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Final:',
+                object: this.conservation,
+                property: 'angMomEnd'
+            }, {
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Difference (%):',
+                object: this.conservation,
+                property: 'angMomErr'
+            }, {
+                type: 'folder',
+                folder: 'Conservation',
+                label: 'Momentum x',
+                open: false
+            }, {
+                type: 'display',
+                folder: 'Momentum x',
+                label: 'Initial:',
+                object: this.conservation,
+                property: 'momentumStartX'
+            }, {
+                type: 'display',
+                folder: 'Momentum x',
+                label: 'Final:',
+                object: this.conservation,
+                property: 'momentumEndX'
+            }, {
+                type: 'display',
+                folder: 'Momentum x',
+                label: 'Difference (%):',
+                object: this.conservation,
+                property: 'momentumErrX'
+            }, {
+                type: 'folder',
+                folder: 'Conservation',
+                label: 'Momentum y',
+                open: false
+            }, {
+                type: 'display',
+                folder: 'Momentum y',
+                label: 'Initial:',
+                object: this.conservation,
+                property: 'momentumStartY'
+            }, {
+                type: 'display',
+                folder: 'Momentum y',
+                label: 'Final:',
+                object: this.conservation,
+                property: 'momentumEndY'
+            }, {
+                type: 'display',
+                folder: 'Momentum y',
+                label: 'Difference (%):',
+                object: this.conservation,
+                property: 'momentumErrY'
+            }, {
+                type: 'folder',
+                folder: 'Conservation',
+                label: 'Energy',
+                open: false
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Initial:',
+                object: this.conservation,
+                property: 'energyStart'
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Final:',
+                object: this.conservation,
+                property: 'energyEnd'
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Difference (%):',
+                object: this.conservation,
+                property: 'energyErr'
             }, {
                 type: 'display',
                 label: 'Energy chart',

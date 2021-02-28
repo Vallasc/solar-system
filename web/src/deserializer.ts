@@ -181,6 +181,54 @@ class FileManager{
     return mass;
   }
 
+  public getMomAngStart() : string {
+    return this.infoJson["ang_mom_tot_start"];
+  }
+
+  public getMomAngEnd() : string {
+    return this.infoJson["ang_mom_tot_end"];
+  }
+
+  public getMomAngErr() : string {
+    return this.infoJson["err_ang_mom"];
+  }
+
+  public getMomentumStartX() : string {
+    return this.infoJson["mom_tot_x_start"];
+  }
+
+  public getMomentumEndX() : string {
+    return this.infoJson["mom_tot_x_end"];
+  }
+  
+  public getMomentumErrX() : string {
+    return this.infoJson["err_momentum_x"];
+  }
+
+  public getMomentumStartY() : string {
+    return this.infoJson["mom_tot_y_start"];
+  }
+
+  public getMomentumEndY() : string {
+    return this.infoJson["mom_tot_y_end"];
+  }
+  
+  public getMomentumErrY() : string {
+    return this.infoJson["err_momentum_y"];
+  }
+
+  public getEnergyStart() : string {
+    return this.infoJson["e_tot_start"];
+  }
+
+  public getEnergyEnd() : string {
+    return this.infoJson["e_tot_end"];
+  }
+  
+  public getEnergyErr() : string {
+    return this.infoJson["err_E"];
+  }
+  
   private async loadNextFile() : Promise<void> {
     let file = await ZipReader.getEntryFile(this.entriesMap.get(this.infoJson["simFileName"] + this.fileIndex + ".bin"));
     let arrayBuffer = await file.arrayBuffer();

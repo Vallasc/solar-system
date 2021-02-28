@@ -13,6 +13,7 @@ class Startup {
 
     static loop : Loop;
     static axes : Axes;
+    static conservation : Conservation;
     static trajectory : Trajectory;
     static gui : any;
 
@@ -39,6 +40,8 @@ class Startup {
 
         Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
         let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
+
+        Startup.conservation = new Conservation();
 
         Startup.createGui(); // And resize
 
@@ -73,6 +76,7 @@ class Startup {
                 Startup.file = file;
                 await Startup.loop.reset(file);
                 await Startup.axes.reset(file);
+                await Startup.conservation.reset(file);
                 if(Startup.chartWindow != null){
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
@@ -93,6 +97,102 @@ class Startup {
             action: () => {
                 Startup.loop.reset();
             }
+        },{
+            type: 'folder',
+            label: 'Conservation',
+            open: true
+        },{
+            type: 'folder',
+            folder: 'Conservation',
+            label: 'Angular Momentum',
+            open: false
+        },{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Initial:',
+            object: this.conservation,
+            property: 'angMomStart'
+        },{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Final:',
+            object: this.conservation,
+            property: 'angMomEnd'
+        },{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Difference (%):',
+            object: this.conservation,
+            property: 'angMomErr'
+        },{
+            type: 'folder',
+            folder: 'Conservation',
+            label: 'Momentum x',
+            open: false
+        },{
+            type: 'display',
+            folder: 'Momentum x',
+            label: 'Initial:',
+            object: this.conservation,
+            property: 'momentumStartX'
+        },{
+            type: 'display',
+            folder: 'Momentum x',
+            label: 'Final:',
+            object: this.conservation,
+            property: 'momentumEndX'
+        },{
+            type: 'display',
+            folder: 'Momentum x',
+            label: 'Difference (%):',
+            object: this.conservation,
+            property: 'momentumErrX'
+        },{
+            type: 'folder',
+            folder: 'Conservation',
+            label: 'Momentum y',
+            open: false
+        },{
+            type: 'display',
+            folder: 'Momentum y',
+            label: 'Initial:',
+            object: this.conservation,
+            property: 'momentumStartY'
+        },{
+            type: 'display',
+            folder: 'Momentum y',
+            label: 'Final:',
+            object: this.conservation,
+            property: 'momentumEndY'
+        },{
+            type: 'display',
+            folder: 'Momentum y',
+            label: 'Difference (%):',
+            object: this.conservation,
+            property: 'momentumErrY'
+        },{
+            type: 'folder',
+            folder: 'Conservation',
+            label: 'Energy',
+            open: false
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Initial:',
+            object: this.conservation,
+            property: 'energyStart'
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Final:',
+            object: this.conservation,
+            property: 'energyEnd'
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Difference (%):',
+            object: this.conservation,
+            property: 'energyErr'
         },{
             type: 'display',
             label: 'Energy chart',
