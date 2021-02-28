@@ -206,7 +206,7 @@ class Startup {
                 if(Startup.chartWindow != null){
                     Startup.chartWindow.close();
                 }
-                Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1000,height=900");
+                Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1100,height=900");
                 Startup.chartWindow.addEventListener('load', () => {
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
