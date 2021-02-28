@@ -339,7 +339,7 @@ class Loop {
         }
 
         // Aggiorno grafico ongni 10 frame
-        if(this.isPlaying && this.numIteration % 10 == 0){ 
+        if(this.isPlaying && this.numIteration % 20 == 0){ 
             let time : number = this.energyFile.getTime(this.numIteration);
             this.chart.updateChart([
                 {x: time, y: this.energyFile.getEnergy(this.numIteration, 0)},

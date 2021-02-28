@@ -1069,7 +1069,7 @@ class LittleChart {
                             ticks: {
                                 fontColor: "#ebebeb",
                                 callback: function (val) {
-                                    return val.toExponential();
+                                    return val.toExponential(1);
                                 }
                             },
                             gridLines: {
@@ -1106,7 +1106,7 @@ class LittleChart {
                 zoom: {
                     enabled: true,
                     //drag: true,
-                    mode: "x",
+                    mode: "xy",
                     speed: 0.1,
                     threshold: 2,
                     sensitivity: 3
@@ -1116,7 +1116,7 @@ class LittleChart {
     }
     updateChart(data) {
         for (let i = 0; i < this.size; i++) {
-            this.chart.data.datasets[i].data.push({ x: new Date(data[i].x), y: data[i].y });
+            this.chart.data.datasets[i].data.push({ x: data[i].x, y: data[i].y });
         }
         this.chart.update();
     }
@@ -1422,7 +1422,7 @@ class Loop {
             Startup.trajectory.clear();
         }
         // Aggiorno grafico ongni 10 frame
-        if (this.isPlaying && this.numIteration % 10 == 0) {
+        if (this.isPlaying && this.numIteration % 20 == 0) {
             let time = this.energyFile.getTime(this.numIteration);
             this.chart.updateChart([
                 { x: time, y: this.energyFile.getEnergy(this.numIteration, 0) },
