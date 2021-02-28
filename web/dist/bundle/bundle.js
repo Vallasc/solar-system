@@ -1082,7 +1082,7 @@ class LittleChart {
                             position: 'bottom',
                             ticks: {
                                 fontColor: "#ebebeb",
-                                //autoSkip: true,
+                                autoSkip: true,
                                 maxRotation: 0,
                                 minRotation: 0,
                             },
