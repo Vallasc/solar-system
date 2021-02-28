@@ -46,12 +46,13 @@ class Serializer {
     public:
         Serializer(string file_name, string out_dir);
         ~Serializer();
+        std::string toStr(double x);
         void write_bodies(vector<Body> &state);
         void write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, double time);
         void write_potential(double** potential, int m, int n, double time);
-        void write_init(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y, int N, double mass_i);
+        void write_init(double e_tot, double ang_mom_tot, double momentum_tot_x, double momentum_tot_y, int N, double mass_i);
         void write_err(double err_E, double err_ang_mom, double err_momentum_x,double err_momentum_y);
-        void write_end(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y);
+        void write_end(double e_tot, double ang_mom_tot, double momentum_tot_x, double momentum_tot_y);
 };
 
 #endif
