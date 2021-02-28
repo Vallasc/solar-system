@@ -50,6 +50,7 @@ class Serializer {
         void write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, double time);
         void write_potential(double** potential, int m, int n, double time);
         void write_init(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y, int N, double mass_i);
+        void write_err(double err_E, double err_ang_mom, double err_momentum_x,double err_momentum_y);
         void write_end(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y);
 };
 

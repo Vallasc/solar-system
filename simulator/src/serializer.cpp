@@ -80,6 +80,13 @@ void Serializer::write_init(float e_tot, float ang_mom_tot, float momentum_tot_x
     write_attr("mass_i", to_string(mass_i), true);
 }
 
+void Serializer::write_err(double err_E, double err_ang_mom, double err_momentum_x,double err_momentum_y) {
+    write_attr("err_E", to_string(err_E), true);
+    write_attr("err_ang_mom", to_string(err_ang_mom), true);
+    write_attr("err_momentum_x", to_string(err_momentum_x), true);
+    write_attr("err_momentum_y", to_string(err_momentum_y), true);
+}
+
 void Serializer::write_end(float e_tot, float ang_mom_tot, float momentum_tot_x, float momentum_tot_y) {
     write_attr("e_tot_end", to_string(e_tot), true);
     write_attr("ang_mom_tot_end", to_string(ang_mom_tot), true);

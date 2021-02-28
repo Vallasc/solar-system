@@ -238,6 +238,7 @@ int main(){
     std::cout<<"Total momentum (along x): "<<momentum_tot[0]<<endl;
     std::cout<<"Total momentum (along y): "<<momentum_tot[1]<<endl;
 
+    serializer.write_err(err_E, err_ang_mom, err_momentum[0], err_momentum[1]);
     serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);     // writing bodies' energies
 
 }
