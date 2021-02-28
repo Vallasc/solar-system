@@ -336,6 +336,7 @@ class ChartStartup {
     static reset() {
         document.getElementById("file").innerHTML = window.file.name;
         ChartStartup.loadFile(window.file);
+        ChartStartup.lastIndex = -1;
     }
     static loadFile(file) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -388,43 +389,69 @@ class ChartStartup {
             ChartStartup.layoutPlot1 = {
                 yaxis: {
                     //type: 'log', 
-                    autorange: true
+                    autorange: true,
+                    fixedrange: false
                 },
                 xaxis: {
                     rangeslider: {},
-                }
+                },
+                height: 600,
+                autosize: true // set autosize to rescale
             };
             let options = {};
             ChartStartup.plot1 = yield Plotly.newPlot('plot1', data, ChartStartup.layoutPlot1, options);
+            let timeDiv = document.getElementById("time1");
+            timeDiv.innerHTML = " t∈" + ChartStartup.getEnergiesTime(energies, 0, 99);
             let isPressing = false;
             window.onmousedown = (event) => {
                 isPressing = true;
-                console.log("ko");
             };
             window.onmouseup = (event) => {
                 if (isPressing) {
-                    let initRangeX = ChartStartup.layoutPlot1.xaxis.range[0];
-                    let index = ChartStartup.potentialSize * initRangeX / 100;
-                    ChartStartup.drawPotentialsPlot(index);
+                    let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
+                    let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
+                    let index = ChartStartup.potentialSize * initRangeX0 / 99;
+                    ChartStartup.drawPotentialsPlot(Math.floor(index));
+                    timeDiv.innerHTML = " t∈" + ChartStartup.getEnergiesTime(energies, initRangeX0, initRangeX1);
                 }
                 isPressing = false;
-                console.log("ok");
             };
-            ChartStartup.potentialSize = ChartStartup.fileManager.getPotentialSize();
+            ChartStartup.potentialSize = ChartStartup.fileManager.getPotentials().length;
             ChartStartup.drawPotentialsPlot(0);
         });
     }
+    static getEnergiesTime(energies, start, end) {
+        let size = energies.size - 1;
+        console.log(size);
+        console.log(start);
+        console.log(end);
+        if (end > 99)
+            end = 99;
+        if (start < 0)
+            start = 0;
+        let startTime = energies.getTime(Math.floor(start * size / 99));
+        let endTime = energies.getTime(Math.floor(end * size / 99));
+        return '[' + startTime.toFixed(3) + ', ' + endTime.toFixed(3) + ']';
+    }
     static drawPotentialsPlot(index) {
         return __awaiter(this, void 0, void 0, function* () {
-            let p = yield ChartStartup.fileManager.getPotential(index);
-            let data2 = [
-                {
-                    z: p.getMatrix(),
-                    type: 'surface'
-                }
-            ];
-            var layout2 = {};
-            Plotly.newPlot('plot2', data2, layout2);
+            if (ChartStartup.lastIndex != index) {
+                ChartStartup.lastIndex = index;
+                let time = ChartStartup.fileManager.getPotentials()[index].time;
+                document.getElementById("time2").innerHTML = " t=" + time;
+                let p = yield ChartStartup.fileManager.getPotential(index);
+                let data = [
+                    {
+                        z: p.getMatrix(),
+                        type: 'surface'
+                    }
+                ];
+                var layout = {
+                    height: 800,
+                    utosize: true // set autosize to rescale
+                };
+                Plotly.newPlot('plot2', data, layout);
+            }
         });
     }
 }
@@ -549,7 +576,6 @@ class PotentialMatrix {
                 matrix[i].push(this.buffer[i * this.m + j]);
             }
         }
-        console.log(matrix);
         return matrix;
     }
 }
@@ -634,8 +660,8 @@ class FileManager {
             return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
         });
     }
-    getPotentialSize() {
-        return this.infoJson["potentials"].length;
+    getPotentials() {
+        return this.infoJson["potentials"];
     }
     getNumberOfBodies() {
         let N = this.infoJson["num_bodies"];
@@ -893,7 +919,7 @@ class Startup {
                     if (Startup.chartWindow != null) {
                         Startup.chartWindow.close();
                     }
-                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1000,height=900");
+                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1100,height=900");
                     Startup.chartWindow.addEventListener('load', () => {
                         Startup.chartWindow.file = Startup.file;
                         Startup.chartWindow.reset();
