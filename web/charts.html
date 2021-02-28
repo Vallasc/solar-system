@@ -9,13 +9,22 @@
         <title>Solar System Visualizer</title>
         <link href="css/main.css" rel="stylesheet">
     </head>
-    <body style="padding: 10px;">
-        <div>File: </div>
-        <div id="file" style="display: inline;"></div>
-        <p>Energy Plot</p>
-        <div id="plot1"></div>
-        <p>Potential Plot</p>
-        <div id="plot2"></div>
+    <body>
+        <div style="margin: 15px;">
+            <div>File: <div id="file" style="display: inline;"></div></div>
+            <p>
+                <div>
+                    Energy Plot <div id="time1" style="display: inline;"></div>
+                </div>
+            </p>
+            <div id="plot1"></div>
+            <p>
+                <div>
+                    Potential Plot <div id="time2" style="display: inline;"></div>
+                </div>
+            </p>
+            <div id="plot2"></div>
+        </div>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script type="text/javascript" src="dist/lib/zipjs/zip.js"></script>
         <script type="text/javascript" src="dist/lib/zipjs/zip-ext.js"></script>
