@@ -3,8 +3,9 @@ declare var Plotly : any;
 class ChartStartup{
     public static layoutPlot1 : any;
     public static plot1 : any;
-    public static fileManager : any;
+    public static fileManager : FileManager;
     public static potentialSize : number;
+    public static lastIndex : number;
 
     public static main(): number {
         return 0;
@@ -13,12 +14,13 @@ class ChartStartup{
     public static reset() {
         document!.getElementById("file")!.innerHTML = (<any> window).file.name;
         ChartStartup.loadFile((<any> window).file);
+        ChartStartup.lastIndex = -1;
     }
 
     private static async loadFile(file: File) {
         ChartStartup.fileManager = new FileManager(file);
         await ChartStartup.fileManager .init();
-        let energies = await ChartStartup.fileManager .getEnergies();
+        let energies = await ChartStartup.fileManager.getEnergies();
         let arrays = energies.getArrays();
         let data = [{
                 name: 'Total energy',
@@ -66,45 +68,70 @@ class ChartStartup{
         ChartStartup.layoutPlot1 = {
             yaxis: {
                 //type: 'log', 
-                autorange: true
+                autorange: true,
+                fixedrange: false
             },
             xaxis: {
                 rangeslider:{},
-            }
+            },
+            height: 600,
+            autosize: true // set autosize to rescale
         };
         
         let options = {};
         
         ChartStartup.plot1 = await Plotly.newPlot('plot1', data, ChartStartup.layoutPlot1, options);
+        let timeDiv = document.getElementById("time1");
+        timeDiv!.innerHTML = " t∈"+ChartStartup.getEnergiesTime(energies,0,99);
+
         let isPressing = false;
         window.onmousedown = (event: any)=>{
             isPressing = true;
-            console.log("ko"); 
         }
         window.onmouseup = (event: any)=>{
             if(isPressing){
-                let initRangeX = ChartStartup.layoutPlot1.xaxis.range[0];
-                let index = ChartStartup.potentialSize*initRangeX/100;
-                ChartStartup.drawPotentialsPlot(index);
+                let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
+                let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
+                let index = ChartStartup.potentialSize*initRangeX0/99;
+                ChartStartup.drawPotentialsPlot(Math.floor(index));
+                timeDiv!.innerHTML = " t∈"+ChartStartup.getEnergiesTime(energies,initRangeX0,initRangeX1);
             }
             isPressing = false;
-            console.log("ok"); 
         }
 
-        ChartStartup.potentialSize = ChartStartup.fileManager.getPotentialSize();
+        ChartStartup.potentialSize = ChartStartup.fileManager.getPotentials().length;
         ChartStartup.drawPotentialsPlot(0);
     }
 
+    public static getEnergiesTime(energies : EnergyArray, start : number, end : number) : string {
+        let size = energies.size-1;
+        console.log(size);
+        console.log(start);
+        console.log(end);
+        if(end > 99) end = 99;
+        if(start < 0) start = 0;
+        let startTime = energies.getTime(Math.floor(start * size / 99));
+        let endTime = energies.getTime(Math.floor(end * size / 99));
+        return '['+startTime.toFixed(3)+', '+endTime.toFixed(3)+']';
+    }
+
     public static async drawPotentialsPlot(index : number){
-        let p = await ChartStartup.fileManager.getPotential(index);
-        let data2 = [
-            {
-              z: p.getMatrix(),
-               type: 'surface'
-            }
-          ];
-        var layout2 = {
-        };
-        Plotly.newPlot('plot2', data2, layout2);
+        if(ChartStartup.lastIndex != index){
+            ChartStartup.lastIndex = index;
+            let time = ChartStartup.fileManager.getPotentials()[index].time;
+            document.getElementById("time2")!.innerHTML = " t="+time;
+            let p = await ChartStartup.fileManager.getPotential(index);
+            let data = [
+                {
+                  z: p.getMatrix(),
+                   type: 'surface'
+                }
+              ];
+            var layout = {
+                height: 800,
+                utosize: true // set autosize to rescale
+            };
+            Plotly.newPlot('plot2', data, layout);
+        }
     }
 }
