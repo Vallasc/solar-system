@@ -200,20 +200,12 @@ class FileManager{
     return this.infoJson["mom_tot_x_end"];
   }
   
-  public getMomentumErrX() : string {
-    return this.infoJson["err_momentum_x"];
-  }
-
   public getMomentumStartY() : string {
     return this.infoJson["mom_tot_y_start"];
   }
 
   public getMomentumEndY() : string {
     return this.infoJson["mom_tot_y_end"];
-  }
-  
-  public getMomentumErrY() : string {
-    return this.infoJson["err_momentum_y"];
   }
 
   public getEnergyStart() : string {

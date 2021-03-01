@@ -4,10 +4,8 @@ class Conservation {
     public angMomErr : string = "0";
     public momentumStartX : string = "0";
     public momentumEndX : string = "0";
-    public momentumErrX : string = "0";
     public momentumStartY : string = "0";
     public momentumEndY : string = "0";
-    public momentumErrY : string = "0";
     public energyStart : string = "0";
     public energyEnd : string = "0";
     public energyErr : string = "0"; 
@@ -51,10 +49,8 @@ class Conservation {
         this.angMomErr = this.fileManager!.getMomAngErr();
         this.momentumStartX = this.fileManager!.getMomentumStartX();
         this.momentumEndX = this.fileManager!.getMomentumEndX();
-        this.momentumErrX = this.fileManager!.getMomentumErrX();
         this.momentumStartY = this.fileManager!.getMomentumStartY();
         this.momentumEndY = this.fileManager!.getMomentumEndY();
-        this.momentumErrY = this.fileManager!.getMomentumErrY();
         this.energyStart = this.fileManager!.getEnergyStart();
         this.energyEnd = this.fileManager!.getEnergyEnd();
         this.energyErr = this.fileManager!.getEnergyErr();

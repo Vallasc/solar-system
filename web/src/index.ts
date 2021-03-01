@@ -142,12 +142,6 @@ class Startup {
             object: this.conservation,
             property: 'momentumEndX'
         },{
-            type: 'display',
-            folder: 'Momentum x',
-            label: 'Difference (%):',
-            object: this.conservation,
-            property: 'momentumErrX'
-        },{
             type: 'folder',
             folder: 'Conservation',
             label: 'Momentum y',
@@ -164,12 +158,6 @@ class Startup {
             label: 'Final:',
             object: this.conservation,
             property: 'momentumEndY'
-        },{
-            type: 'display',
-            folder: 'Momentum y',
-            label: 'Difference (%):',
-            object: this.conservation,
-            property: 'momentumErrY'
         },{
             type: 'folder',
             folder: 'Conservation',
