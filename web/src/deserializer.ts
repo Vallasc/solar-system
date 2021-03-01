@@ -13,7 +13,6 @@ class EnergyArray {
   constructor(blob: ArrayBuffer){
     this.buffer = new Float32Array(blob);
     this.size = this.buffer.length / this.numParamsRow;
-    console.log(this.size);
   }
 
   // index is in [0, 4]

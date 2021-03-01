@@ -33,9 +33,9 @@ Serializer::Serializer(string file_name, string out_dir) {
     // Apro file binario dei corpi
     this->open_file();
     // Apro il file info
-    outfile_info.open(info_file_name, std::ios::out);
+    outfile_info.open(info_file_name, ios::out);
     // Apro il file delle energie
-    outfile_energies.open(energies_file_name, std::ios::out);
+    outfile_energies.open(energies_file_name, ios::binary);
     
     //cout << "Serializer: init" << endl;
 
@@ -126,7 +126,7 @@ void Serializer::write_potential(double** potential, int m, int n, double time) 
 }
 
 // Nel file delle energie l'indice dell'array corrisponde all'iterazione
-void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, double time) {
+void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, float time) {
     //float it = (float)num_iteration;
     //outfile_energies.write(reinterpret_cast<char*>(& it), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
@@ -134,8 +134,7 @@ void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float
     outfile_energies.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_p_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_b_tot), sizeof(float));
-    float ftime = (float) time;
-    outfile_energies.write(reinterpret_cast<char*>(& ftime), sizeof(float));
+    outfile_energies.write(reinterpret_cast<char*>(& time), sizeof(float));
 }
 
 void Serializer::write_bodies(vector<Body> &state) {
