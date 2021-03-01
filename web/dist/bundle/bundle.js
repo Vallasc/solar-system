@@ -462,10 +462,8 @@ class Conservation {
         this.angMomErr = "0";
         this.momentumStartX = "0";
         this.momentumEndX = "0";
-        this.momentumErrX = "0";
         this.momentumStartY = "0";
         this.momentumEndY = "0";
-        this.momentumErrY = "0";
         this.energyStart = "0";
         this.energyEnd = "0";
         this.energyErr = "0";
@@ -506,10 +504,8 @@ class Conservation {
         this.angMomErr = this.fileManager.getMomAngErr();
         this.momentumStartX = this.fileManager.getMomentumStartX();
         this.momentumEndX = this.fileManager.getMomentumEndX();
-        this.momentumErrX = this.fileManager.getMomentumErrX();
         this.momentumStartY = this.fileManager.getMomentumStartY();
         this.momentumEndY = this.fileManager.getMomentumEndY();
-        this.momentumErrY = this.fileManager.getMomentumErrY();
         this.energyStart = this.fileManager.getEnergyStart();
         this.energyEnd = this.fileManager.getEnergyEnd();
         this.energyErr = this.fileManager.getEnergyErr();
@@ -684,17 +680,11 @@ class FileManager {
     getMomentumEndX() {
         return this.infoJson["mom_tot_x_end"];
     }
-    getMomentumErrX() {
-        return this.infoJson["err_momentum_x"];
-    }
     getMomentumStartY() {
         return this.infoJson["mom_tot_y_start"];
     }
     getMomentumEndY() {
         return this.infoJson["mom_tot_y_end"];
-    }
-    getMomentumErrY() {
-        return this.infoJson["err_momentum_y"];
     }
     getEnergyStart() {
         return this.infoJson["e_tot_start"];
@@ -853,12 +843,6 @@ class Startup {
                 object: this.conservation,
                 property: 'momentumEndX'
             }, {
-                type: 'display',
-                folder: 'Momentum x',
-                label: 'Difference (%):',
-                object: this.conservation,
-                property: 'momentumErrX'
-            }, {
                 type: 'folder',
                 folder: 'Conservation',
                 label: 'Momentum y',
@@ -875,12 +859,6 @@ class Startup {
                 label: 'Final:',
                 object: this.conservation,
                 property: 'momentumEndY'
-            }, {
-                type: 'display',
-                folder: 'Momentum y',
-                label: 'Difference (%):',
-                object: this.conservation,
-                property: 'momentumErrY'
             }, {
                 type: 'folder',
                 folder: 'Conservation',
