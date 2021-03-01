@@ -524,7 +524,6 @@ class EnergyArray {
         this.numParamsRow = 6;
         this.buffer = new Float32Array(blob);
         this.size = this.buffer.length / this.numParamsRow;
-        console.log(this.size);
     }
     // index is in [0, 4]
     getEnergy(index, type) {
