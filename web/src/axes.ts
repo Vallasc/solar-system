@@ -17,26 +17,22 @@ class Axes {
         this.drawAxes();
     }
 
-    public async reset(file: File = this.file) {
+    public async reset(fileManager: FileManager | null= this.fileManager) {
         console.log("reset");
         try {
-            this.file = file
-            await this.loadFile(file);
+            this.fileManager = fileManager
+            await this.loadFile(fileManager);
         } catch (e) {
             console.error(e);
         }
         this.drawAxes();
         Startup.slider.value = "0";
-        Startup.slider.max = this.fileManager!.getNumIterations() + "";
+        Startup.slider.max = fileManager!.getNumIterations() + "";
     }
 
-    private async loadFile(file: File) : Promise<void> {
+    private async loadFile(fileManager: FileManager | null) : Promise<void> {
         Startup.gui.Loader(true);
-        this.fileManager = new FileManager(file);
-        await this.fileManager.init();
-        /*if(this.forceLoadAllCheckbox){
-
-        }*/
+        await fileManager!.init();
         Startup.gui.Loader(false);
         return;
     }

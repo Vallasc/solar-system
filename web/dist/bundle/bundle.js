@@ -20,29 +20,25 @@ class Axes {
         this.context.imageSmoothingEnabled = false;
         this.drawAxes();
     }
-    reset(file = this.file) {
+    reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("reset");
             try {
-                this.file = file;
-                yield this.loadFile(file);
+                this.fileManager = fileManager;
+                yield this.loadFile(fileManager);
             }
             catch (e) {
                 console.error(e);
             }
             this.drawAxes();
             Startup.slider.value = "0";
-            Startup.slider.max = this.fileManager.getNumIterations() + "";
+            Startup.slider.max = fileManager.getNumIterations() + "";
         });
     }
-    loadFile(file) {
+    loadFile(fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             Startup.gui.Loader(true);
-            this.fileManager = new FileManager(file);
-            yield this.fileManager.init();
-            /*if(this.forceLoadAllCheckbox){
-    
-            }*/
+            yield fileManager.init();
             Startup.gui.Loader(false);
             return;
         });
@@ -470,30 +466,25 @@ class Conservation {
         this.file = new File([], "");
         this.fileManager = null;
     }
-    reset(file = this.file) {
+    reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("reset");
             try {
-                this.file = file;
-                yield this.loadFile(file);
+                this.fileManager = fileManager;
+                yield this.loadFile(fileManager);
             }
             catch (e) {
                 console.error(e);
             }
-            //this.drawAxes();
             this.getValues();
             Startup.slider.value = "0";
-            Startup.slider.max = this.fileManager.getNumIterations() + "";
+            Startup.slider.max = fileManager.getNumIterations() + "";
         });
     }
-    loadFile(file) {
+    loadFile(fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             Startup.gui.Loader(true);
-            this.fileManager = new FileManager(file);
-            yield this.fileManager.init();
-            /*if(this.forceLoadAllCheckbox){
-    
-            }*/
+            yield fileManager.init();
             Startup.gui.Loader(false);
             return;
         });
@@ -775,9 +766,10 @@ class Startup {
             label: 'File',
             onChange: (file) => __awaiter(this, void 0, void 0, function* () {
                 Startup.file = file;
-                yield Startup.loop.reset(file);
-                yield Startup.axes.reset(file);
-                yield Startup.conservation.reset(file);
+                Startup.fileManager = new FileManager(file);
+                yield Startup.loop.reset(Startup.fileManager);
+                yield Startup.axes.reset(Startup.fileManager);
+                yield Startup.conservation.reset(Startup.fileManager);
                 if (Startup.chartWindow != null) {
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
@@ -1465,7 +1457,7 @@ class Loop {
         else
             this.pause();
     }
-    reset(file = this.file) {
+    reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("reset");
             this.barContainer.style.color = "#ffffff";
@@ -1473,8 +1465,8 @@ class Loop {
             window.cancelAnimationFrame(this.reqId);
             this.stop();
             try {
-                this.file = file;
-                yield this.loadFile(file);
+                this.fileManager = fileManager;
+                yield this.loadFile(fileManager);
             }
             catch (e) {
                 console.error(e);
@@ -1482,16 +1474,15 @@ class Loop {
             this.pause();
             this.draw(0);
             Startup.slider.value = "0";
-            Startup.slider.max = this.fileManager.getNumIterations() + "";
+            Startup.slider.max = fileManager.getNumIterations() + "";
         });
     }
-    loadFile(file) {
+    loadFile(fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
             Startup.gui.Loader(true);
-            this.fileManager = new FileManager(file);
-            yield this.fileManager.init();
-            this.energyFile = yield this.fileManager.getEnergies();
-            yield this.fileManager.getBodies(0);
+            yield fileManager.init();
+            this.energyFile = yield fileManager.getEnergies();
+            yield fileManager.getBodies(0);
             /*if(this.forceLoadAllCheckbox){
     
             }*/

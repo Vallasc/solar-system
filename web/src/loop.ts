@@ -385,31 +385,30 @@ class Loop {
             this.pause();
     }
 
-    public async reset(file: File = this.file) {
+    public async reset(fileManager: FileManager | null= this.fileManager) {
         console.log("reset");
         this.barContainer.style.color = "#ffffff";
         this.barContainer.innerText = "";
         window.cancelAnimationFrame(this.reqId);
         this.stop();
         try {
-            this.file = file
-            await this.loadFile(file);
+            this.fileManager = fileManager
+            await this.loadFile(fileManager);
         } catch (e) {
             console.error(e);
         }
         this.pause();
         this.draw(0);
         Startup.slider.value = "0";
-        Startup.slider.max = this.fileManager!.getNumIterations() + "";
+        Startup.slider.max = fileManager!.getNumIterations() + "";
     }
 
 
-    private async loadFile(file: File) : Promise<void> {
+    private async loadFile(fileManager: FileManager | null) : Promise<void> {
         Startup.gui.Loader(true);
-        this.fileManager = new FileManager(file);
-        await this.fileManager.init();
-        this.energyFile = await this.fileManager.getEnergies();
-        await this.fileManager.getBodies(0);
+        await fileManager!.init();
+        this.energyFile = await fileManager!.getEnergies();
+        await fileManager!.getBodies(0);
         /*if(this.forceLoadAllCheckbox){
 
         }*/

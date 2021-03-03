@@ -15,6 +15,7 @@ class Startup {
     static axes : Axes;
     static conservation : Conservation;
     static trajectory : Trajectory;
+    static fileManager : FileManager;
     static gui : any;
 
     static chart : LittleChart;
@@ -74,9 +75,10 @@ class Startup {
             label: 'File',
             onChange: async (file: any) => {
                 Startup.file = file;
-                await Startup.loop.reset(file);
-                await Startup.axes.reset(file);
-                await Startup.conservation.reset(file);
+                Startup.fileManager = new FileManager(file);
+                await Startup.loop.reset(Startup.fileManager);
+                await Startup.axes.reset(Startup.fileManager);
+                await Startup.conservation.reset(Startup.fileManager);
                 if(Startup.chartWindow != null){
                     Startup.chartWindow.file = Startup.file;
                     Startup.chartWindow.reset();
