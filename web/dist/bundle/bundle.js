@@ -599,9 +599,6 @@ class PotentialMatrix {
         }
         return matrix;
     }
-    getElement(x, y) {
-        return this.buffer[x * this.m + y];
-    }
 }
 class ZipReader {
     static getEntries(file) {
