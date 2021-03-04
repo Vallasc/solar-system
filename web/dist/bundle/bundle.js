@@ -435,16 +435,52 @@ class ChartStartup {
                 ChartStartup.lastIndex = index;
                 let time = ChartStartup.fileManager.getPotentials()[index].time;
                 document.getElementById("time2").innerHTML = " t=" + time;
-                let p = yield ChartStartup.fileManager.getPotential(index);
+                let z = (yield ChartStartup.fileManager.getPotential(index)).getMatrix();
+                console.log(z);
+                let x = [];
+                let y = [];
+                for (let i = 0; i < z.length; i++) {
+                    x[i] = Array();
+                    y[i] = Array();
+                    for (let j = 0; j < z[i].length; j++) {
+                        x[i].push((i - (z.length / 2)) * 5);
+                        y[i].push((j - (z[i].length / 2)) * 5);
+                    }
+                }
                 let data = [
                     {
-                        z: p.getMatrix(),
-                        type: 'surface'
+                        x: x,
+                        y: y,
+                        z: z,
+                        type: 'surface',
+                        colorscale: 'Bluered',
+                        reversescale: true,
+                        lighting: { specular: 8, fresnel: 5 },
+                        contours: {
+                            z: {
+                                show: true,
+                                usecolormap: true,
+                                highlightcolor: "#42f462",
+                                project: { z: true }
+                            }
+                        }
                     }
                 ];
-                var layout = {
+                let layout = {
                     height: 800,
-                    utosize: true // set autosize to rescale
+                    utosize: true,
+                    margin: {
+                        l: 100, r: 100, b: 100, t: 100
+                    },
+                    scene: {
+                        zaxis: {
+                            title: "Unità arbitrarie"
+                        },
+                        /*
+                        yaxis: {
+                            range: [-80,80]
+                        }*/
+                    }
                 };
                 Plotly.newPlot('plot2', data, layout);
             }
@@ -562,6 +598,9 @@ class PotentialMatrix {
             }
         }
         return matrix;
+    }
+    getElement(x, y) {
+        return this.buffer[x * this.m + y];
     }
 }
 class ZipReader {
