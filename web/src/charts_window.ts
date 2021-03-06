@@ -92,7 +92,7 @@ class ChartStartup{
             if(isPressing){
                 let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
                 let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
-                let index = ChartStartup.potentialSize*initRangeX0/99;
+                let index = (ChartStartup.potentialSize-1)*initRangeX0/100;
                 ChartStartup.drawPotentialsPlot(Math.floor(index));
                 timeDiv!.innerHTML = " t∈"+ChartStartup.getEnergiesTime(energies,initRangeX0,initRangeX1);
             }
@@ -105,9 +105,6 @@ class ChartStartup{
 
     public static getEnergiesTime(energies : EnergyArray, start : number, end : number) : string {
         let size = energies.size-1;
-        console.log(size);
-        console.log(start);
-        console.log(end);
         if(end > 99) end = 99;
         if(start < 0) start = 0;
         let startTime = energies.getTime(Math.floor(start * size / 99));
@@ -121,7 +118,6 @@ class ChartStartup{
             let time = ChartStartup.fileManager.getPotentials()[index].time;
             document.getElementById("time2")!.innerHTML = " t="+time;
             let z = (await ChartStartup.fileManager.getPotential(index)).getMatrix();
-            console.log(z);
             let x = [];
             let y = [];
             for (let i = 0; i < z.length; i++) {
