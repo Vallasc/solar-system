@@ -255,8 +255,7 @@ class Axes {
         }
         this.context.fillText(': 1 astronomical unit', w - 145, h - 70);
         let scaleString = 'scale: ';
-        let roundScale = Math.round(this.scale * 10) / 10;
-        let str = scaleString.concat(roundScale.toString());
+        let str = scaleString.concat(this.scale.toString());
         this.context.fillText(str, w - 125, h - 40);
         this.context.lineWidth = 1;
         //long line
@@ -472,10 +471,6 @@ class ChartStartup {
                         zaxis: {
                             title: "Unità arbitrarie"
                         },
-                        /*
-                        yaxis: {
-                            range: [-80,80]
-                        }*/
                     }
                 };
                 Plotly.newPlot('plot2', data, layout);
@@ -929,6 +924,10 @@ class Startup {
                 open: true
             }, {
                 type: 'folder',
+                label: 'Dev',
+                open: false
+            }, {
+                type: 'folder',
                 label: 'FPS',
                 open: false
             }, {
@@ -1189,6 +1188,9 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale -= 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+                    if (this.scale <= 0)
+                        this.scale = 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
                     //Startup.trajectory.drawTrajectory()
@@ -1201,6 +1203,19 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale += 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+                    Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    //Startup.trajectory.drawTrajectory()
+                    Startup.axes.drawAxes();
+                }
+            }, {
+                type: 'button',
+                label: 'Reset Zoom',
+                folder: 'Controls',
+                streched: false,
+                action: () => {
+                    this.scale = Math.round(1 * 10) / 10;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
                     //Startup.trajectory.drawTrajectory()
@@ -1238,37 +1253,37 @@ class Loop {
                 property: 'scale',
             }, {
                 type: 'checkbox',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Force loading all file in memory',
                 object: this,
                 property: 'forceLoadAllCheckbox',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Is playing',
                 object: this,
                 property: 'isPlaying',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Is EOF',
                 object: this,
                 property: 'isEof',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Iteration',
                 object: this,
                 property: 'numIteration',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Offset X',
                 object: this,
                 property: 'panningOffsetX',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',

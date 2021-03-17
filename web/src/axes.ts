@@ -271,8 +271,7 @@ class Axes {
         }
         this.context.fillText(': 1 astronomical unit',w-145, h-70);
         let scaleString : string = 'scale: ';
-        let roundScale : number = Math.round(this.scale * 10) / 10
-        let str : string = scaleString.concat(roundScale.toString());
+        let str : string = scaleString.concat(this.scale.toString());
         this.context.fillText(str,w-125, h-40);
         this.context.lineWidth = 1;
         //long line
