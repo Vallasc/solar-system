@@ -48,11 +48,11 @@ double theta=0, phi=0, R_module=0, V_module=0;
 //------------------------------------------------------------------------------------------
 
 //---------------------------- global parameters -------------------------------------------
-int N = 500;     // number of bodies
+int N = 1000;     // number of bodies
 double t = 0;    // time
 double dt = 0.01;    // time interval (fixed)
-double t_f = 100;    // final time
-double mass_i = 100;     // initial mass of bodies
+double t_f = 25;    // final time
+double mass_i = 50;     // initial mass of bodies
 double radius_i = 1;     // initial radius of bodies (slide with data)
 
 //---------------------------- temperature estimation --------------------------------------
@@ -180,11 +180,11 @@ int main(){
             total_energies[i] = 0;
         get_total_energies(bodies);     // computing the energy of the entire system in all its form
 
-        if(n_iteration % 1000 == 0)     // the algorithm to compute the potential
+        if(n_iteration % int(t_f/(10*dt)) == 0)     // the algorithm to compute the potential
         {
             //make grid
             make_grid(bodies, grid, potential, error);
-
+            
             //iterate potential
             for(int k=0; k<1000; ++k) next(grid, potential, error);
   
