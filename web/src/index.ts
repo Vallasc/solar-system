@@ -212,6 +212,10 @@ class Startup {
             open: true
         },{
             type: 'folder',
+            label: 'Dev',
+            open: false
+        },{
+            type: 'folder',
             label: 'FPS',
             open: false
         },{

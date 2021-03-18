@@ -255,8 +255,7 @@ class Axes {
         }
         this.context.fillText(': 1 astronomical unit', w - 145, h - 70);
         let scaleString = 'scale: ';
-        let roundScale = Math.round(this.scale * 10) / 10;
-        let str = scaleString.concat(roundScale.toString());
+        let str = scaleString.concat(this.scale.toString());
         this.context.fillText(str, w - 125, h - 40);
         this.context.lineWidth = 1;
         //long line
@@ -406,7 +405,7 @@ class ChartStartup {
                 if (isPressing) {
                     let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
                     let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
-                    let index = ChartStartup.potentialSize * initRangeX0 / 99;
+                    let index = (ChartStartup.potentialSize - 1) * initRangeX0 / 100;
                     ChartStartup.drawPotentialsPlot(Math.floor(index));
                     timeDiv.innerHTML = " t∈" + ChartStartup.getEnergiesTime(energies, initRangeX0, initRangeX1);
                 }
@@ -418,9 +417,6 @@ class ChartStartup {
     }
     static getEnergiesTime(energies, start, end) {
         let size = energies.size - 1;
-        console.log(size);
-        console.log(start);
-        console.log(end);
         if (end > 99)
             end = 99;
         if (start < 0)
@@ -436,7 +432,6 @@ class ChartStartup {
                 let time = ChartStartup.fileManager.getPotentials()[index].time;
                 document.getElementById("time2").innerHTML = " t=" + time;
                 let z = (yield ChartStartup.fileManager.getPotential(index)).getMatrix();
-                console.log(z);
                 let x = [];
                 let y = [];
                 for (let i = 0; i < z.length; i++) {
@@ -476,10 +471,6 @@ class ChartStartup {
                         zaxis: {
                             title: "Unità arbitrarie"
                         },
-                        /*
-                        yaxis: {
-                            range: [-80,80]
-                        }*/
                     }
                 };
                 Plotly.newPlot('plot2', data, layout);
@@ -669,13 +660,7 @@ class FileManager {
     getPotential(index) {
         return __awaiter(this, void 0, void 0, function* () {
             let potentials = this.infoJson["potentials"];
-            let saved = null;
-            for (let i = 0; i < potentials.length; i++) {
-                if (index <= potentials[i]["iteration"]) {
-                    saved = potentials[i];
-                    break;
-                }
-            }
+            let saved = potentials[index];
             let blob = yield ZipReader.getEntryFile(this.entriesMap.get(saved["fileName"]));
             let array = yield blob.arrayBuffer();
             return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
@@ -939,6 +924,10 @@ class Startup {
                 open: true
             }, {
                 type: 'folder',
+                label: 'Dev',
+                open: false
+            }, {
+                type: 'folder',
                 label: 'FPS',
                 open: false
             }, {
@@ -1199,6 +1188,9 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale -= 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+                    if (this.scale <= 0)
+                        this.scale = 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
                     //Startup.trajectory.drawTrajectory()
@@ -1211,6 +1203,19 @@ class Loop {
                 streched: false,
                 action: () => {
                     this.scale += 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+                    Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    //Startup.trajectory.drawTrajectory()
+                    Startup.axes.drawAxes();
+                }
+            }, {
+                type: 'button',
+                label: 'Reset Zoom',
+                folder: 'Controls',
+                streched: false,
+                action: () => {
+                    this.scale = Math.round(1 * 10) / 10;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
                     //Startup.trajectory.drawTrajectory()
@@ -1248,37 +1253,37 @@ class Loop {
                 property: 'scale',
             }, {
                 type: 'checkbox',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Force loading all file in memory',
                 object: this,
                 property: 'forceLoadAllCheckbox',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Is playing',
                 object: this,
                 property: 'isPlaying',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Is EOF',
                 object: this,
                 property: 'isEof',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Iteration',
                 object: this,
                 property: 'numIteration',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Offset X',
                 object: this,
                 property: 'panningOffsetX',
             }, {
                 type: 'display',
-                folder: 'Controls',
+                folder: 'Dev',
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',

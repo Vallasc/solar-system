@@ -154,13 +154,7 @@ class FileManager{
 
   public async getPotential(index : number) : Promise<PotentialMatrix> {
     let potentials : Array<any> = this.infoJson["potentials"];
-    let saved = null;
-    for( let i = 0; i< potentials.length; i++){
-      if(index <= potentials[i]["iteration"]){
-        saved = potentials[i];
-        break;
-      }
-    }
+    let saved = potentials[index];
     let blob = await ZipReader.getEntryFile(this.entriesMap.get(saved["fileName"]));
     let array: ArrayBuffer = await blob.arrayBuffer();
     return new PotentialMatrix(array, saved["xSize"], saved["ySize"]);
