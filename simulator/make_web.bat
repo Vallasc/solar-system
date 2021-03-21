@@ -1,0 +1,2 @@
+mkdir build\web
+emcc src/main.cpp src/body.cpp src/functions.cpp src/serializer.cpp -Iinclude -O2 -o build/web/simulator.js -s EXPORTED_FUNCTIONS=["_web_main"] -s EXPORTED_RUNTIME_METHODS=["ccall","cwrap"] -s FORCE_FILESYSTEM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=["FS"] -s MODULARIZE=1 -s EXPORT_NAME="createSimulatorIstance"
