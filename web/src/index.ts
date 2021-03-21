@@ -1,6 +1,4 @@
 declare var guify : any;
-declare var _web_main : any; // Entry point wasm
-declare var Module : any; // Entry point wasm
 
 class Startup {
     static canvasMarginTop : number = 25;
@@ -10,23 +8,26 @@ class Startup {
     static axesCanvas : HTMLCanvasElement;
     static trajectoryCanvas : HTMLCanvasElement;
     static slider : HTMLInputElement;
+    static mouseEvents : MouseInput;
 
     static loop : Loop;
     static axes : Axes;
     static conservation : Conservation;
     static trajectory : Trajectory;
-    static fileManager : FileManager;
+    static fileManager : FileManager | null = null;
     static gui : any;
 
     static chart : LittleChart;
-    static someNumber = 0;
     static file : File;
 
     static chartWindow : any = null
+    static simulation : Simulator;
+
+    static simSelection : string;
 
     public static main(): number {
 
-        console.log('Main');
+        console.log('Solar system');
         Startup.slider = <HTMLInputElement> document.getElementById('slider');
 
         Startup.mainCanvas = <HTMLCanvasElement> document.getElementById('main-canvas');
@@ -39,14 +40,40 @@ class Startup {
         Startup.axesCanvas = <HTMLCanvasElement> document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
 
-        Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
+        Startup.loop = new Loop(Startup.mainCanvas);
+        Startup.mouseEvents = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
 
         Startup.conservation = new Conservation();
+        Startup.simulation = new Simulator();
 
         Startup.createGui(); // And resize
 
         return 0;
+    }
+
+    public static async readFile(file: File){
+        Startup.file = file;
+        if( Startup.fileManager != null )
+            Startup.fileManager.close(); 
+        Startup.fileManager = new FileManager(file);
+
+        Startup.gui.Loader(true);
+        try {
+            await Startup.fileManager.init();
+
+            await Startup.loop.reset(Startup.fileManager);
+            await Startup.axes.reset(Startup.fileManager);
+            await Startup.conservation.reset(Startup.fileManager);
+
+            if(Startup.chartWindow != null){
+                Startup.chartWindow.file = Startup.file;
+                Startup.chartWindow.reset();
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            Startup.gui.Loader(false);
+        }
     }
 
     public static createGui(){
@@ -70,22 +97,21 @@ class Startup {
                 Startup.resize();
             }
         });
-        Startup.gui.Register({
+        Startup.gui.Register([{
             type: 'file',
             label: 'File',
             onChange: async (file: any) => {
-                Startup.file = file;
-                Startup.fileManager = new FileManager(file);
-                await Startup.loop.reset(Startup.fileManager);
-                await Startup.axes.reset(Startup.fileManager);
-                await Startup.conservation.reset(Startup.fileManager);
-                if(Startup.chartWindow != null){
-                    Startup.chartWindow.file = Startup.file;
-                    Startup.chartWindow.reset();
-                }
+                Startup.readFile(file);
             }
-        })
-        Startup.gui.Register([{
+        },{
+            type: 'select',
+            label: 'Prepared simulations',
+            //object: this,
+            property: 'simSelection',
+            options: ['Option 1', 'Option 2'],
+            onChange: (data: any) => {
+            }
+        },{
             type: 'button',
             label: 'Play/Pause',
             streched: true,
@@ -212,25 +238,38 @@ class Startup {
             open: true
         },{
             type: 'folder',
-            label: 'Dev',
+            label: 'Simulator',
             open: false
         },{
             type: 'folder',
-            label: 'FPS',
+            label: 'Dev',
             open: false
         },{
             type: 'button',
-            label: 'Run Main',
+            label: 'Run simulator',
             streched: true,
-            action: () => {
-                //_web_main();
-                //Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
+            folder: 'Simulator',
+            action: async () => {
+                Startup.gui.Loader(true);
+                let file = await Startup.simulation.runMain();
+                Startup.gui.Loader(false);
+
+                var link = window.document.createElement('a');
+                link.href = window.URL.createObjectURL(file);
+                link.download = file.name; 
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                Startup.readFile(file);
             }
         }]);
         Startup.gui.Register(Startup.loop.guiPanel);
+        Startup.gui.Register(Startup.simulation.guiPanel);
         Startup.gui.Loader(false);
         Startup.loop.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
+
 
     private static onWindowResized (event:UIEvent):void {
         Startup.resize();
@@ -257,80 +296,4 @@ class Startup {
         Startup.slider.style.width = window.innerWidth - Startup.canvasMarginRight - 4 + "px";
     }
 
-}
-
-class MouseInput {
-    private loop: Loop;
-    private axes: Axes;
-    private trajectory: Trajectory;
-    private canvas: HTMLCanvasElement;
-    private globalScale: number = 1;
-    private globalOffsetX: number = 0;
-    private globalOffsetY: number = 0;
-
-    private panningStartX: number = 0;
-    private panningStartY: number = 0;
-
-    private panningOffsetX: number = 0;
-    private panningOffsetY: number = 0;
-    private panning: boolean = false;
-
-    private mouseMoveListener: any = null;
-    private mouseUpListener: any = null;
-
-
-    constructor(loop: Loop, axes: Axes, trajectory : Trajectory){
-        this.loop = loop;
-        this.axes = axes;
-        this.trajectory = trajectory;
-        this.canvas = loop.canvas;
-        this.canvas.addEventListener("mousedown", (e: MouseEvent)=>this.startPan(e, this));
-        this.mouseMoveListener = (e: MouseEvent) => this.pan(e, this)
-        this.mouseUpListener = (e: MouseEvent) => this.endPan(e, this)
-        this.loop.setPanningOffset(0,0);
-    }
-
-    private startPan(e: MouseEvent, self: MouseInput) {
-        if(self.panning) return;
-        self.panning = true;
-        //console.log("start pan");
-        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.addEventListener("mouseup", self.mouseUpListener);
-        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
-
-        self.panningStartX = e.clientX;
-        self.panningStartY = e.clientY;
-    }
-
-    private pan(e: MouseEvent, self: MouseInput) {
-        self.panningOffsetX = e.clientX - self.panningStartX;
-        self.panningOffsetY = e.clientY - self.panningStartY;
-        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-        self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-        self.trajectory.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-    }
-
-    private endPan(e: MouseEvent, self: MouseInput) {
-        self.panning = false;
-        self.globalOffsetX += self.panningOffsetX;
-        self.globalOffsetY += self.panningOffsetY;
-        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
-        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
-        
-        if(self.panningStartX == e.clientX && self.panningStartY == e.clientY)
-            self.click(self, e.clientX, e.clientY);
-    }
-
-    private click(self: MouseInput, x: number, y: number){
-        self.loop.setSelected(x, y - 25) // TODO aggiustare 25
-    }
-
-    public setOffset(x: number, y: number) {
-        this.globalOffsetX = x;this
-        this.globalOffsetY = y;
-        this.loop.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-        this.axes.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-        this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-    }
 }
