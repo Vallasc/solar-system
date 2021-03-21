@@ -33,7 +33,7 @@ class ChartStartup{
             },{
                 name: 'Internal energy',
                 x: arrays.time,
-                y: arrays.yKineticEnergy,
+                y: arrays.yInternalEnergy,
                 type: 'scatter',
                 line: {
                     color: '#00ff4e',
@@ -41,7 +41,7 @@ class ChartStartup{
             },{
                 name: 'Kinetic energy',
                 x: arrays.time,
-                y: arrays.yInternalEnergy,
+                y: arrays.yKineticEnergy,
                 type: 'scatter',
                 line: {
                     color: '#ffb100',
@@ -88,13 +88,19 @@ class ChartStartup{
         window.onmousedown = (event: any)=>{
             isPressing = true;
         }
+
+        let maxRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
         window.onmouseup = (event: any)=>{
             if(isPressing){
                 let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
                 let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
-                let index = (ChartStartup.potentialSize-1)*initRangeX0/100;
+                let index = (ChartStartup.potentialSize-1)*initRangeX0/maxRangeX1;
+                console.log(initRangeX0);
+                console.log(initRangeX1);
+                console.log(ChartStartup.potentialSize);
+                console.log(index);
                 ChartStartup.drawPotentialsPlot(Math.floor(index));
-                timeDiv!.innerHTML = " t∈"+ChartStartup.getEnergiesTime(energies,initRangeX0,initRangeX1);
+                timeDiv!.innerHTML = " t∈"+ChartStartup.getEnergiesTime(energies, initRangeX0, initRangeX1);
             }
             isPressing = false;
         }
