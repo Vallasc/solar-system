@@ -10,25 +10,20 @@
 
 #include "serializer.h"
 
-#ifndef __EMSCRIPTEN__
 #include "miniz.h"
-#endif
+
 
 using namespace std;
 
-// Fare sequenzialmente 
-// write_potentials
-// write_bodies
-// write energies
-Serializer::Serializer(string file_name, string out_dir) {
+Serializer::Serializer(string file_name) {
     this->byte_written = 0;
     this->name_index = 0;
     this->potential_index = 0;
     this->num_iteration = 0;
-    this->out_dir = out_dir;
-    create_dir(out_dir);
     
-    this->file_name = out_dir + '/' + file_name;
+    this->file_name = file_name;
+
+    create_dir(tmp_dir);
 
     // Apro file binario dei corpi
     this->open_file();
@@ -41,9 +36,9 @@ Serializer::Serializer(string file_name, string out_dir) {
 
     outfile_info << "{ "<< endl;
     write_attr("version", file_version, false);
-    write_attr("infoFileName", info_file_name, false);
-    write_attr("energiesFileName", energies_file_name, false);
-    write_attr("simFileName", bin_file_name, false);
+    write_attr("infoFileName", Serializer::get_base_name(info_file_name), false);
+    write_attr("energiesFileName", Serializer::get_base_name(energies_file_name), false);
+    write_attr("simFileName", Serializer::get_base_name(bin_file_name), false);
 }
 
 Serializer::~Serializer() {
@@ -63,6 +58,10 @@ Serializer::~Serializer() {
     outfile_energies.close();
 
     this->compress_files();
+    if(num_iteration == 0){
+        remove(file_name.c_str());
+    }
+    remove(tmp_dir.c_str());
 }
 
 void Serializer::write_attr(string key, string value, bool is_num) {
@@ -109,7 +108,7 @@ void Serializer::write_potential(double** potential, int m, int n, double time) 
     potentials_json << "{" << endl;
     potentials_json << "\"iteration\": " << to_string(num_iteration) << "," << endl;
     potentials_json << "\"time\": " << to_string(time) << "," << endl;
-    potentials_json << "\"fileName\": \"" << filename << "\"," << endl;
+    potentials_json << "\"fileName\": \"" << Serializer::get_base_name(filename) << "\"," << endl;
     potentials_json << "\"xSize\": " << to_string(m) << "," << endl;
     potentials_json << "\"ySize\": " << to_string(n) << endl;
     potentials_json << "}" ;
@@ -127,8 +126,7 @@ void Serializer::write_potential(double** potential, int m, int n, double time) 
 
 // Nel file delle energie l'indice dell'array corrisponde all'iterazione
 void Serializer::write_energies(float e_tot, float e_k_tot, float e_i_tot, float e_p_tot, float e_b_tot, float time) {
-    //float it = (float)num_iteration;
-    //outfile_energies.write(reinterpret_cast<char*>(& it), sizeof(float));
+
     outfile_energies.write(reinterpret_cast<char*>(& e_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_k_tot), sizeof(float));
     outfile_energies.write(reinterpret_cast<char*>(& e_i_tot), sizeof(float));
@@ -159,11 +157,9 @@ void Serializer::write_bodies(vector<Body> &state) {
 }
 
 void Serializer::split_file() {
-    #ifndef __EMSCRIPTEN__
-        outfile.close();
-        this->byte_written = 0;
-        this->open_file();
-    #endif
+    outfile.close();
+    this->byte_written = 0;
+    this->open_file();
 }
 
 void Serializer::open_file() {
@@ -173,48 +169,48 @@ void Serializer::open_file() {
 }
 
 void Serializer::compress_files() {
-    #ifndef __EMSCRIPTEN__
-        cout << "Serializer: compressing file" << endl;
-        // ===== Prepare an archive file;
-        mz_zip_archive archive = mz_zip_archive();
-        mz_zip_writer_init_file(&archive, (this->file_name + ".zip").c_str(), 0);
+    cout << endl << "Serializer: compressing file" << endl;
+    // ===== Prepare an archive file;
+    mz_zip_archive archive = mz_zip_archive();
+    mz_zip_writer_init_file(&archive, (this->file_name).c_str(), 0);
 
-        //Compress info file
-        string json_name = info_file_name;
-        mz_zip_writer_add_file(&archive, Serializer::get_base_name(json_name).c_str(), json_name.c_str(), 0, 0, this->file_compression);
-        remove(json_name.c_str());
+    //Compress info file
+    string json_name = info_file_name;
+    mz_zip_writer_add_file(&archive, Serializer::get_base_name(json_name).c_str(), json_name.c_str(), 0, 0, this->file_compression);
+    remove(json_name.c_str());
 
-        //Compress energies file
-        string energies_name = energies_file_name;
-        mz_zip_writer_add_file(&archive, Serializer::get_base_name(energies_name).c_str(), energies_name.c_str(), 0, 0, this->file_compression);
-        remove(energies_name.c_str());
+    //Compress energies file
+    string energies_name = energies_file_name;
+    mz_zip_writer_add_file(&archive, Serializer::get_base_name(energies_name).c_str(), energies_name.c_str(), 0, 0, this->file_compression);
+    remove(energies_name.c_str());
 
-        // Compress binary files
-        for(int i=0; i<name_index; i++) {
-            string f_name = bin_file_name + std::to_string(i) + ".bin";
-            mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
-            remove(f_name.c_str());
-        }
+    // Compress binary files
+    for(int i=0; i<name_index; i++) {
+        string f_name = bin_file_name + std::to_string(i) + ".bin";
+        mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
+        remove(f_name.c_str());
+    }
 
-        // Compress ptential files
-        for(int i=0; i<potential_index; i++) {
-            string f_name = potentials_file_name + std::to_string(i) + ".bin";
-            //cout << f_name;
-            mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
-            remove(f_name.c_str());
-        }
+    // Compress ptential files
+    for(int i=0; i<potential_index; i++) {
+        string f_name = potentials_file_name + std::to_string(i) + ".bin";
+        //cout << f_name;
+        mz_zip_writer_add_file(&archive, Serializer::get_base_name(f_name).c_str(), f_name.c_str(), 0, 0, this->file_compression);
+        remove(f_name.c_str());
+    }
 
-        // ===== Finalize and close the temporary archive
-        mz_zip_writer_finalize_archive(&archive);
-        mz_zip_writer_end(&archive);
-        cout << "Serializer: compressing done" << endl;
-    #endif
+    // ===== Finalize and close the temporary archive
+    mz_zip_writer_finalize_archive(&archive);
+    mz_zip_writer_end(&archive);
+    cout << "Serializer: compressing done" << endl;
 }
 
 void Serializer::create_dir(string name) {
     #ifdef _WIN32
     CreateDirectoryA(name.c_str(), NULL);
+    #elif __EMSCRIPTEN__
+        std::__fs::filesystem::create_directory(name);
     #else
-    filesystem::create_directory(name);
+        filesystem::create_directory(name);
     #endif
 }

@@ -178,8 +178,7 @@ int feedback(int &response)
 {
     string answer;
 
-    std::cout << "Do you want to start the computation? (\"YES\", \"NO\")"<<endl;
-    std::cout<<"Answer: ";
+    std::cout << "Do you want to start the computation? (y, n): ";
     cin>>answer;
     if(answer == "YES" || answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
     {

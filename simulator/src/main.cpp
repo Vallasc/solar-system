@@ -9,6 +9,7 @@
 
 #include "serializer.h"
 #include "body.h"
+#include "config.h"
 #include "functions.h"
 
 using namespace std;
@@ -85,13 +86,15 @@ int i = 97;
 char n_file = char(i); 
 //------------------------------------------------------------------------------------------
 
-string out_dir = "generated";     // output dir
-string filename = "sim";     // output file
+string filename = "generated.sim";     // output file
 
 bool override_input = false;     // web app
 
 
 int main(){
+
+    Config::make_example("config.txt");
+    Config::parse("config.txt");
 
     //------------------------------------- initial conditions -----------------------------
     vector<Body> bodies;     // vector of bodies
@@ -105,7 +108,7 @@ int main(){
     double** potential;     // 3 grids for the algorithm employed to compute the potential
     double** error;
 
-    Serializer serializer(filename, out_dir);     // data serialization
+    Serializer serializer(filename);     // data serialization
 
     srand(time(NULL));     // random seed
 
@@ -167,7 +170,7 @@ int main(){
     {   
         
         #ifdef  PERCENTAGE
-        if(n_iteration % 13 == 0)
+        if(n_iteration % 13 == 0 && !override_input)
         {
             step = t/(t_f+1)*100;
             std::cout << "\r" << step << "%   (N = "<<bodies.size()<<")                  " << flush;
@@ -241,13 +244,25 @@ int main(){
     serializer.write_err(err_E, err_ang_mom, err_momentum[0], err_momentum[1]);
     serializer.write_end(E_tot, ang_mom_tot, momentum_tot[0], momentum_tot[1]);     // writing bodies' energies
 
+
+    // Reset for web_main
+    t=0;
+
+
 }
 //--------------------------------------------------------------------------------------
 
-
 //--------------------------------- web part -------------------------------------------
 extern "C"{	
-    int web_main(){	
+    int web_main(int _N, float _t_f, float _dt, float _rho, float _v_max, float _mass_i, float _radius_i){	
+        N = _N;
+        t_f = _t_f;
+        dt = _dt;
+        rho = _rho;
+        v_max = _v_max;
+        mass_i = _mass_i;
+        radius_i = _radius_i;
+
         override_input = true;	
         return main();	
     }	
