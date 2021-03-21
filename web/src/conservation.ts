@@ -19,23 +19,8 @@ class Conservation {
     }
 
     public async reset(fileManager: FileManager | null= this.fileManager) {
-        console.log("reset");
-        try {
-            this.fileManager = fileManager
-            await this.loadFile(fileManager);
-        } catch (e) {
-            console.error(e);
-        }
+        this.fileManager = fileManager
         this.getValues();
-        Startup.slider.value = "0";
-        Startup.slider.max = fileManager!.getNumIterations() + "";
-    }
-
-    private async loadFile(fileManager: FileManager | null) : Promise<void> {
-        Startup.gui.Loader(true);
-        await fileManager!.init();
-        Startup.gui.Loader(false);
-        return;
     }
 
     public getValues() : void {

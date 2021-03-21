@@ -17,13 +17,10 @@ class Loop {
     private scale: number = 1;
     private imatrix: DOMMatrix;
 
-    private file : File;
-
-    private forceLoadAllCheckbox : boolean = false;
     private isPlaying : boolean = false
     private isEof : boolean = false;
 
-    private reqId : number = -1;
+    private reqAnimationFrame : number = -1;
     public barContainer : HTMLElement;
 
     public chart : LittleChart;
@@ -32,16 +29,14 @@ class Loop {
     private fileManager : FileManager | null;
 
     private numIteration : number = 0;
-    private lastTime : number = 0;
 
-    constructor( canvas: HTMLCanvasElement, gui: any) {
+    constructor( canvas: HTMLCanvasElement) {
 
         this.canvas = canvas;
         this.context = <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.imatrix = this.context.getTransform().inverse();
 
-        this.file = new File([],"");
         this.energyFile = new EnergyArray(new ArrayBuffer(0));
         this.fileManager = null;
 
@@ -56,15 +51,23 @@ class Loop {
         div.id = "container";
         this.guiPanel = [
             {
-                type: 'display',
-                label: '',
-                folder: "FPS",
-                element: this.stats.dom,
+                type: 'button',
+                label: 'Zoom +',
+                folder: 'Controls',
+                streched: true,
+                action: () => {
+                    this.scale += 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+
+                    Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.drawAxes();
+                }
             },{
                 type: 'button',
                 label: 'Zoom -',
                 folder: 'Controls',
-                streched: false,
+                streched: true,
                 action: () => {
                     this.scale -= 0.2;
                     this.scale = Math.round(this.scale * 10) / 10;
@@ -72,34 +75,18 @@ class Loop {
 
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
-                    Startup.axes.drawAxes();
-                }
-            },{
-                type: 'button',
-                label: 'Zoom +',
-                folder: 'Controls',
-                streched: false,
-                action: () => {
-                    this.scale += 0.2;
-                    this.scale = Math.round(this.scale * 10) / 10;
-
-                    Startup.trajectory.setScale(this.scale);
-                    Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             },{
                 type: 'button',
                 label: 'Reset Zoom',
                 folder: 'Controls',
-                streched: false,
+                streched: true,
                 action: () => {
                     this.scale = Math.round(1 * 10) / 10;
 
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             },{
@@ -110,8 +97,6 @@ class Loop {
                 action: () => {
                     if(this.selectedBody.visible){
                         this.axesBodyOffset.clone(this.selectedBody);
-                        //this.setAxesOffset(this.axesBodyOffset);
-                        //Startup.trajectory.drawTrajectory()
                         this.selectedBody.setVisible(false);
                     }
                 }
@@ -122,8 +107,6 @@ class Loop {
                 streched: true,
                 action: () => {
                     this.axesBodyOffset.reset();
-                    //this.setAxesOffset(this.axesBodyOffset);
-                    //Startup.trajectory.drawTrajectory()
                     this.selectedBody.setVisible(false);
                 }
             },{
@@ -132,12 +115,6 @@ class Loop {
                 label: 'Scale',
                 object: this,
                 property: 'scale',
-            },{
-                type: 'checkbox',
-                folder: 'Dev',
-                label: 'Force loading all file in memory',
-                object: this,
-                property: 'forceLoadAllCheckbox',
             },{
                 type: 'display',
                 folder: 'Dev',
@@ -168,6 +145,11 @@ class Loop {
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',
+            },{
+                type: 'display',
+                label: '',
+                folder: "Dev",
+                element: this.stats.dom,
             },{
                 type: 'display',
                 folder: 'Selected',
@@ -212,6 +194,8 @@ class Loop {
         if(objects == null){
             this.pause();
             this.isEof = true;
+            this.context.setTransform(1, 0, 0, 1, 0, 0);
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         } else {
             this.drawStates(objects);
             this.isEof = false;
@@ -222,10 +206,9 @@ class Loop {
             this.numIteration++;
         } 
   
-        this.reqId = window.requestAnimationFrame((time) => this.draw(time));
+        this.reqAnimationFrame = window.requestAnimationFrame((time) => this.draw(time));
 
         this.stats.end();
-        this.lastTime = time;
     }
 
 
@@ -401,35 +384,22 @@ class Loop {
             this.pause();
     }
 
-    public async reset(fileManager: FileManager | null= this.fileManager) {
-        console.log("reset");
+    public async reset(fileManager: FileManager | null = this.fileManager) {
         this.barContainer.style.color = "#ffffff";
         this.barContainer.innerText = "";
-        window.cancelAnimationFrame(this.reqId);
+        window.cancelAnimationFrame(this.reqAnimationFrame);
         this.stop();
-        try {
-            this.fileManager = fileManager
-            await this.loadFile(fileManager);
-        } catch (e) {
-            console.error(e);
-        }
+
+        this.fileManager = fileManager
+        Startup.gui.Loader(true);
+        this.energyFile = await fileManager!.getEnergies();
+        await fileManager!.getBodies(0);
+        Startup.gui.Loader(false); 
+
         this.pause();
         this.draw(0);
         Startup.slider.value = "0";
         Startup.slider.max = fileManager!.getNumIterations() + "";
-    }
-
-
-    private async loadFile(fileManager: FileManager | null) : Promise<void> {
-        Startup.gui.Loader(true);
-        await fileManager!.init();
-        this.energyFile = await fileManager!.getEnergies();
-        await fileManager!.getBodies(0);
-        /*if(this.forceLoadAllCheckbox){
-
-        }*/
-        Startup.gui.Loader(false);
-        return;
     }
 
     public setPanningOffset(x: number, y: number){

@@ -17,25 +17,11 @@ class Axes {
         this.drawAxes();
     }
 
-    public async reset(fileManager: FileManager | null= this.fileManager) {
-        console.log("reset");
-        try {
-            this.fileManager = fileManager
-            await this.loadFile(fileManager);
-        } catch (e) {
-            console.error(e);
-        }
+    public async reset(fileManager: FileManager | null = this.fileManager) {
+        this.fileManager = fileManager
         this.drawAxes();
-        Startup.slider.value = "0";
-        Startup.slider.max = fileManager!.getNumIterations() + "";
     }
 
-    private async loadFile(fileManager: FileManager | null) : Promise<void> {
-        Startup.gui.Loader(true);
-        await fileManager!.init();
-        Startup.gui.Loader(false);
-        return;
-    }
     
     public drawAxes() : void {
         
