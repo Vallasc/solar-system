@@ -17,7 +17,6 @@ class Serializer {
         ofstream outfile_info;
 
         string file_name;
-        string out_dir;
 
         int byte_written;
         int name_index;
@@ -27,11 +26,12 @@ class Serializer {
         const int max_file_size = 5000000; // 2MB
         const int file_compression = 10; // 1 low - 10 max
         
-        const string file_version = "0.0.1";
-        const string energies_file_name = "energies.bin";
-        const string potentials_file_name = "potentials"; // potentialsX.bin
-        const string info_file_name = "info.json";
-        const string bin_file_name = "sim"; // simX.bin
+        const string file_version = "1.0.1";
+        const string energies_file_name = "tmp/energies.bin";
+        const string potentials_file_name = "tmp/potentials"; // potentialsX.bin
+        const string info_file_name = "tmp/info.json";
+        const string bin_file_name = "tmp/sim"; // simX.bin
+        const string tmp_dir = "tmp";
 
         static string get_base_name(string const & path)
         {
@@ -44,7 +44,7 @@ class Serializer {
         void create_dir(string name);
 
     public:
-        Serializer(string file_name, string out_dir);
+        Serializer(string file_name);
         ~Serializer();
         std::string toStr(double x);
         void write_bodies(vector<Body> &state);
