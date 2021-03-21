@@ -22,25 +22,8 @@ class Axes {
     }
     reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("reset");
-            try {
-                this.fileManager = fileManager;
-                yield this.loadFile(fileManager);
-            }
-            catch (e) {
-                console.error(e);
-            }
+            this.fileManager = fileManager;
             this.drawAxes();
-            Startup.slider.value = "0";
-            Startup.slider.max = fileManager.getNumIterations() + "";
-        });
-    }
-    loadFile(fileManager) {
-        return __awaiter(this, void 0, void 0, function* () {
-            Startup.gui.Loader(true);
-            yield fileManager.init();
-            Startup.gui.Loader(false);
-            return;
         });
     }
     drawAxes() {
@@ -350,7 +333,7 @@ class ChartStartup {
                 }, {
                     name: 'Internal energy',
                     x: arrays.time,
-                    y: arrays.yKineticEnergy,
+                    y: arrays.yInternalEnergy,
                     type: 'scatter',
                     line: {
                         color: '#00ff4e',
@@ -358,7 +341,7 @@ class ChartStartup {
                 }, {
                     name: 'Kinetic energy',
                     x: arrays.time,
-                    y: arrays.yInternalEnergy,
+                    y: arrays.yKineticEnergy,
                     type: 'scatter',
                     line: {
                         color: '#ffb100',
@@ -401,11 +384,16 @@ class ChartStartup {
             window.onmousedown = (event) => {
                 isPressing = true;
             };
+            let maxRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
             window.onmouseup = (event) => {
                 if (isPressing) {
                     let initRangeX0 = ChartStartup.layoutPlot1.xaxis.range[0];
                     let initRangeX1 = ChartStartup.layoutPlot1.xaxis.range[1];
-                    let index = (ChartStartup.potentialSize - 1) * initRangeX0 / 100;
+                    let index = (ChartStartup.potentialSize - 1) * initRangeX0 / maxRangeX1;
+                    console.log(initRangeX0);
+                    console.log(initRangeX1);
+                    console.log(ChartStartup.potentialSize);
+                    console.log(index);
                     ChartStartup.drawPotentialsPlot(Math.floor(index));
                     timeDiv.innerHTML = " t∈" + ChartStartup.getEnergiesTime(energies, initRangeX0, initRangeX1);
                 }
@@ -471,6 +459,10 @@ class ChartStartup {
                         zaxis: {
                             title: "Unità arbitrarie"
                         },
+                        /*
+                        yaxis: {
+                            range: [-80,80]
+                        }*/
                     }
                 };
                 Plotly.newPlot('plot2', data, layout);
@@ -495,25 +487,8 @@ class Conservation {
     }
     reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("reset");
-            try {
-                this.fileManager = fileManager;
-                yield this.loadFile(fileManager);
-            }
-            catch (e) {
-                console.error(e);
-            }
+            this.fileManager = fileManager;
             this.getValues();
-            Startup.slider.value = "0";
-            Startup.slider.max = fileManager.getNumIterations() + "";
-        });
-    }
-    loadFile(fileManager) {
-        return __awaiter(this, void 0, void 0, function* () {
-            Startup.gui.Loader(true);
-            yield fileManager.init();
-            Startup.gui.Loader(false);
-            return;
         });
     }
     getValues() {
@@ -746,7 +721,7 @@ FileManager.bodyNumParams = 5;
 FileManager.numIterationParam = 2; // id + size
 class Startup {
     static main() {
-        console.log('Main');
+        console.log('Solar system');
         Startup.slider = document.getElementById('slider');
         Startup.mainCanvas = document.getElementById('main-canvas');
         window.onresize = Startup.onWindowResized;
@@ -754,11 +729,37 @@ class Startup {
         Startup.trajectory = new Trajectory(Startup.trajectoryCanvas);
         Startup.axesCanvas = document.getElementById('axes-canvas');
         Startup.axes = new Axes(Startup.axesCanvas);
-        Startup.loop = new Loop(Startup.mainCanvas, Startup.gui);
-        let mouseInput = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
+        Startup.loop = new Loop(Startup.mainCanvas);
+        Startup.mouseEvents = new MouseInput(Startup.loop, Startup.axes, Startup.trajectory);
         Startup.conservation = new Conservation();
+        Startup.simulation = new Simulator();
         Startup.createGui(); // And resize
         return 0;
+    }
+    static readFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            Startup.file = file;
+            if (Startup.fileManager != null)
+                Startup.fileManager.close();
+            Startup.fileManager = new FileManager(file);
+            Startup.gui.Loader(true);
+            try {
+                yield Startup.fileManager.init();
+                yield Startup.loop.reset(Startup.fileManager);
+                yield Startup.axes.reset(Startup.fileManager);
+                yield Startup.conservation.reset(Startup.fileManager);
+                if (Startup.chartWindow != null) {
+                    Startup.chartWindow.file = Startup.file;
+                    Startup.chartWindow.reset();
+                }
+            }
+            catch (e) {
+                console.error(e);
+            }
+            finally {
+                Startup.gui.Loader(false);
+            }
+        });
     }
     static createGui() {
         let guiContainer = document.getElementById("main-container");
@@ -782,22 +783,21 @@ class Startup {
                 Startup.resize();
             }
         });
-        Startup.gui.Register({
-            type: 'file',
-            label: 'File',
-            onChange: (file) => __awaiter(this, void 0, void 0, function* () {
-                Startup.file = file;
-                Startup.fileManager = new FileManager(file);
-                yield Startup.loop.reset(Startup.fileManager);
-                yield Startup.axes.reset(Startup.fileManager);
-                yield Startup.conservation.reset(Startup.fileManager);
-                if (Startup.chartWindow != null) {
-                    Startup.chartWindow.file = Startup.file;
-                    Startup.chartWindow.reset();
-                }
-            })
-        });
         Startup.gui.Register([{
+                type: 'file',
+                label: 'File',
+                onChange: (file) => __awaiter(this, void 0, void 0, function* () {
+                    Startup.readFile(file);
+                })
+            }, {
+                type: 'select',
+                label: 'Prepared simulations',
+                //object: this,
+                property: 'simSelection',
+                options: ['Option 1', 'Option 2'],
+                onChange: (data) => {
+                }
+            }, {
                 type: 'button',
                 label: 'Play/Pause',
                 streched: true,
@@ -924,22 +924,32 @@ class Startup {
                 open: true
             }, {
                 type: 'folder',
-                label: 'Dev',
+                label: 'Simulator',
                 open: false
             }, {
                 type: 'folder',
-                label: 'FPS',
+                label: 'Dev',
                 open: false
             }, {
                 type: 'button',
-                label: 'Run Main',
+                label: 'Run simulator',
                 streched: true,
-                action: () => {
-                    //_web_main();
-                    //Startup.loop.resetArray(new Float32Array(Module.FS.readFile("sim0.bin").buffer))
-                }
+                folder: 'Simulator',
+                action: () => __awaiter(this, void 0, void 0, function* () {
+                    Startup.gui.Loader(true);
+                    let file = yield Startup.simulation.runMain();
+                    Startup.gui.Loader(false);
+                    var link = window.document.createElement('a');
+                    link.href = window.URL.createObjectURL(file);
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    Startup.readFile(file);
+                })
             }]);
         Startup.gui.Register(Startup.loop.guiPanel);
+        Startup.gui.Register(Startup.simulation.guiPanel);
         Startup.gui.Loader(false);
         Startup.loop.barContainer = document.getElementById("guify-bar-container");
     }
@@ -966,69 +976,8 @@ class Startup {
 }
 Startup.canvasMarginTop = 25;
 Startup.canvasMarginRight = 350;
-Startup.someNumber = 0;
+Startup.fileManager = null;
 Startup.chartWindow = null;
-class MouseInput {
-    constructor(loop, axes, trajectory) {
-        this.globalScale = 1;
-        this.globalOffsetX = 0;
-        this.globalOffsetY = 0;
-        this.panningStartX = 0;
-        this.panningStartY = 0;
-        this.panningOffsetX = 0;
-        this.panningOffsetY = 0;
-        this.panning = false;
-        this.mouseMoveListener = null;
-        this.mouseUpListener = null;
-        this.loop = loop;
-        this.axes = axes;
-        this.trajectory = trajectory;
-        this.canvas = loop.canvas;
-        this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
-        this.mouseMoveListener = (e) => this.pan(e, this);
-        this.mouseUpListener = (e) => this.endPan(e, this);
-        this.loop.setPanningOffset(0, 0);
-    }
-    startPan(e, self) {
-        if (self.panning)
-            return;
-        self.panning = true;
-        //console.log("start pan");
-        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.addEventListener("mouseup", self.mouseUpListener);
-        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
-        self.panningStartX = e.clientX;
-        self.panningStartY = e.clientY;
-    }
-    pan(e, self) {
-        self.panningOffsetX = e.clientX - self.panningStartX;
-        self.panningOffsetY = e.clientY - self.panningStartY;
-        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-        self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-        self.trajectory.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
-    }
-    endPan(e, self) {
-        self.panning = false;
-        self.globalOffsetX += self.panningOffsetX;
-        self.globalOffsetY += self.panningOffsetY;
-        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
-        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
-        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
-        if (self.panningStartX == e.clientX && self.panningStartY == e.clientY)
-            self.click(self, e.clientX, e.clientY);
-    }
-    click(self, x, y) {
-        self.loop.setSelected(x, y - 25); // TODO aggiustare 25
-    }
-    setOffset(x, y) {
-        this.globalOffsetX = x;
-        this;
-        this.globalOffsetY = y;
-        this.loop.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-        this.axes.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-        this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
-    }
-}
 class LittleChart {
     constructor(titles, colors) {
         this.width = 305;
@@ -1148,7 +1097,7 @@ class LittleChart {
     }
 }
 class Loop {
-    constructor(canvas, gui) {
+    constructor(canvas) {
         this.panningOffsetX = 0;
         this.panningOffsetY = 0;
         this.selectX = null;
@@ -1156,17 +1105,14 @@ class Loop {
         this.selectedBody = new Body();
         this.axesBodyOffset = new Body();
         this.scale = 1;
-        this.forceLoadAllCheckbox = false;
         this.isPlaying = false;
         this.isEof = false;
-        this.reqId = -1;
+        this.reqAnimationFrame = -1;
         this.numIteration = 0;
-        this.lastTime = 0;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.imatrix = this.context.getTransform().inverse();
-        this.file = new File([], "");
         this.energyFile = new EnergyArray(new ArrayBuffer(0));
         this.fileManager = null;
         this.stats = new Stats();
@@ -1177,15 +1123,22 @@ class Loop {
         div.id = "container";
         this.guiPanel = [
             {
-                type: 'display',
-                label: '',
-                folder: "FPS",
-                element: this.stats.dom,
+                type: 'button',
+                label: 'Zoom +',
+                folder: 'Controls',
+                streched: true,
+                action: () => {
+                    this.scale += 0.2;
+                    this.scale = Math.round(this.scale * 10) / 10;
+                    Startup.trajectory.setScale(this.scale);
+                    Startup.axes.setScale(this.scale);
+                    Startup.axes.drawAxes();
+                }
             }, {
                 type: 'button',
                 label: 'Zoom -',
                 folder: 'Controls',
-                streched: false,
+                streched: true,
                 action: () => {
                     this.scale -= 0.2;
                     this.scale = Math.round(this.scale * 10) / 10;
@@ -1193,32 +1146,17 @@ class Loop {
                         this.scale = 0.2;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
-                    Startup.axes.drawAxes();
-                }
-            }, {
-                type: 'button',
-                label: 'Zoom +',
-                folder: 'Controls',
-                streched: false,
-                action: () => {
-                    this.scale += 0.2;
-                    this.scale = Math.round(this.scale * 10) / 10;
-                    Startup.trajectory.setScale(this.scale);
-                    Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             }, {
                 type: 'button',
                 label: 'Reset Zoom',
                 folder: 'Controls',
-                streched: false,
+                streched: true,
                 action: () => {
                     this.scale = Math.round(1 * 10) / 10;
                     Startup.trajectory.setScale(this.scale);
                     Startup.axes.setScale(this.scale);
-                    //Startup.trajectory.drawTrajectory()
                     Startup.axes.drawAxes();
                 }
             }, {
@@ -1229,8 +1167,6 @@ class Loop {
                 action: () => {
                     if (this.selectedBody.visible) {
                         this.axesBodyOffset.clone(this.selectedBody);
-                        //this.setAxesOffset(this.axesBodyOffset);
-                        //Startup.trajectory.drawTrajectory()
                         this.selectedBody.setVisible(false);
                     }
                 }
@@ -1241,8 +1177,6 @@ class Loop {
                 streched: true,
                 action: () => {
                     this.axesBodyOffset.reset();
-                    //this.setAxesOffset(this.axesBodyOffset);
-                    //Startup.trajectory.drawTrajectory()
                     this.selectedBody.setVisible(false);
                 }
             }, {
@@ -1251,12 +1185,6 @@ class Loop {
                 label: 'Scale',
                 object: this,
                 property: 'scale',
-            }, {
-                type: 'checkbox',
-                folder: 'Dev',
-                label: 'Force loading all file in memory',
-                object: this,
-                property: 'forceLoadAllCheckbox',
             }, {
                 type: 'display',
                 folder: 'Dev',
@@ -1287,6 +1215,11 @@ class Loop {
                 label: 'Offset Y',
                 object: this,
                 property: 'panningOffsetY',
+            }, {
+                type: 'display',
+                label: '',
+                folder: "Dev",
+                element: this.stats.dom,
             }, {
                 type: 'display',
                 folder: 'Selected',
@@ -1329,6 +1262,8 @@ class Loop {
             if (objects == null) {
                 this.pause();
                 this.isEof = true;
+                this.context.setTransform(1, 0, 0, 1, 0, 0);
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
             else {
                 this.drawStates(objects);
@@ -1338,9 +1273,8 @@ class Loop {
                 Startup.slider.value = this.numIteration + "";
                 this.numIteration++;
             }
-            this.reqId = window.requestAnimationFrame((time) => this.draw(time));
+            this.reqAnimationFrame = window.requestAnimationFrame((time) => this.draw(time));
             this.stats.end();
-            this.lastTime = time;
         });
     }
     // per aumentare la velocita di calcolo utilizzo un quadrato circoscritto
@@ -1500,35 +1434,19 @@ class Loop {
     }
     reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("reset");
             this.barContainer.style.color = "#ffffff";
             this.barContainer.innerText = "";
-            window.cancelAnimationFrame(this.reqId);
+            window.cancelAnimationFrame(this.reqAnimationFrame);
             this.stop();
-            try {
-                this.fileManager = fileManager;
-                yield this.loadFile(fileManager);
-            }
-            catch (e) {
-                console.error(e);
-            }
+            this.fileManager = fileManager;
+            Startup.gui.Loader(true);
+            this.energyFile = yield fileManager.getEnergies();
+            yield fileManager.getBodies(0);
+            Startup.gui.Loader(false);
             this.pause();
             this.draw(0);
             Startup.slider.value = "0";
             Startup.slider.max = fileManager.getNumIterations() + "";
-        });
-    }
-    loadFile(fileManager) {
-        return __awaiter(this, void 0, void 0, function* () {
-            Startup.gui.Loader(true);
-            yield fileManager.init();
-            this.energyFile = yield fileManager.getEnergies();
-            yield fileManager.getBodies(0);
-            /*if(this.forceLoadAllCheckbox){
-    
-            }*/
-            Startup.gui.Loader(false);
-            return;
         });
     }
     setPanningOffset(x, y) {
@@ -1538,6 +1456,140 @@ class Loop {
     setSelected(x, y) {
         this.selectX = x;
         this.selectY = y;
+    }
+}
+class MouseInput {
+    constructor(loop, axes, trajectory) {
+        this.globalScale = 1;
+        this.globalOffsetX = 0;
+        this.globalOffsetY = 0;
+        this.panningStartX = 0;
+        this.panningStartY = 0;
+        this.panningOffsetX = 0;
+        this.panningOffsetY = 0;
+        this.panning = false;
+        this.mouseMoveListener = null;
+        this.mouseUpListener = null;
+        this.loop = loop;
+        this.axes = axes;
+        this.trajectory = trajectory;
+        this.canvas = loop.canvas;
+        this.canvas.addEventListener("mousedown", (e) => this.startPan(e, this));
+        this.mouseMoveListener = (e) => this.pan(e, this);
+        this.mouseUpListener = (e) => this.endPan(e, this);
+        this.loop.setPanningOffset(0, 0);
+    }
+    startPan(e, self) {
+        if (self.panning)
+            return;
+        self.panning = true;
+        //console.log("start pan");
+        self.canvas.addEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.addEventListener("mouseup", self.mouseUpListener);
+        self.canvas.addEventListener("mouseleave", self.mouseUpListener);
+        self.panningStartX = e.clientX;
+        self.panningStartY = e.clientY;
+    }
+    pan(e, self) {
+        self.panningOffsetX = e.clientX - self.panningStartX;
+        self.panningOffsetY = e.clientY - self.panningStartY;
+        self.loop.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+        self.axes.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+        self.trajectory.setPanningOffset(self.globalOffsetX + self.panningOffsetX, self.globalOffsetY + self.panningOffsetY);
+    }
+    endPan(e, self) {
+        self.panning = false;
+        self.globalOffsetX += self.panningOffsetX;
+        self.globalOffsetY += self.panningOffsetY;
+        self.canvas.removeEventListener("mousemove", self.mouseMoveListener);
+        self.canvas.removeEventListener("mouseup", self.mouseUpListener);
+        self.canvas.removeEventListener("mouseleave", self.mouseUpListener);
+        if (self.panningStartX == e.clientX && self.panningStartY == e.clientY)
+            self.click(self, e.clientX, e.clientY);
+    }
+    click(self, x, y) {
+        self.loop.setSelected(x, y - 25); // TODO aggiustare 25
+    }
+    setOffset(x, y) {
+        this.globalOffsetX = x;
+        this;
+        this.globalOffsetY = y;
+        this.loop.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.axes.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+        this.trajectory.setPanningOffset(this.globalOffsetX, this.globalOffsetY);
+    }
+}
+class Simulator {
+    constructor() {
+        this.N = 1000;
+        this.t_f = 25;
+        this.dt = 0.01;
+        this.rho = 300;
+        this.v_max = 3;
+        this.mass_i = 50;
+        this.radius_i = 1;
+        this.filename = "generated.sim";
+        this.textBox = document.createElement("div");
+        this.makeGui();
+    }
+    runMain() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let Module = yield createSimulatorIstance( /* optional default settings */);
+            //console.log(Module);
+            Module._web_main(this.N, this.t_f, this.dt, this.rho, this.v_max, this.mass_i, this.radius_i);
+            let file = new File([new Blob([Module.FS.readFile(this.filename)])], this.filename);
+            return file;
+        });
+    }
+    makeGui() {
+        this.guiPanel = [{
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Numbers of bodies',
+                min: 0, max: 10000, step: 1,
+                object: this, property: "N",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Final time',
+                min: 1, max: 100, step: 1,
+                object: this, property: "t_f",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Time interval',
+                min: 0.01, max: 4,
+                object: this, property: "dt",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Rho',
+                min: 1, max: 1000,
+                object: this, property: "rho",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Maximum velocity',
+                min: 0.1, max: 50,
+                object: this, property: "v_max",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Initial mass',
+                min: 1, max: 300,
+                object: this, property: "mass_i",
+            }, {
+                folder: 'Simulator',
+                type: 'range',
+                label: 'Initial radius',
+                min: 1, max: 300,
+                object: this, property: "radius_i",
+            }, {
+                folder: "Simulator",
+                type: 'display',
+                label: 'Stdout',
+                element: this.textBox,
+            }];
     }
 }
 class Trajectory {
@@ -1593,146 +1645,6 @@ class Trajectory {
     }
     setScale(s) {
         this.scale = s;
-    }
-}
-class Fifo {
-    constructor() {
-        this.size = 0;
-        this.first = null;
-        this.last = null;
-    }
-    push(element) {
-        if (this.size == 0) {
-            let e = new FifoElement(element, null);
-            this.first = e;
-            this.last = e;
-        }
-        else {
-            let e = new FifoElement(element, null);
-            this.last.next = e;
-            this.last = e;
-        }
-        this.size++;
-    }
-    pushFifo(fifo) {
-        if (this.size == 0) {
-            this.first = fifo.first;
-            this.last = fifo.last;
-        }
-        else {
-            this.last.next = fifo.first;
-            this.last = fifo.last;
-        }
-        this.size += fifo.size;
-    }
-    pop() {
-        if (this.size == 0) {
-            return null;
-        }
-        else if (this.size == 1) {
-            let e = this.first.element;
-            this.first = null;
-            this.last = null;
-            this.size--;
-            return e;
-        }
-        else {
-            let e = this.first.element;
-            this.first = this.first.next;
-            this.size--;
-            return e;
-        }
-    }
-    clear() {
-        this.size = 0;
-        this.first = null;
-        this.last = null;
-    }
-}
-class FifoElement {
-    constructor(element, next) {
-        this.next = null;
-        this.element = null;
-        this.element = element;
-        this.next = next;
-    }
-}
-class FileStreamer {
-    constructor(file) {
-        this.file = file;
-        this.offset = 0;
-        this.defaultChunkSize = 64 * 1024; // bytes
-        this.rewind();
-    }
-    rewind() {
-        this.offset = 0;
-    }
-    isEndOfFile() {
-        return this.offset >= this.getFileSize();
-    }
-    readBlockAsText(length = this.defaultChunkSize) {
-        const fileReader = new FileReader();
-        const blob = this.file.slice(this.offset, this.offset + length);
-        this.file.stream;
-        return new Promise((resolve, reject) => {
-            fileReader.onloadend = (event) => {
-                const target = (event.target);
-                if (target.error == null) {
-                    const result = target.result;
-                    this.offset += result.length;
-                    this.testEndOfFile();
-                    resolve(result);
-                }
-                else {
-                    reject(target.error);
-                }
-            };
-            fileReader.readAsText(blob);
-        });
-    }
-    testEndOfFile() {
-        if (this.isEndOfFile()) {
-            console.log('Done reading file');
-        }
-    }
-    getFileSize() {
-        return this.file.size;
-    }
-}
-class JsonStreamer {
-    constructor(fs) {
-        this.initialSequenceSize = 12;
-        this.initialSequenceElementSize = 16;
-        this.afterElementSize = 1;
-        this.fs = fs;
-        this.buffer = "";
-        this.chunkSize = 200;
-    }
-    init() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.fs.isEndOfFile())
-                return null;
-            let s = yield this.fs.readBlockAsText(this.initialSequenceSize);
-            console.log(s);
-        });
-    }
-    read() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.fs.isEndOfFile()) {
-                let s1 = yield this.fs.readBlockAsText(this.initialSequenceElementSize);
-                console.log(s1);
-                if (s1 == ']}')
-                    return null;
-                let n = parseInt(s1.slice(8, 16)) || null;
-                if (n == null)
-                    return null;
-                console.log(n);
-                let s2 = yield this.fs.readBlockAsText(n - this.initialSequenceElementSize + this.afterElementSize);
-                console.log(s1 + s2);
-                return JSON.parse(s1 + s2.slice(0, -1));
-            }
-            return null;
-        });
     }
 }
 //# sourceMappingURL=bundle.js.map
