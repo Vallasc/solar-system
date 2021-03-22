@@ -951,16 +951,21 @@ class Startup {
                     streched: true,
                     folder: 'Simulator',
                     action: () => __awaiter(this, void 0, void 0, function* () {
-                        Startup.gui.Loader(true);
-                        let file = yield Startup.simulation.runMain();
-                        Startup.gui.Loader(false);
-                        var link = window.document.createElement('a');
-                        link.href = window.URL.createObjectURL(file);
-                        link.download = file.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        Startup.readFile(file);
+                        try {
+                            Startup.gui.Loader(true);
+                            let file = yield Startup.simulation.runMain();
+                            Startup.gui.Loader(false);
+                            var link = window.document.createElement('a');
+                            link.href = window.URL.createObjectURL(file);
+                            link.download = file.name;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            Startup.readFile(file);
+                        }
+                        catch (e) {
+                            console.error(e);
+                        }
                     })
                 }]);
             Startup.gui.Register(Startup.loop.guiPanel);
@@ -1544,7 +1549,8 @@ class Simulator {
         this.v_max = 3;
         this.mass_i = 50;
         this.radius_i = 1;
-        this.filename = "generated_web.sim";
+        this.filenameInput = "generated.sim";
+        this.filenameOutput = "generated_web.sim";
         this.textBox = document.createElement("div");
         this.makeGui();
     }
@@ -1553,7 +1559,7 @@ class Simulator {
             let Module = yield createSimulatorIstance( /* optional default settings */);
             //console.log(Module);
             Module._web_main(this.N, this.t_f, this.dt, this.rho, this.v_max, this.mass_i, this.radius_i);
-            let file = new File([new Blob([Module.FS.readFile(this.filename)])], this.filename);
+            let file = new File([new Blob([Module.FS.readFile(this.filenameInput)])], this.filenameOutput);
             return file;
         });
     }
