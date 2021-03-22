@@ -484,6 +484,7 @@ class Conservation {
         this.energyErr = "0";
         this.file = new File([], "");
         this.fileManager = null;
+        this.makeGui();
     }
     reset(fileManager = this.fileManager) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -502,6 +503,69 @@ class Conservation {
         this.energyStart = this.fileManager.getEnergyStart();
         this.energyEnd = this.fileManager.getEnergyEnd();
         this.energyErr = this.fileManager.getEnergyErr();
+    }
+    makeGui() {
+        this.guiPanel = [{
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Initial:',
+                object: this,
+                property: 'angMomStart'
+            }, {
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Final:',
+                object: this,
+                property: 'angMomEnd'
+            }, {
+                type: 'display',
+                folder: 'Angular Momentum',
+                label: 'Difference (%):',
+                object: this,
+                property: 'angMomErr'
+            }, {
+                type: 'display',
+                folder: 'Momentum x',
+                label: 'Initial:',
+                object: this,
+                property: 'momentumStartX'
+            }, {
+                type: 'display',
+                folder: 'Momentum x',
+                label: 'Final:',
+                object: this,
+                property: 'momentumEndX'
+            }, {
+                type: 'display',
+                folder: 'Momentum y',
+                label: 'Initial:',
+                object: this,
+                property: 'momentumStartY'
+            }, {
+                type: 'display',
+                folder: 'Momentum y',
+                label: 'Final:',
+                object: this,
+                property: 'momentumEndY'
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Initial:',
+                object: this,
+                property: 'energyStart'
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Final:',
+                object: this,
+                property: 'energyEnd'
+            }, {
+                type: 'display',
+                folder: 'Energy',
+                label: 'Difference (%):',
+                object: this,
+                property: 'energyErr'
+            }];
     }
 }
 zip.workerScriptsPath = "./dist/lib/zipjs/";
@@ -836,80 +900,20 @@ class Startup {
                     label: 'Angular Momentum',
                     open: false
                 }, {
-                    type: 'display',
-                    folder: 'Angular Momentum',
-                    label: 'Initial:',
-                    object: this.conservation,
-                    property: 'angMomStart'
-                }, {
-                    type: 'display',
-                    folder: 'Angular Momentum',
-                    label: 'Final:',
-                    object: this.conservation,
-                    property: 'angMomEnd'
-                }, {
-                    type: 'display',
-                    folder: 'Angular Momentum',
-                    label: 'Difference (%):',
-                    object: this.conservation,
-                    property: 'angMomErr'
-                }, {
                     type: 'folder',
                     folder: 'Conservation',
                     label: 'Momentum x',
                     open: false
-                }, {
-                    type: 'display',
-                    folder: 'Momentum x',
-                    label: 'Initial:',
-                    object: this.conservation,
-                    property: 'momentumStartX'
-                }, {
-                    type: 'display',
-                    folder: 'Momentum x',
-                    label: 'Final:',
-                    object: this.conservation,
-                    property: 'momentumEndX'
                 }, {
                     type: 'folder',
                     folder: 'Conservation',
                     label: 'Momentum y',
                     open: false
                 }, {
-                    type: 'display',
-                    folder: 'Momentum y',
-                    label: 'Initial:',
-                    object: this.conservation,
-                    property: 'momentumStartY'
-                }, {
-                    type: 'display',
-                    folder: 'Momentum y',
-                    label: 'Final:',
-                    object: this.conservation,
-                    property: 'momentumEndY'
-                }, {
                     type: 'folder',
                     folder: 'Conservation',
                     label: 'Energy',
                     open: false
-                }, {
-                    type: 'display',
-                    folder: 'Energy',
-                    label: 'Initial:',
-                    object: this.conservation,
-                    property: 'energyStart'
-                }, {
-                    type: 'display',
-                    folder: 'Energy',
-                    label: 'Final:',
-                    object: this.conservation,
-                    property: 'energyEnd'
-                }, {
-                    type: 'display',
-                    folder: 'Energy',
-                    label: 'Difference (%):',
-                    object: this.conservation,
-                    property: 'energyErr'
                 }, {
                     type: 'display',
                     label: 'Energy chart',
@@ -970,6 +974,7 @@ class Startup {
                 }]);
             Startup.gui.Register(Startup.loop.guiPanel);
             Startup.gui.Register(Startup.simulation.guiPanel);
+            Startup.gui.Register(Startup.conservation.guiPanel);
             Startup.gui.Loader(false);
             Startup.loop.barContainer = document.getElementById("guify-bar-container");
         });
