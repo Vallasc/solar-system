@@ -763,7 +763,7 @@ class Startup {
     }
     static createGui() {
         return __awaiter(this, void 0, void 0, function* () {
-            let examples = yield (yield fetch("./examples/info.json")).json();
+            let examples = yield (yield fetch("../examples/info.json")).json();
             console.log(examples);
             let guiContainer = document.getElementById("main-container");
             Startup.gui = new guify({
