@@ -58,6 +58,10 @@ class Startup {
         Startup.fileManager = new FileManager(file);
 
         Startup.gui.Loader(true);
+
+        let fileInputElement : HTMLElement = <HTMLElement> document.querySelector('input[type="file"]');
+        fileInputElement.nextElementSibling!.innerHTML = file.name;
+
         try {
             await Startup.fileManager.init();
 
@@ -77,8 +81,13 @@ class Startup {
     }
 
     public static async createGui(){
-        let examples = await (await fetch("../examples/info.json")).json();
-        let examplesList : Array<string> = examples["examples"];
+        let examplesList : Array<string> = [];
+        try{
+            let examples = await (await fetch("../examples/info.json")).json();
+            examplesList = examples["examples"];
+        }catch (e) {
+            console.error(e);
+        }
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
@@ -107,10 +116,12 @@ class Startup {
             }
         },{
             type: 'select',
-            label: 'Prepared simulations',
+            label: 'Premade simulations',
             property: 'simSelection',
             options: ["none"].concat(examplesList),
             onChange: async (data: string) => {
+                if(data == "none")
+                    return;
                 console.log(data);
                 let file = new File([await (await fetch("../examples/"+data)).blob()], data);
                 await Startup.readFile(file);
@@ -219,7 +230,7 @@ class Startup {
             element: Startup.loop.chart.container,
         },{
             type: 'button',
-            label: 'Show charts',
+            label: 'Show more charts',
             streched: true,
             action: () => {
                 console.log(Startup.file);

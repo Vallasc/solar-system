@@ -22,7 +22,7 @@ class Simulator {
         this.v_max = 3;
         this.mass_i = 50;
         this.radius_i = 1;
-        this.filename = "generated.sim";
+        this.filename = "generated_web.sim";
         this.textBox = <HTMLDivElement> document.createElement("div");
         this.makeGui();
     }
