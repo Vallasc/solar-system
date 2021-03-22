@@ -799,8 +799,8 @@ class Startup {
                     options: ["none"].concat(examplesList),
                     onChange: (data) => __awaiter(this, void 0, void 0, function* () {
                         console.log(data);
-                        let blob = yield (yield fetch("../examples/" + data)).blob();
-                        console.log(blob);
+                        let file = new File([yield (yield fetch("../examples/" + data)).blob()], data);
+                        yield Startup.readFile(file);
                     })
                 }, {
                     type: 'button',
