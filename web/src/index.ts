@@ -81,6 +81,7 @@ class Startup {
     }
 
     public static async createGui(){
+        
         let examplesList : Array<string> = [];
         try{
             let examples = await (await fetch("../examples/info.json")).json();
@@ -88,6 +89,7 @@ class Startup {
         }catch (e) {
             console.error(e);
         }
+
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
@@ -150,80 +152,20 @@ class Startup {
             label: 'Angular Momentum',
             open: false
         },{
-            type: 'display',
-            folder: 'Angular Momentum',
-            label: 'Initial:',
-            object: this.conservation,
-            property: 'angMomStart'
-        },{
-            type: 'display',
-            folder: 'Angular Momentum',
-            label: 'Final:',
-            object: this.conservation,
-            property: 'angMomEnd'
-        },{
-            type: 'display',
-            folder: 'Angular Momentum',
-            label: 'Difference (%):',
-            object: this.conservation,
-            property: 'angMomErr'
-        },{
             type: 'folder',
             folder: 'Conservation',
             label: 'Momentum x',
             open: false
-        },{
-            type: 'display',
-            folder: 'Momentum x',
-            label: 'Initial:',
-            object: this.conservation,
-            property: 'momentumStartX'
-        },{
-            type: 'display',
-            folder: 'Momentum x',
-            label: 'Final:',
-            object: this.conservation,
-            property: 'momentumEndX'
         },{
             type: 'folder',
             folder: 'Conservation',
             label: 'Momentum y',
             open: false
         },{
-            type: 'display',
-            folder: 'Momentum y',
-            label: 'Initial:',
-            object: this.conservation,
-            property: 'momentumStartY'
-        },{
-            type: 'display',
-            folder: 'Momentum y',
-            label: 'Final:',
-            object: this.conservation,
-            property: 'momentumEndY'
-        },{
             type: 'folder',
             folder: 'Conservation',
             label: 'Energy',
             open: false
-        },{
-            type: 'display',
-            folder: 'Energy',
-            label: 'Initial:',
-            object: this.conservation,
-            property: 'energyStart'
-        },{
-            type: 'display',
-            folder: 'Energy',
-            label: 'Final:',
-            object: this.conservation,
-            property: 'energyEnd'
-        },{
-            type: 'display',
-            folder: 'Energy',
-            label: 'Difference (%):',
-            object: this.conservation,
-            property: 'energyErr'
         },{
             type: 'display',
             label: 'Energy chart',
@@ -265,22 +207,26 @@ class Startup {
             streched: true,
             folder: 'Simulator',
             action: async () => {
-                Startup.gui.Loader(true);
-                let file = await Startup.simulation.runMain();
-                Startup.gui.Loader(false);
-
-                var link = window.document.createElement('a');
-                link.href = window.URL.createObjectURL(file);
-                link.download = file.name; 
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                Startup.readFile(file);
+                try{
+                    Startup.gui.Loader(true);
+                    let file = await Startup.simulation.runMain();
+                    Startup.gui.Loader(false);
+                    var link = window.document.createElement('a');
+                    link.href = window.URL.createObjectURL(file);
+                    link.download = file.name; 
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+    
+                    Startup.readFile(file);
+                }catch (e) {
+                    console.error(e);
+                }
             }
         }]);
         Startup.gui.Register(Startup.loop.guiPanel);
         Startup.gui.Register(Startup.simulation.guiPanel);
+        Startup.gui.Register(Startup.conservation.guiPanel);
         Startup.gui.Loader(false);
         Startup.loop.barContainer = <HTMLElement> document.getElementById("guify-bar-container");
     }
