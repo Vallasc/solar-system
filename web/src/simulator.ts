@@ -11,7 +11,8 @@ class Simulator {
     public radius_i : number;
 
     public guiPanel : any;
-    public filename : string;
+    private filenameInput : string;
+    private filenameOutput : string;
     public textBox : HTMLElement;
 
     constructor(){
@@ -22,7 +23,8 @@ class Simulator {
         this.v_max = 3;
         this.mass_i = 50;
         this.radius_i = 1;
-        this.filename = "generated_web.sim";
+        this.filenameInput = "generated.sim";
+        this.filenameOutput = "generated_web.sim";
         this.textBox = <HTMLDivElement> document.createElement("div");
         this.makeGui();
     }
@@ -31,7 +33,7 @@ class Simulator {
         let Module = await createSimulatorIstance(/* optional default settings */);
         //console.log(Module);
         Module._web_main(this.N, this.t_f, this.dt, this.rho, this.v_max, this.mass_i, this.radius_i);
-        let file: File = new File([new Blob([Module.FS.readFile(this.filename)])], this.filename);
+        let file: File = new File([new Blob([Module.FS.readFile(this.filenameInput)])], this.filenameOutput);
         return file;
     }
 
