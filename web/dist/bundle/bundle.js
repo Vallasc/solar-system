@@ -797,9 +797,11 @@ class Startup {
                     label: 'Prepared simulations',
                     property: 'simSelection',
                     options: ["none"].concat(examplesList),
-                    onChange: (data) => {
+                    onChange: (data) => __awaiter(this, void 0, void 0, function* () {
                         console.log(data);
-                    }
+                        let blob = yield (yield fetch("../examples/" + data)).blob();
+                        console.log(blob);
+                    })
                 }, {
                     type: 'button',
                     label: 'Play/Pause',

@@ -110,8 +110,10 @@ class Startup {
             label: 'Prepared simulations',
             property: 'simSelection',
             options: ["none"].concat(examplesList),
-            onChange: (data: any) => {
+            onChange: async (data: string) => {
                 console.log(data);
+                let blob = await (await fetch("../examples/"+data)).blob()
+                console.log(blob);
             }
         },{
             type: 'button',
