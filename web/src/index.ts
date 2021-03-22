@@ -77,7 +77,7 @@ class Startup {
     }
 
     public static async createGui(){
-        let examples = (await fetch("./examples/info.json")).json();
+        let examples = await (await fetch("./examples/info.json")).json();
         console.log(examples);
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
