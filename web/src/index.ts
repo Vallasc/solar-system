@@ -109,8 +109,9 @@ class Startup {
             type: 'select',
             label: 'Prepared simulations',
             property: 'simSelection',
-            options: [""].concat(examplesList),
+            options: ["none"].concat(examplesList),
             onChange: (data: any) => {
+                console.log(data);
             }
         },{
             type: 'button',

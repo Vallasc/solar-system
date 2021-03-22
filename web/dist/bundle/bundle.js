@@ -796,8 +796,9 @@ class Startup {
                     type: 'select',
                     label: 'Prepared simulations',
                     property: 'simSelection',
-                    options: [""].concat(examplesList),
+                    options: ["none"].concat(examplesList),
                     onChange: (data) => {
+                        console.log(data);
                     }
                 }, {
                     type: 'button',
