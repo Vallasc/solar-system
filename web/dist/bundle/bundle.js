@@ -743,6 +743,8 @@ class Startup {
                 Startup.fileManager.close();
             Startup.fileManager = new FileManager(file);
             Startup.gui.Loader(true);
+            let fileInputElement = document.querySelector('input[type="file"]');
+            fileInputElement.nextElementSibling.innerHTML = file.name;
             try {
                 yield Startup.fileManager.init();
                 yield Startup.loop.reset(Startup.fileManager);
@@ -763,8 +765,14 @@ class Startup {
     }
     static createGui() {
         return __awaiter(this, void 0, void 0, function* () {
-            let examples = yield (yield fetch("../examples/info.json")).json();
-            let examplesList = examples["examples"];
+            let examplesList = [];
+            try {
+                let examples = yield (yield fetch("../examples/info.json")).json();
+                examplesList = examples["examples"];
+            }
+            catch (e) {
+                console.error(e);
+            }
             let guiContainer = document.getElementById("main-container");
             Startup.gui = new guify({
                 title: 'Solar system',
@@ -794,10 +802,12 @@ class Startup {
                     })
                 }, {
                     type: 'select',
-                    label: 'Prepared simulations',
+                    label: 'Premade simulations',
                     property: 'simSelection',
                     options: ["none"].concat(examplesList),
                     onChange: (data) => __awaiter(this, void 0, void 0, function* () {
+                        if (data == "none")
+                            return;
                         console.log(data);
                         let file = new File([yield (yield fetch("../examples/" + data)).blob()], data);
                         yield Startup.readFile(file);
@@ -906,7 +916,7 @@ class Startup {
                     element: Startup.loop.chart.container,
                 }, {
                     type: 'button',
-                    label: 'Show charts',
+                    label: 'Show more charts',
                     streched: true,
                     action: () => {
                         console.log(Startup.file);
@@ -1534,7 +1544,7 @@ class Simulator {
         this.v_max = 3;
         this.mass_i = 50;
         this.radius_i = 1;
-        this.filename = "generated.sim";
+        this.filename = "generated_web.sim";
         this.textBox = document.createElement("div");
         this.makeGui();
     }
