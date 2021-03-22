@@ -13,9 +13,12 @@ class Conservation {
     private file : File;
     private fileManager : FileManager | null;
 
+    public guiPanel : any;
+
     constructor() {
         this.file = new File([],"");
         this.fileManager = null;
+        this.makeGui();
     }
 
     public async reset(fileManager: FileManager | null= this.fileManager) {
@@ -34,5 +37,69 @@ class Conservation {
         this.energyStart = this.fileManager!.getEnergyStart();
         this.energyEnd = this.fileManager!.getEnergyEnd();
         this.energyErr = this.fileManager!.getEnergyErr();
+    }
+
+    private makeGui() : void {
+        this.guiPanel = [{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Initial:',
+            object: this,
+            property: 'angMomStart'
+        },{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Final:',
+            object: this,
+            property: 'angMomEnd'
+        },{
+            type: 'display',
+            folder: 'Angular Momentum',
+            label: 'Difference (%):',
+            object: this,
+            property: 'angMomErr'
+        },{
+            type: 'display',
+            folder: 'Momentum x',
+            label: 'Initial:',
+            object: this,
+            property: 'momentumStartX'
+        },{
+            type: 'display',
+            folder: 'Momentum x',
+            label: 'Final:',
+            object: this,
+            property: 'momentumEndX'
+        },{
+            type: 'display',
+            folder: 'Momentum y',
+            label: 'Initial:',
+            object: this,
+            property: 'momentumStartY'
+        },{
+            type: 'display',
+            folder: 'Momentum y',
+            label: 'Final:',
+            object: this,
+            property: 'momentumEndY'
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Initial:',
+            object: this,
+            property: 'energyStart'
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Final:',
+            object: this,
+            property: 'energyEnd'
+        },{
+            type: 'display',
+            folder: 'Energy',
+            label: 'Difference (%):',
+            object: this,
+            property: 'energyErr'
+        }];
     }
 }
