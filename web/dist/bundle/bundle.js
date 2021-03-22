@@ -762,196 +762,199 @@ class Startup {
         });
     }
     static createGui() {
-        let guiContainer = document.getElementById("main-container");
-        Startup.gui = new guify({
-            title: 'Solar system',
-            theme: 'dark',
-            align: 'right',
-            width: Startup.canvasMarginRight,
-            barMode: 'offset',
-            panelMode: 'inner',
-            opacity: 0.9,
-            root: guiContainer,
-            open: true,
-            onOpen: (value) => {
-                if (value) {
-                    Startup.canvasMarginRight = 350;
-                }
-                else {
-                    Startup.canvasMarginRight = 0;
-                }
-                Startup.resize();
-            }
-        });
-        Startup.gui.Register([{
-                type: 'file',
-                label: 'File',
-                onChange: (file) => __awaiter(this, void 0, void 0, function* () {
-                    Startup.readFile(file);
-                })
-            }, {
-                type: 'select',
-                label: 'Prepared simulations',
-                //object: this,
-                property: 'simSelection',
-                options: ['Option 1', 'Option 2'],
-                onChange: (data) => {
-                }
-            }, {
-                type: 'button',
-                label: 'Play/Pause',
-                streched: true,
-                action: () => {
-                    Startup.loop.playPause();
-                }
-            }, {
-                type: 'button',
-                label: 'Rewind',
-                streched: true,
-                action: () => {
-                    Startup.loop.reset();
-                }
-            }, {
-                type: 'folder',
-                label: 'Conservation',
-                open: true
-            }, {
-                type: 'folder',
-                folder: 'Conservation',
-                label: 'Angular Momentum',
-                open: false
-            }, {
-                type: 'display',
-                folder: 'Angular Momentum',
-                label: 'Initial:',
-                object: this.conservation,
-                property: 'angMomStart'
-            }, {
-                type: 'display',
-                folder: 'Angular Momentum',
-                label: 'Final:',
-                object: this.conservation,
-                property: 'angMomEnd'
-            }, {
-                type: 'display',
-                folder: 'Angular Momentum',
-                label: 'Difference (%):',
-                object: this.conservation,
-                property: 'angMomErr'
-            }, {
-                type: 'folder',
-                folder: 'Conservation',
-                label: 'Momentum x',
-                open: false
-            }, {
-                type: 'display',
-                folder: 'Momentum x',
-                label: 'Initial:',
-                object: this.conservation,
-                property: 'momentumStartX'
-            }, {
-                type: 'display',
-                folder: 'Momentum x',
-                label: 'Final:',
-                object: this.conservation,
-                property: 'momentumEndX'
-            }, {
-                type: 'folder',
-                folder: 'Conservation',
-                label: 'Momentum y',
-                open: false
-            }, {
-                type: 'display',
-                folder: 'Momentum y',
-                label: 'Initial:',
-                object: this.conservation,
-                property: 'momentumStartY'
-            }, {
-                type: 'display',
-                folder: 'Momentum y',
-                label: 'Final:',
-                object: this.conservation,
-                property: 'momentumEndY'
-            }, {
-                type: 'folder',
-                folder: 'Conservation',
-                label: 'Energy',
-                open: false
-            }, {
-                type: 'display',
-                folder: 'Energy',
-                label: 'Initial:',
-                object: this.conservation,
-                property: 'energyStart'
-            }, {
-                type: 'display',
-                folder: 'Energy',
-                label: 'Final:',
-                object: this.conservation,
-                property: 'energyEnd'
-            }, {
-                type: 'display',
-                folder: 'Energy',
-                label: 'Difference (%):',
-                object: this.conservation,
-                property: 'energyErr'
-            }, {
-                type: 'display',
-                label: 'Energy chart',
-                element: Startup.loop.chart.container,
-            }, {
-                type: 'button',
-                label: 'Show charts',
-                streched: true,
-                action: () => {
-                    console.log(Startup.file);
-                    if (Startup.chartWindow != null) {
-                        Startup.chartWindow.close();
+        return __awaiter(this, void 0, void 0, function* () {
+            let examples = (yield fetch("/examples/info.json")).json();
+            console.log(examples);
+            let guiContainer = document.getElementById("main-container");
+            Startup.gui = new guify({
+                title: 'Solar system',
+                theme: 'dark',
+                align: 'right',
+                width: Startup.canvasMarginRight,
+                barMode: 'offset',
+                panelMode: 'inner',
+                opacity: 0.9,
+                root: guiContainer,
+                open: true,
+                onOpen: (value) => {
+                    if (value) {
+                        Startup.canvasMarginRight = 350;
                     }
-                    Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1100,height=900");
-                    Startup.chartWindow.addEventListener('load', () => {
-                        Startup.chartWindow.file = Startup.file;
-                        Startup.chartWindow.reset();
-                    }, false);
+                    else {
+                        Startup.canvasMarginRight = 0;
+                    }
+                    Startup.resize();
                 }
-            }, {
-                type: 'folder',
-                label: 'Selected',
-                open: true
-            }, {
-                type: 'folder',
-                label: 'Controls',
-                open: true
-            }, {
-                type: 'folder',
-                label: 'Simulator',
-                open: false
-            }, {
-                type: 'folder',
-                label: 'Dev',
-                open: false
-            }, {
-                type: 'button',
-                label: 'Run simulator',
-                streched: true,
-                folder: 'Simulator',
-                action: () => __awaiter(this, void 0, void 0, function* () {
-                    Startup.gui.Loader(true);
-                    let file = yield Startup.simulation.runMain();
-                    Startup.gui.Loader(false);
-                    var link = window.document.createElement('a');
-                    link.href = window.URL.createObjectURL(file);
-                    link.download = file.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    Startup.readFile(file);
-                })
-            }]);
-        Startup.gui.Register(Startup.loop.guiPanel);
-        Startup.gui.Register(Startup.simulation.guiPanel);
-        Startup.gui.Loader(false);
-        Startup.loop.barContainer = document.getElementById("guify-bar-container");
+            });
+            Startup.gui.Register([{
+                    type: 'file',
+                    label: 'File',
+                    onChange: (file) => __awaiter(this, void 0, void 0, function* () {
+                        Startup.readFile(file);
+                    })
+                }, {
+                    type: 'select',
+                    label: 'Prepared simulations',
+                    property: 'simSelection',
+                    options: ['Option 1', 'Option 2'],
+                    onChange: (data) => {
+                    }
+                }, {
+                    type: 'button',
+                    label: 'Play/Pause',
+                    streched: true,
+                    action: () => {
+                        Startup.loop.playPause();
+                    }
+                }, {
+                    type: 'button',
+                    label: 'Rewind',
+                    streched: true,
+                    action: () => {
+                        Startup.loop.reset();
+                    }
+                }, {
+                    type: 'folder',
+                    label: 'Conservation',
+                    open: true
+                }, {
+                    type: 'folder',
+                    folder: 'Conservation',
+                    label: 'Angular Momentum',
+                    open: false
+                }, {
+                    type: 'display',
+                    folder: 'Angular Momentum',
+                    label: 'Initial:',
+                    object: this.conservation,
+                    property: 'angMomStart'
+                }, {
+                    type: 'display',
+                    folder: 'Angular Momentum',
+                    label: 'Final:',
+                    object: this.conservation,
+                    property: 'angMomEnd'
+                }, {
+                    type: 'display',
+                    folder: 'Angular Momentum',
+                    label: 'Difference (%):',
+                    object: this.conservation,
+                    property: 'angMomErr'
+                }, {
+                    type: 'folder',
+                    folder: 'Conservation',
+                    label: 'Momentum x',
+                    open: false
+                }, {
+                    type: 'display',
+                    folder: 'Momentum x',
+                    label: 'Initial:',
+                    object: this.conservation,
+                    property: 'momentumStartX'
+                }, {
+                    type: 'display',
+                    folder: 'Momentum x',
+                    label: 'Final:',
+                    object: this.conservation,
+                    property: 'momentumEndX'
+                }, {
+                    type: 'folder',
+                    folder: 'Conservation',
+                    label: 'Momentum y',
+                    open: false
+                }, {
+                    type: 'display',
+                    folder: 'Momentum y',
+                    label: 'Initial:',
+                    object: this.conservation,
+                    property: 'momentumStartY'
+                }, {
+                    type: 'display',
+                    folder: 'Momentum y',
+                    label: 'Final:',
+                    object: this.conservation,
+                    property: 'momentumEndY'
+                }, {
+                    type: 'folder',
+                    folder: 'Conservation',
+                    label: 'Energy',
+                    open: false
+                }, {
+                    type: 'display',
+                    folder: 'Energy',
+                    label: 'Initial:',
+                    object: this.conservation,
+                    property: 'energyStart'
+                }, {
+                    type: 'display',
+                    folder: 'Energy',
+                    label: 'Final:',
+                    object: this.conservation,
+                    property: 'energyEnd'
+                }, {
+                    type: 'display',
+                    folder: 'Energy',
+                    label: 'Difference (%):',
+                    object: this.conservation,
+                    property: 'energyErr'
+                }, {
+                    type: 'display',
+                    label: 'Energy chart',
+                    element: Startup.loop.chart.container,
+                }, {
+                    type: 'button',
+                    label: 'Show charts',
+                    streched: true,
+                    action: () => {
+                        console.log(Startup.file);
+                        if (Startup.chartWindow != null) {
+                            Startup.chartWindow.close();
+                        }
+                        Startup.chartWindow = window.open("charts.html", "MsgWindow", "width=1100,height=900");
+                        Startup.chartWindow.addEventListener('load', () => {
+                            Startup.chartWindow.file = Startup.file;
+                            Startup.chartWindow.reset();
+                        }, false);
+                    }
+                }, {
+                    type: 'folder',
+                    label: 'Selected',
+                    open: true
+                }, {
+                    type: 'folder',
+                    label: 'Controls',
+                    open: true
+                }, {
+                    type: 'folder',
+                    label: 'Simulator',
+                    open: false
+                }, {
+                    type: 'folder',
+                    label: 'Dev',
+                    open: false
+                }, {
+                    type: 'button',
+                    label: 'Run simulator',
+                    streched: true,
+                    folder: 'Simulator',
+                    action: () => __awaiter(this, void 0, void 0, function* () {
+                        Startup.gui.Loader(true);
+                        let file = yield Startup.simulation.runMain();
+                        Startup.gui.Loader(false);
+                        var link = window.document.createElement('a');
+                        link.href = window.URL.createObjectURL(file);
+                        link.download = file.name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        Startup.readFile(file);
+                    })
+                }]);
+            Startup.gui.Register(Startup.loop.guiPanel);
+            Startup.gui.Register(Startup.simulation.guiPanel);
+            Startup.gui.Loader(false);
+            Startup.loop.barContainer = document.getElementById("guify-bar-container");
+        });
     }
     static onWindowResized(event) {
         Startup.resize();

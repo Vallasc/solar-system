@@ -76,7 +76,9 @@ class Startup {
         }
     }
 
-    public static createGui(){
+    public static async createGui(){
+        let examples = (await fetch("/examples/info.json")).json();
+        console.log(examples);
         let guiContainer = document.getElementById("main-container");
         Startup.gui = new guify({
             title: 'Solar system',
@@ -106,7 +108,6 @@ class Startup {
         },{
             type: 'select',
             label: 'Prepared simulations',
-            //object: this,
             property: 'simSelection',
             options: ['Option 1', 'Option 2'],
             onChange: (data: any) => {
