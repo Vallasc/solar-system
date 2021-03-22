@@ -1427,6 +1427,12 @@ class Loop {
                 { x: time, y: this.energyFile.getEnergy(this.numIteration, 3) },
                 { x: time, y: this.energyFile.getEnergy(this.numIteration, 4) }
             ]);
+            console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            console.log(this.energyFile.getEnergy(this.numIteration, 0));
+            console.log(this.energyFile.getEnergy(this.numIteration, 1));
+            console.log(this.energyFile.getEnergy(this.numIteration, 2));
+            console.log(this.energyFile.getEnergy(this.numIteration, 3));
+            console.log(this.energyFile.getEnergy(this.numIteration, 4));
         }
     }
     play() {
