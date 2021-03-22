@@ -1,5 +1,6 @@
-# How to build
+# Solar system visualizer
 
+## How to build
 - Install npm
 - Install dependencies
     ```sh
