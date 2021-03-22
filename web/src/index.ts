@@ -112,8 +112,8 @@ class Startup {
             options: ["none"].concat(examplesList),
             onChange: async (data: string) => {
                 console.log(data);
-                let blob = await (await fetch("../examples/"+data)).blob()
-                console.log(blob);
+                let file = new File([await (await fetch("../examples/"+data)).blob()], data);
+                await Startup.readFile(file);
             }
         },{
             type: 'button',
