@@ -348,6 +348,7 @@ class Loop {
                 {x: time, y: this.energyFile.getEnergy(this.numIteration, 4)}
             ]);
             console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            console.log(this.energyFile.getTime(this.numIteration));
             console.log(this.energyFile.getEnergy(this.numIteration, 0));
             console.log(this.energyFile.getEnergy(this.numIteration, 1));
             console.log(this.energyFile.getEnergy(this.numIteration, 2));
