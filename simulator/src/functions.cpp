@@ -57,14 +57,6 @@ void initial_condition(vector<Body> &bodies, double* position_i, double* velocit
 {
     for(int j=0; j<N; j++)
     { 
-        #ifdef CARTESIAN
-        position_i[0] = uniform_generator(x_min, x_max);
-        position_i[1] = uniform_generator(x_min, x_max);
-        velocity_i[0] = uniform_generator(v_min, v_max);
-        velocity_i[1] = uniform_generator(v_min, v_max);
-        #endif
-
-        #ifdef POLAR
         theta = uniform_generator(0, 2*M_PI);
         phi = uniform_generator(0, 2*M_PI);
         R_module = uniform_generator_polar(0,rho);
@@ -73,7 +65,6 @@ void initial_condition(vector<Body> &bodies, double* position_i, double* velocit
         position_i[1] = R_module*sin(theta);
         velocity_i[0] = V_module*cos(phi);
         velocity_i[1] = V_module*sin(phi);
-        #endif
 
         bodies.push_back(Body(j, position_i, velocity_i, radius_i, mass_i));
     }
