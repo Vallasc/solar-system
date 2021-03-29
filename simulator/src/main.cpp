@@ -14,9 +14,6 @@
 
 using namespace std;
 
-//#define CARTESIAN     // cartesian coordinates
-#define POLAR       // cartesian coordinates
-
 //#define EULER     // Euler's algorithm of evolution
 #define SIMPLETIC     // simpletic algorithm of evolution
 
@@ -36,16 +33,9 @@ double momentum_natural = mass_natural * lenght_natural / time_natural;     // n
 //------------------------------------------------------------------------------------------
 
 //---------------------------- defining coordinates ----------------------------------------
-#ifdef CARTESIAN     // cartesian coordinates
-double x_min=0, x_max=500; // lower and upper limit for positions and velocities
-double v_min=0, v_max=0.5;
-#endif
-
-#ifdef POLAR    // polar coordinates
 double rho=300;
 double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
-#endif
 //------------------------------------------------------------------------------------------
 
 //---------------------------- global parameters -------------------------------------------
