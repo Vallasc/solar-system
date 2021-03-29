@@ -66,7 +66,6 @@ class Startup {
             await Startup.fileManager.init();
 
             await Startup.loop.reset(Startup.fileManager);
-            await Startup.axes.reset(Startup.fileManager);
             await Startup.conservation.reset(Startup.fileManager);
 
             if(Startup.chartWindow != null){

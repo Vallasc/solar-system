@@ -5,23 +5,13 @@ class Axes {
     private panningOffsetX: number = 0;
     private panningOffsetY: number = 0;
     private scale : number = 1;
-    private file : File;
-    private fileManager : FileManager | null;
     
     constructor( canvas : HTMLCanvasElement) {
         this.canvas = canvas;
-        this.file = new File([],"");
-        this.fileManager = null;
         this.context =  <CanvasRenderingContext2D> canvas.getContext("2d");
         this.context.imageSmoothingEnabled = false;
         this.drawAxes();
     }
-
-    public async reset(fileManager: FileManager | null = this.fileManager) {
-        this.fileManager = fileManager
-        this.drawAxes();
-    }
-
     
     public drawAxes() : void {
         
@@ -37,11 +27,6 @@ class Axes {
         let numColors : number = 10;
         let r : number = 0;
         let b : number = 0;
-
-        let tempMax : number = 0;
-        let temperature : number = 0;
-        let N = this.fileManager?.getNumberOfBodies();
-        let mass_i = this.fileManager?.getMass();
 
         distGrids *= this.scale;
 
@@ -61,49 +46,32 @@ class Axes {
             
         this.context.clearRect(0, 0, w, h);
 
-        //color temperature scale when file is not loaded (scale without values)
-        if ((N != null) && (mass_i!= null)) {
-            if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
+        //color temperature scale 
+        if ((offX <= w/2-130) && (offY >= -h/2+35+20*12)) {
+            this.context.fillStyle = "rgb(60,0,0)";
+        } else {
+            this.context.fillStyle = "rgba(60,0,0,0.3)";
+        }
+        this.context.font = "11px Arial"
+        this.context.fillText("Temperature",w-120, 40);
+        this.context.font = "9px Arial"
+        
+        for (let i = 1; i<11; i++) {
+            r = 255 * (11-i) /numColors;
+            b = 255 - r;
+            if ((offX <= w/2-130) && (offY >= -h/2+35+20*12)) {
+                this.context.fillStyle = "rgb("+r+",0,"+b+")";
+            } else {
+                this.context.fillStyle = "rgba("+r+",0,"+b+",0.3)";
+            }
+            this.context.fillRect(w-103, 32+20*i, 30,20);
+
+            if ((offX <= w/2-130) && (offY >= -h/2+35+20*12)) {
                 this.context.fillStyle = "rgb(60,0,0)";
             } else {
                 this.context.fillStyle = "rgba(60,0,0,0.3)";
             }
-            this.context.font = "11px Arial"
-            this.context.fillText("Temperature (K)",w-120, 40);
-            this.context.font = "9px Arial"
-            tempMax = 0.75*(0.0288*N+13)*mass_i;
-            for (let i = 1; i<11; i++) {
-                r = 255 * (11-i) /numColors;
-                b = 255 - r;
-                if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
-                    this.context.fillStyle = "rgb("+r+",0,"+b+")";
-                    this.context.strokeStyle = "rgb("+r+",0,"+b+")";
-                } else {
-                    this.context.fillStyle = "rgba("+r+",0,"+b+",0.3)";
-                    this.context.strokeStyle = "rgba("+r+",0,"+b+",0.3)";
-                }
-                this.context.fillRect(w-115, 40+20*i, 30,20);
-
-                temperature = Math.round((11-i)*tempMax/10*100)/100;
-
-                if ((offX <= w/2-130) && (offY >= -h/2+42+20*12)) {
-                    this.context.fillStyle = "rgb(60,0,0)";
-                } else {
-                    this.context.fillStyle = "rgba(60,0,0,0.3)";
-                }
-                this.context.fillText(temperature+"",w-73, 41+20*i);
-                this.context.beginPath();
-                this.context.moveTo(w-85,40.5+20*i);
-                this.context.lineTo(w-75,40.5+20*i);
-                this.context.stroke();
-            }
-            this.context.fillText("0",w-73, 41+20*(11));
         }
-        //values of temperatures' scale (when file is loaded)
-        
-
-
- 
 
         this.context.strokeStyle = "rgb(60,0,0)"; 
         this.context.lineWidth = 1;

@@ -163,16 +163,6 @@ class FileManager{
     return this.infoJson["potentials"];
   }
 
-  public getNumberOfBodies() : number {
-    let N : number = this.infoJson["num_bodies"];
-    return N;
-  }
-
-  public getMass() : number {
-    let mass : number = this.infoJson["mass_i"];
-    return mass;
-  }
-
   public getMomAngStart() : string {
     return this.infoJson["ang_mom_tot_start"];
   }
