@@ -162,7 +162,7 @@ class ChartStartup{
                 },
                 scene: {
                     zaxis: {
-                        title : "Unità arbitrarie"
+                        title : "Arbitrary units"
                     },
                     /*
                     yaxis: {
