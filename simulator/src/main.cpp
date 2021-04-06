@@ -38,6 +38,10 @@ double v_max=3;
 double theta=0, phi=0, R_module=0, V_module=0;
 //------------------------------------------------------------------------------------------
 
+//---------------------------- temperature estimation (declaration) ------------------------
+double temp_max;     // maximum temperature
+//------------------------------------------------------------------------------------------
+
 //---------------------------- global parameters -------------------------------------------
 int N = 1000;     // number of bodies
 double t = 0;    // time
@@ -45,11 +49,7 @@ double dt = 0.01;    // time interval (fixed)
 double t_f = 25;    // final time
 double mass_i = 50;     // initial mass of bodies
 double radius_i = 1;     // initial radius of bodies (slide with data)
-
-//---------------------------- temperature estimation --------------------------------------
-double temp_max = 0.75 * (0.0288 * N + 13) * mass_i;     // maximum temperature
 //------------------------------------------------------------------------------------------
-
 
 //---------------------------- physical quantities --------------------------------------
 double ang_mom_tot = 0, E_tot = 0;
@@ -63,13 +63,11 @@ double err_E = 0, err_ang_mom = 0;     // errors of physical quantities
 double err_momentum[]{0,0};
 //------------------------------------------------------------------------------------------
 
-//------------------- variables for the computation of the potential -----------------------
-int x_grid_max = int(rho)+100;     // dimensions of the grid
-int y_grid_max = int(rho)+100;
-int delta = 5;     // discretization parameter
-int x_index = 2*x_grid_max/delta + 1;     // indexes of the array that represents the grid
-int y_index = 2*y_grid_max/delta + 1;
-double alpha = 1.2;    // convergence parameter
+//-------------- variables for the computation of the potential (declarations)--------------
+int x_grid_max, y_grid_max;     // dimensions of the grid
+int delta;     // discretization parameter
+int x_index, y_index;     // indexes of the array that represents the grid
+double alpha;    // convergence parameter
 string grid_file("grid");
 string potential_file("potential");
 int i = 97; 
@@ -86,7 +84,20 @@ int main(){
     Config::make_example("config.txt");
     Config::parse("config.txt");
 
-    //------------------------------------- initial conditions -----------------------------
+    //--------- variables for the computation of the potential (initializations) --------------
+    x_grid_max = int(rho)+100;     // dimensions of the grid
+    y_grid_max = int(rho)+100;
+    delta = 5;     // discretization parameter
+    x_index = 2*x_grid_max/delta + 1;     // indexes of the array that represents the grid
+    y_index = 2*y_grid_max/delta + 1;
+    alpha = 1.2;    // convergence parameter
+    //------------------------------------------------------------------------------------------
+
+    //------------------ temperature estimation (initialization)  ------------------------------
+    temp_max = 0.75 * (0.0288 * N + 13) * mass_i;     // maximum temperature
+    //------------------------------------------------------------------------------------------
+
+    //------------------------------------- initial conditions ---------------------------------
     vector<Body> bodies;     // vector of bodies
     double position_i[2];     // initial position and velocity (dummy)
     double velocity_i[2];
@@ -210,7 +221,7 @@ int main(){
     
     }
     //--------------------------------------------------------------------------------------
-
+    
     //---------------- checking conservation and comuputing discrepancies ------------------
     ang_mom_tot=0, E_tot=0;
     momentum_tot[0]=0, momentum_tot[1]=0;
