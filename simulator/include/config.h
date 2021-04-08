@@ -20,6 +20,7 @@ extern std::string filename ;
 class Config
 {
     public :
+        // Parse a config file
         static void parse(std::string filepath)
         {
             std::cout << "Loaded config:" << std::endl;
@@ -45,6 +46,7 @@ class Config
             std::cout << std::endl;
         }
 
+        // Change the main simulator configs
         static void change_var(std::string id, std::string val)
         {
             if( id == "num_bodies")
@@ -89,6 +91,7 @@ class Config
             }
         }
 
+        // Save an example config file
         static void make_example(std::string filepath)
         {
             ifstream file(filepath.c_str());
@@ -110,7 +113,7 @@ class Config
         }
 
     private:
-        Config() = default; //default constructor
+        Config() = default; // Default constructor
 };
 
 #endif
