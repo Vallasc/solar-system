@@ -1,6 +1,8 @@
 {
     "examples": [
-        "example1.sim",
-        "example2.sim"
+        "500.sim",
+        "1500.sim",
+        "2500.sim",
+        "5000.sim"
     ]
 }
