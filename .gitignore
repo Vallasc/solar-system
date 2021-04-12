@@ -26,6 +26,7 @@
 *.lib
 
 build
+!build/app/simulator.exe
 generated
 
 # Executables
