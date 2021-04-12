@@ -30,7 +30,7 @@ build
 generated
 
 # Executables
-*.exe
+#*.exe
 *.out
 *.app
 
