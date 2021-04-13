@@ -433,6 +433,10 @@ class ChartStartup {
                         zaxis: {
                             title: "Arbitrary units"
                         },
+                        /*
+                        yaxis: {
+                            range: [-80,80]
+                        }*/
                     }
                 };
                 Plotly.newPlot('plot2', data, layout);
@@ -1169,7 +1173,6 @@ class Loop {
                 { x: time, y: this.energyFile.getEnergy(this.numIteration, 3) },
                 { x: time, y: this.energyFile.getEnergy(this.numIteration, 4) }
             ]);
-            console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             console.log(this.energyFile.getTime(this.numIteration));
             console.log(this.energyFile.getEnergy(this.numIteration, 0));
             console.log(this.energyFile.getEnergy(this.numIteration, 1));
@@ -1597,7 +1600,7 @@ class Trajectory {
         this.axesOffsetX = 0;
         this.axesOffsetY = 0;
         this.points = [];
-        this.maxSize = 1000;
+        this.maxSize = 6000;
         this.scale = 1;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
