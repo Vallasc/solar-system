@@ -8,7 +8,7 @@ class Trajectory {
     private axesOffsetY: number = 0;
 
     private points : Array<[number, number]> = [];
-    private readonly maxSize : number = 1000;
+    private readonly maxSize : number = 6000;
     private scale : number = 1;
 
     constructor( canvas : HTMLCanvasElement) {
@@ -20,7 +20,7 @@ class Trajectory {
     public addCords(x :number, y : number) : void {
         this.points.push([x, y]);
         if(this.points.length > this.maxSize)
-        this.points.shift();
+            this.points.shift();
         this.drawTrajectory();
     }
 
